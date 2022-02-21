@@ -82,7 +82,9 @@ export function HomePage() {
             )}
           </div>
           <div className={styles.appInfo}>
-            <div className={styles.appDescription}>{configs.translation("app-description")}</div>
+            <div className={styles.appDescription}>
+              <FormattedMessage id="app-description" defaultMessage="Gather share and collaborate together in a virtual, private and safe space" />
+            </div>
             {canCreateRooms && <CreateRoomButton />}
             <PWAButton />
           </div>

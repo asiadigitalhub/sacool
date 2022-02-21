@@ -9,6 +9,13 @@ import { Container } from "./Container";
 import { SocialBar } from "../home/SocialBar";
 import { SignInButton } from "../home/SignInButton";
 
+import { setLocale } from "../../utils/i18n";
+
+// language button clicked
+function onLanguageButtonClicked(language) {
+  setLocale(language); // update language
+}
+
 export function Header({
   appName,
   appLogo,
@@ -82,6 +89,18 @@ export function Header({
                 </a>
               </li>
             )}
+            <li>
+              <button onClick = {()=> onLanguageButtonClicked('vi')} style={{marginLeft: "16px", marginRight: "6px"} }>                
+                  <img src="../../assets/images/flags/icon_flag_vietnam.png" style={{height: '20px', width : '30px'}} />                                                  
+                  
+              </button>
+            </li>
+            <li>
+              <button onClick = {()=> onLanguageButtonClicked('en')}>                
+                  <img src="../../assets/images/flags/icon_flag_us.png" style={{height: '20px', width : '30px'}} />                                                  
+              </button>
+            </li>
+
           </ul>
         </nav>
         <div className={styles.signIn}>

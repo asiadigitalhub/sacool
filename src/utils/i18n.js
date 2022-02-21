@@ -1,6 +1,10 @@
 import configs from "./configs";
 import { AVAILABLE_LOCALES, FALLBACK_LOCALES } from "../assets/locales/locale_config";
 
+// temporarily only support English & Vietnamese
+import en from "../assets/locales/en"
+import vi from "../assets/locales/vi"
+
 // These are set in the admin panel and are only included as fallbacks.
 const defaultLocaleData = {
   "app-name": "App",
@@ -15,7 +19,9 @@ const defaultLocaleData = {
 const DEFAULT_LOCALE = "en";
 const cachedMessages = new Map();
 
-let _locale = DEFAULT_LOCALE;
+const countryCodeMessages = {en : en, vi: vi};
+
+let _locale = "vi"; // starting language
 let _localeData = defaultLocaleData;
 
 function findLocale(locale) {
@@ -103,14 +109,21 @@ export const getMessages = () => {
     return cachedMessages.get(_locale);
   }
 
-  // Swap in translations specified via the admin panel
-  if (configs.APP_CONFIG && configs.APP_CONFIG.translations && configs.APP_CONFIG.translations[_locale]) {
-    const configTranslations = configs.APP_CONFIG.translations[_locale];
-    for (const messageKey in configTranslations) {
-      if (!configTranslations.hasOwnProperty(messageKey)) continue;
-      if (!configTranslations[messageKey]) continue;
-      _localeData[messageKey] = configTranslations[messageKey];
-    }
+  // // Swap in translations specified via the admin panel
+  // if (configs.APP_CONFIG && configs.APP_CONFIG.translations && configs.APP_CONFIG.translations[_locale]) {
+  //   const configTranslations = configs.APP_CONFIG.translations[_locale];
+  //   for (const messageKey in configTranslations) {
+  //     if (!configTranslations.hasOwnProperty(messageKey)) continue;
+  //     if (!configTranslations[messageKey]) continue;
+  //     _localeData[messageKey] = configTranslations[messageKey];
+  //   }
+  // }
+
+  // load messages from json
+  if (countryCodeMessages[_locale]) {
+    _localeData = countryCodeMessages[_locale];
+  } else {
+    _localeData = countryCodeMessages[DEFAULT_LOCALE];
   }
 
   const entries = [];
