@@ -20,6 +20,8 @@ import { setMatrixWorld } from "../utils/three-utils";
 import { isSafari } from "../utils/detect-safari";
 import { SourceType } from "../components/audio-params";
 
+import URL_TEST_AUTO_PLAY from "../assets/sfx/test_auto_play.mp3";
+
 let soundEnum = 0;
 export const SOUND_HOVER_OR_GRAB = soundEnum++;
 export const SOUND_THAW = soundEnum++;
@@ -47,6 +49,7 @@ export const SOUND_CAMERA_TOOL_COUNTDOWN = soundEnum++;
 export const SOUND_PREFERENCE_MENU_HOVER = soundEnum++;
 export const SOUND_SPAWN_EMOJI = soundEnum++;
 export const SOUND_SPEAKER_TONE = soundEnum++;
+export const SOUND_TEST_AUTO_PLAY = soundEnum++;
 
 // Safari doesn't support the promise form of decodeAudioData, so we polyfill it.
 function decodeAudioData(audioContext, arrayBuffer) {
@@ -79,7 +82,7 @@ export class SoundEffectsSystem {
       [SOUND_WAYPOINT_END, URL_TICK],
       [SOUND_SNAP_ROTATE, URL_TAP_MELLOW],
       [SOUND_SPAWN_PEN, URL_PEN_SPAWN],
-      [SOUND_PEN_START_DRAW, URL_PEN_DRAW],
+      [SOUND_PEN_START_DRAW, URL_PEN_DRAW],      
       [SOUND_CAMERA_TOOL_TOOK_SNAPSHOT, URL_CAMERA_SNAPSHOT],
       [SOUND_ENTER_SCENE, URL_WELCOME],
       [SOUND_QUACK, URL_QUACK],
@@ -91,7 +94,8 @@ export class SoundEffectsSystem {
       [SOUND_MEDIA_LOADED, URL_MEDIA_LOADED],
       [SOUND_PREFERENCE_MENU_HOVER, URL_FREEZE],
       [SOUND_SPAWN_EMOJI, URL_SPAWN_EMOJI],
-      [SOUND_SPEAKER_TONE, URL_SPEAKER_TONE]
+      [SOUND_SPEAKER_TONE, URL_SPEAKER_TONE],
+      [SOUND_TEST_AUTO_PLAY, URL_TEST_AUTO_PLAY],
     ];
     const loading = new Map();
     const load = url => {

@@ -20,7 +20,7 @@ import {
 } from "./utils/vr-interstitial";
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
-import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
+import { SOUND_ENTER_SCENE, SOUND_TEST_AUTO_PLAY } from "./systems/sound-effects-system";
 import { MediaDevices, MediaDevicesEvents } from "./utils/media-devices-utils";
 
 const isIOS = detectIOS();
@@ -89,9 +89,11 @@ export default class SceneEntryManager {
     if (qsTruthy("offline")) return;
 
     this._spawnAvatar();
-
-    this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_ENTER_SCENE);
-
+    var self = this;
+    // this.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_ENTER_SCENE)
+    // play the starting audio        
+    this.startingSoundNode = self.scene.systems["hubs-systems"].soundEffectsSystem.playSoundOneShot(SOUND_TEST_AUTO_PLAY);  
+    
     if (isBotMode) {
       this._runBot();
       this.scene.addState("entered");
