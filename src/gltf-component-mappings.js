@@ -288,6 +288,7 @@ async function mediaInflator(el, componentName, componentData, components) {
 
   const src = componentName === "link" ? componentData.href : componentData.src;
 
+  console.log('Setup src ' ,src);
   el.setAttribute("media-loader", {
     src: sanitizeUrl(src),
     fitToBox: true,
