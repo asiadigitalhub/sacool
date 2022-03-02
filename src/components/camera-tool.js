@@ -115,7 +115,7 @@ AFRAME.registerComponent("camera-tool", {
     this.camera.rotation.set(0, Math.PI, 0);
     this.camera.position.set(0, 0, 0.05);
     this.camera.matrixNeedsUpdate = true;
-    this.el.setObject3D("camera", this.camera);
+    // this.el.setObject3D("camera", this.camera);
 
     const material = new THREE.MeshBasicMaterial({
       map: this.renderTarget.texture
@@ -133,8 +133,8 @@ AFRAME.registerComponent("camera-tool", {
     this.el.sceneEl.addEventListener("stateremoved", () => this.updateUI());
 
     cameraModelPromise.then(model => {
-      const mesh = cloneObject3D(model.scene);
-      mesh.scale.set(2, 2, 2);
+      const mesh = cloneObject3D(model.scene); // mesh is the camera 3d object
+      mesh.scale.set(0, 0, 0); // hide the camera 3d object
       mesh.matrixNeedsUpdate = true;
       this.el.setObject3D("mesh", mesh);
 
@@ -186,17 +186,19 @@ AFRAME.registerComponent("camera-tool", {
       const width = 0.28;
       const geometry = new THREE.PlaneBufferGeometry(width, width / this.camera.aspect);
 
-      this.screen = new THREE.Mesh(geometry, material);
-      this.screen.rotation.set(0, Math.PI, 0);
-      this.screen.position.set(0, 0, -0.042);
-      this.screen.matrixNeedsUpdate = true;
-      this.el.setObject3D("screen", this.screen);
+      // // add center screen
+      // this.screen = new THREE.Mesh(geometry, material);
+      // this.screen.rotation.set(0, Math.PI, 0);
+      // this.screen.position.set(0, 0, -0.042);
+      // this.screen.matrixNeedsUpdate = true;
+      // this.el.setObject3D("screen", this.screen);
 
-      this.selfieScreen = new THREE.Mesh(geometry, material);
-      this.selfieScreen.position.set(0, 0.4, 0);
-      this.selfieScreen.scale.set(-2, 2, 2);
-      this.selfieScreen.matrixNeedsUpdate = true;
-      this.el.setObject3D("selfieScreen", this.selfieScreen);
+      // // add top selfie screen
+      // this.selfieScreen = new THREE.Mesh(geometry, material);
+      // this.selfieScreen.position.set(0, 0.4, 0);
+      // this.selfieScreen.scale.set(-2, 2, 2);
+      // this.selfieScreen.matrixNeedsUpdate = true;
+      // this.el.setObject3D("selfieScreen", this.selfieScreen);
 
       this.label = this.el.querySelector(".label");
       this.labelActionBackground = this.el.querySelector(".label-action-background");
@@ -655,7 +657,8 @@ AFRAME.registerComponent("camera-tool", {
         }
 
         renderer.setRenderTarget(this.renderTarget);
-        renderer.render(sceneEl.object3D, this.camera);
+        // display screen
+        renderer.render(sceneEl.object3D, this.playerCamera); // render with player's camera
         renderer.setRenderTarget(null);
 
         renderer.xr.enabled = tmpVRFlag;

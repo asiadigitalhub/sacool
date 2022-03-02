@@ -1,4 +1,11 @@
+///Firebase import
+
+import {firebaseDatabase} from "../hub";
+import { getDatabase , ref, onValue} from "firebase/database";
+
+
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
+import { sanitizeUrl } from "@braintree/sanitize-url";
 import {
   resolveUrl,
   getDefaultResolveQuality,
@@ -71,6 +78,7 @@ AFRAME.registerComponent("media-loader", {
     this.refresh = this.refresh.bind(this);
     this.animating = false;
 
+
     try {
       NAF.utils
         .getNetworkedEntity(this.el)
@@ -81,6 +89,20 @@ AFRAME.registerComponent("media-loader", {
     } catch (e) {
       // NAF may not exist on scene landing page
     }
+    console.log('init data ' ,this.data);
+    console.log('this.el.object3D.name data ' ,this.el.object3D.name);
+
+    //Listen Videos node
+
+    const videoRef = ref(firebaseDatabase, 'videos/'+this.el.object3D.name);
+    onValue(videoRef, (snapshot) => {
+      const data = snapshot.val();
+      if(data.src ){
+        //https://asiahubmeta-assets.asiahubmeta.com/files/8234dca5-55f5-499e-9d55-a7cdda33e8bf.mp4
+        console.log("data.src  ",data.src);
+        this.refresh(data.src)
+      }
+    });
   },
 
   updateScale: (function() {
@@ -308,24 +330,32 @@ AFRAME.registerComponent("media-loader", {
     }
   },
 
-  refresh() {
+  refresh(newSrc) {
     if (this.networkedEl && !NAF.utils.isMine(this.networkedEl) && !NAF.utils.takeOwnership(this.networkedEl)) return;
 
     // When we refresh, we bump the version to the current timestamp.
     //
     // The only use-case for refresh right now is re-fetching screenshots.
-    this.el.setAttribute("media-loader", { version: Math.floor(Date.now() / 1000) });
+    
+    this.el.setAttribute("media-loader", { version: Math.floor(Date.now() / 1000),src: sanitizeUrl(newSrc) });
   },
+
 
   async update(oldData, forceLocalRefresh) {
     const { version, contentSubtype } = this.data;
     let src = this.data.src;
     if (!src) return;
 
+    if(this.el.object3D.name=='video'){
+      console.log('Src ---- ', src);
+      // src = 'https://asiahubmeta-assets.asiahubmeta.com/files/8234dca5-55f5-499e-9d55-a7cdda33e8bf.mp4';
+    }
+
     const srcChanged = oldData.src !== src;
     const versionChanged = !!(oldData.version && oldData.version !== version);
 
     if (versionChanged) {
+      console.log('Version change ');
       this.el.emit("media_refreshing");
 
       // Don't animate if its a refresh.
@@ -410,6 +440,22 @@ AFRAME.registerComponent("media-loader", {
       } else {
         this.el.emit("media_refreshed", { src, raw: accessibleUrl, contentType });
       }
+
+      
+      const localRefresh = this.refresh;
+
+      console.log('contentType ',contentType);
+      console.log('Object name ',this.el.object3D.name);
+      if(this.el.object3D.name=='video'){
+        document.addEventListener("keypress", function(event) {
+            console.log(event.key);
+            if(event.key == 'r'){
+              localRefresh();
+            }
+          });
+      }
+  
+
 
       if (
         contentType.startsWith("video/") ||

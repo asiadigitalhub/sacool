@@ -7,6 +7,7 @@ translations.en."company-name" = { category = "translations", type = "string", n
 translations.en."share-hashtag" = { category = "translations", type = "string", name = "Share Hashtag", description = "Hashtag used in share messages." }
 translations.en."contact-email" = { category = "translations", type = "string", name = "Contact email", description = "General contact email." }
 translations.en."settings.community" = { category = "translations", type = "string", name = "Community Prompt", description = "Prompt for joining your community." }
+translations.en."settings.phone" = { category = "translations", type = "string", name = "Phone number", description = "General phone number." }
 
 translations.en."app-full-name" = { category = "translations", type = "string", internal = "true" }
 translations.en."app-twitter-user" = { category = "translations", type = "string", internal = "true" }
@@ -54,6 +55,7 @@ images.app_icon = { category = "images", type = "file", name = "App Icon", descr
 images.app_thumbnail = { category = "images", type = "file", name = "App Thumbnail", description = "Thumbnail for app." }
 images.company_logo = { category = "images", type = "file", name = "Company Logo", description = "Company logo used across the app." }
 images.home_background = { category = "images", type = "file", name = "Home background", description = "Background image on the home page." }
+images.phone_icon = { category = "images", type = "file", name = "Phone icon", description = "Icon for phone number." }
 
 images.editor_logo = { category = "images", type = "file", internal = "true" }
 images.landing_rooms_thumb = { category = "images", type = "file", internal = "true" }
