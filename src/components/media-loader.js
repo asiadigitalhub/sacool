@@ -1,5 +1,4 @@
 ///Firebase import
-import {firebaseDatabase} from "../hub";
 import { getVideoRef } from "../utils/firebase-util";
 import { ref, onValue} from "firebase/database";
 

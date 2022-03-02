@@ -373,22 +373,6 @@ export function remountUI(props) {
 }
 
 
-
-//Init Firebase config
-const app = initializeApp(firebaseConfig);
-// Get a reference to the database service
-export const firebaseDatabase = getDatabase(app);
-
-export async function initFirebase(){
-
-  const roomRef = ref(firebaseDatabase, 'rooms');
-  onValue(roomRef, (snapshot) => {
-    const data = snapshot.val();
-    console.log("datadata ",data);
-  });
-
-}
-
 export async function getSceneUrlForHub(hub) {
   let sceneUrl;
   let isLegacyBundle; // Deprecated
@@ -403,7 +387,6 @@ export async function getSceneUrlForHub(hub) {
      */
     // sceneUrl = "https://asiahubmeta-assets.asiahubmeta.com/files/08c94286-3b5f-4ba8-9316-19dc14fbc009.glb";
 
-    initFirebase();
   } else if (hub.scene === null) {
     // delisted/removed scene
     sceneUrl = loadingEnvironment;

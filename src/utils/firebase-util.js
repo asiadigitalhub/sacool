@@ -1,7 +1,8 @@
 
 ///Firebase import
-import {firebaseDatabase} from "../hub";
 import { ref } from "firebase/database";
+
+
 
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
@@ -13,6 +14,13 @@ export const firebaseConfig = {
   appId: "1:737531674288:web:92e0dea04a550f963ec575",
   measurementId: "G-VLET9B2MS9"
 };
+
+
+//Init Firebase config
+const app = initializeApp(firebaseConfig);
+// Get a reference to the database service
+export const firebaseDatabase = getDatabase(app);
+
 
 /**
  * 
