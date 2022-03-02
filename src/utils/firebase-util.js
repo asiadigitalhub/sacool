@@ -21,5 +21,5 @@ export const firebaseConfig = {
  * @returns 
  */
 export function getVideoRef(videoName) {
-  return ref(firebaseDatabase,window.APP.hubChannel.hubId+ '/videos/'+videoName);
+  return ref(firebaseDatabase,"/rooms/"+window.APP.hubChannel.hubId+ '/videos/'+videoName);
 }
