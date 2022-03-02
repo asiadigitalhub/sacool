@@ -1080,7 +1080,8 @@ class PreferencesScreen extends Component {
                 })
               }
             ],
-            defaultString: defaultMaterialQualitySetting,
+            // defaultString: 'defaultMaterialQualitySetting',
+            defaultString: 'medium',
             promptForRefresh: true
           },
           {
