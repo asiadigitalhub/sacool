@@ -13,6 +13,7 @@ import "@babel/polyfill";
 import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { getDatabase , ref, onValue} from "firebase/database";
+import { firebaseConfig } from "./utils/firebase-util";
 
 console.log(
   `App version: ${
@@ -371,17 +372,9 @@ export function remountUI(props) {
   mountUI(uiProps);
 }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
-  authDomain: "fir-virtual-meeting.firebaseapp.com",
-  databaseURL: "https://fir-virtual-meeting-default-rtdb.firebaseio.com",
-  projectId: "fir-virtual-meeting",
-  storageBucket: "fir-virtual-meeting.appspot.com",
-  messagingSenderId: "737531674288",
-  appId: "1:737531674288:web:92e0dea04a550f963ec575",
-  measurementId: "G-VLET9B2MS9"
-};
 
+
+//Init Firebase config
 const app = initializeApp(firebaseConfig);
 // Get a reference to the database service
 export const firebaseDatabase = getDatabase(app);
@@ -402,7 +395,13 @@ export async function getSceneUrlForHub(hub) {
   if (hub.scene) {
     isLegacyBundle = false;
     sceneUrl = hub.scene.model_url;
-    sceneUrl = "https://asiahubmeta-assets.asiahubmeta.com/files/08c94286-3b5f-4ba8-9316-19dc14fbc009.glb";
+
+
+    /**
+     * Auth: Duy 
+     * TODO: will remove when deploy 
+     */
+    // sceneUrl = "https://asiahubmeta-assets.asiahubmeta.com/files/08c94286-3b5f-4ba8-9316-19dc14fbc009.glb";
 
     initFirebase();
   } else if (hub.scene === null) {

@@ -1,5 +1,13 @@
 /* global performance THREE AFRAME NAF MediaStream setTimeout */
+
+///Firebase import
+import {firebaseDatabase} from "../hub";
+import { ref, onValue, update} from "firebase/database";
+
+
+
 import configs from "../utils/configs";
+import { getVideoRef } from "../utils/firebase-util";
 import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
@@ -29,6 +37,12 @@ const TYPE_IMG_PNG = { type: "image/png" };
 
 const isIOS = detectIOS();
 const audioIconTexture = new HubsTextureLoader().load(audioIcon);
+
+/**
+ * Auth: Duy 
+ * update feature : Only Admin can interact with Video Controler
+ */
+const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 export const VOLUME_LABELS = [];
 for (let i = 0; i <= 20; i++) {
@@ -66,12 +80,13 @@ AFRAME.registerComponent("media-video", {
     time: { type: "number" },
     tickRate: { default: 1000 }, // ms interval to send time interval updates
     syncTolerance: { default: 2 },
+    isModerator : { default: false },
     linkedVideoTexture: { default: null },
     linkedAudioSource: { default: null },
     linkedMediaElementAudioSource: { default: null }
   },
 
-  init() {
+  init() { 
     APP.gainMultipliers.set(this.el, 1);
     this.onPauseStateChange = this.onPauseStateChange.bind(this);
     this.updateHoverMenu = this.updateHoverMenu.bind(this);
@@ -98,35 +113,44 @@ AFRAME.registerComponent("media-video", {
     this.onSnapImageLoaded = () => (this.isSnapping = false);
     this.hasAudioTracks = false;
 
-    this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
-    this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
-      // If we got removed while waiting, do nothing.
-      if (!this.el.parentNode) return;
 
-      this.hoverMenu = menu;
 
-      this.playbackControls = this.el.querySelector(".video-playback");
-      this.playPauseButton = this.el.querySelector(".video-playpause-button");
-      this.volumeUpButton = this.el.querySelector(".video-volume-up-button");
-      this.volumeDownButton = this.el.querySelector(".video-volume-down-button");
-      this.seekForwardButton = this.el.querySelector(".video-seek-forward-button");
-      this.seekBackButton = this.el.querySelector(".video-seek-back-button");
-      this.snapButton = this.el.querySelector(".video-snap-button");
-      this.timeLabel = this.el.querySelector(".video-time-label");
-      this.volumeLabel = this.el.querySelector(".video-volume-label");
-      this.linkButton = this.el.querySelector(".video-link-button");
+    /**
+     * Auth: Duy 
+     * update feature : Only Admin can interact with Video Controler
+     */
+    this.isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users") && !isMobileVR;
+    if(this.isModerator){
+      this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
+      this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
+        // If we got removed while waiting, do nothing.
+        if (!this.el.parentNode) return;
 
-      this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
-      this.seekForwardButton.object3D.addEventListener("interact", this.seekForward);
-      this.seekBackButton.object3D.addEventListener("interact", this.seekBack);
-      this.volumeUpButton.object3D.addEventListener("interact", this.volumeUp);
-      this.volumeDownButton.object3D.addEventListener("interact", this.volumeDown);
-      this.snapButton.object3D.addEventListener("interact", this.snap);
+        this.hoverMenu = menu;
 
-      this.updateVolumeLabel();
-      this.updateHoverMenu();
-      this.updatePlaybackState();
-    });
+        this.playbackControls = this.el.querySelector(".video-playback");
+        this.playPauseButton = this.el.querySelector(".video-playpause-button");
+        this.volumeUpButton = this.el.querySelector(".video-volume-up-button");
+        this.volumeDownButton = this.el.querySelector(".video-volume-down-button");
+        this.seekForwardButton = this.el.querySelector(".video-seek-forward-button");
+        this.seekBackButton = this.el.querySelector(".video-seek-back-button");
+        this.snapButton = this.el.querySelector(".video-snap-button");
+        this.timeLabel = this.el.querySelector(".video-time-label");
+        this.volumeLabel = this.el.querySelector(".video-volume-label");
+        this.linkButton = this.el.querySelector(".video-link-button");
+
+        this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
+        this.seekForwardButton.object3D.addEventListener("interact", this.seekForward);
+        this.seekBackButton.object3D.addEventListener("interact", this.seekBack);
+        this.volumeUpButton.object3D.addEventListener("interact", this.volumeUp);
+        this.volumeDownButton.object3D.addEventListener("interact", this.volumeDown);
+        this.snapButton.object3D.addEventListener("interact", this.snap);
+
+        this.updateVolumeLabel();
+        this.updateHoverMenu();
+        this.updatePlaybackState();
+      });
+  }
 
     NAF.utils
       .getNetworkedEntity(this.el)
@@ -210,6 +234,19 @@ AFRAME.registerComponent("media-video", {
   changeVolumeBy(v) {
     let gainMultiplier = APP.gainMultipliers.get(this.el);
     gainMultiplier = THREE.Math.clamp(gainMultiplier + v, 0, MAX_MULTIPLIER);
+    console.log('gainMultiplier ',gainMultiplier);
+    APP.gainMultipliers.set(this.el, gainMultiplier);
+    this.updateVolumeLabel();
+    const audio = APP.audios.get(this.el);
+    if (audio) {
+      updateAudioSettings(this.el, audio);
+    }
+  },
+
+  updateVolumnFromFirebase(v) {
+    let gainMultiplier = APP.gainMultipliers.get(this.el);
+    gainMultiplier = THREE.Math.clamp(v, 0, MAX_MULTIPLIER);
+    
     APP.gainMultipliers.set(this.el, gainMultiplier);
     this.updateVolumeLabel();
     const audio = APP.audios.get(this.el);
@@ -220,10 +257,28 @@ AFRAME.registerComponent("media-video", {
 
   volumeUp() {
     this.changeVolumeBy(0.2);
+
+    /**
+     * Sync volumn value to Firebase Database
+     */
+    let gainMultiplier = APP.gainMultipliers.get(this.el);
+    const updates = {};
+    updates['/volumn'] = gainMultiplier;
+    update(getVideoRef(this.el.object3D.name), updates);
+    
+
   },
 
   volumeDown() {
     this.changeVolumeBy(-0.2);
+
+     /**
+     * Sync volumn value to Firebase Database
+     */
+    let gainMultiplier = APP.gainMultipliers.get(this.el);
+    const updates = {};
+    updates['/volumn'] = gainMultiplier;
+    update(getVideoRef(this.el.object3D.name), updates);
   },
 
   async snap() {
@@ -370,6 +425,24 @@ AFRAME.registerComponent("media-video", {
 
     APP.audios.set(this.el, this.audio);
     updateAudioSettings(this.el, this.audio);
+
+
+    /**
+   * Auth: Duy 
+   * update feature : Sync Videos src by Firebase Realtime Database
+   */
+     const videoRef = getVideoRef(this.el.object3D.name);
+     //Listen Videos node
+     onValue(videoRef, (snapshot) => {
+       const data = snapshot.val();
+       if(data && (data.volumn || data.volumn == 0) ){
+         console.log(this.el.object3D.name +" data.volumn   ",data.volumn );
+         this.updateVolumnFromFirebase(data.volumn);
+       }else{
+         //0.5 is default Volumn value
+        this.updateVolumnFromFirebase(0.5);
+       }
+     });
   },
 
   async updateSrc(oldData) {
@@ -726,6 +799,7 @@ AFRAME.registerComponent("media-video", {
   updateHoverMenu() {
     if (!this.hoverMenu) return;
 
+
     const mediaLoader = this.el.components["media-loader"].data;
     const pinnableElement = mediaLoader.linkedEl || this.el;
     const isPinned = pinnableElement.components.pinnable && pinnableElement.components.pinnable.data.pinned;
@@ -751,6 +825,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   updateVolumeLabel() {
+    if (!this.hoverMenu) return;
     const gainMultiplier = APP.gainMultipliers.get(this.el);
     this.volumeLabel.setAttribute(
       "text",

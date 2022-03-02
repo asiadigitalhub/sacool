@@ -1,7 +1,7 @@
 ///Firebase import
-
 import {firebaseDatabase} from "../hub";
-import { getDatabase , ref, onValue} from "firebase/database";
+import { getVideoRef } from "../utils/firebase-util";
+import { ref, onValue} from "firebase/database";
 
 
 import { computeObjectAABB, getBox, getScaleCoefficient } from "../utils/auto-box-collider";
@@ -92,12 +92,16 @@ AFRAME.registerComponent("media-loader", {
     console.log('init data ' ,this.data);
     console.log('this.el.object3D.name data ' ,this.el.object3D.name);
 
+    
+  /**
+   * Auth: Duy 
+   * update feature : Sync Videos src by Firebase Realtime Database
+   */
+    const videoRef = getVideoRef(this.el.object3D.name);
     //Listen Videos node
-
-    const videoRef = ref(firebaseDatabase, 'videos/'+this.el.object3D.name);
     onValue(videoRef, (snapshot) => {
       const data = snapshot.val();
-      if(data.src ){
+      if(data && data.src ){
         //https://asiahubmeta-assets.asiahubmeta.com/files/8234dca5-55f5-499e-9d55-a7cdda33e8bf.mp4
         console.log("data.src  ",data.src);
         this.refresh(data.src)
