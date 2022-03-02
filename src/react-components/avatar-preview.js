@@ -289,7 +289,7 @@ class AvatarPreview extends Component {
       ];
 
       // Low and medium quality materials don't use environment maps
-      if (window.APP.store.materialQualitySetting === "high") { 
+      if (window.APP.store.materialQualitySetting === "high") {  
         dependencies.push(
           // TODO apply environment map to secondary materials as well
           createDefaultEnvironmentMap().then(t => {
