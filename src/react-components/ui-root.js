@@ -1120,12 +1120,13 @@ class UIRoot extends Component {
                   this.setState({ signedIn: false });
                 }
               }
-            : {
-                id: "sign-in",
-                label: <FormattedMessage id="more-menu.sign-in" defaultMessage="Sign In" />,
-                icon: EnterIcon,
-                onClick: () => this.showContextualSignInDialog()
-              },
+            : 
+            // {
+            //     id: "sign-in",
+            //     label: <FormattedMessage id="more-menu.sign-in" defaultMessage="Sign In" />,
+            //     icon: EnterIcon,
+            //     onClick: () => this.showContextualSignInDialog()
+            //   },
           // canCreateRoom && {
           //   id: "create-room",
           //   label: <FormattedMessage id="more-menu.create-room" defaultMessage="Create Room" />,
