@@ -1561,13 +1561,20 @@ class UIRoot extends Component {
                           scene={this.props.scene}
                           microphoneEnabled={this.mediaDevicesManager.isMicShared}
                         />
-                        {/* {isModerator &&  <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />} */}
-                        <PlacePopoverContainer
+
+                        {
+                    /**
+                     * Auth: Duy 
+                     * Update: only Admin and Moderator can Share and Place Media
+                     */
+                        }
+                      {isModerator &&  <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />}
+                      {isModerator &&  <PlacePopoverContainer
                           scene={this.props.scene}
                           hubChannel={this.props.hubChannel}
                           mediaSearchStore={this.props.mediaSearchStore}
                           showNonHistoriedDialog={this.showNonHistoriedDialog}
-                        />
+                        />}
                         {this.props.hubChannel.can("spawn_emoji") && <ReactionPopoverContainer />}
                       </>
                     )}

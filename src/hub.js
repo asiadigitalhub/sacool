@@ -8,11 +8,7 @@ import "./utils/debug-log";
 import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getDatabase , ref, onValue} from "firebase/database";
+import { firebaseConfig } from "./utils/firebase-util";
 
 console.log(
   `App version: ${
@@ -371,30 +367,6 @@ export function remountUI(props) {
   mountUI(uiProps);
 }
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
-  authDomain: "fir-virtual-meeting.firebaseapp.com",
-  databaseURL: "https://fir-virtual-meeting-default-rtdb.firebaseio.com",
-  projectId: "fir-virtual-meeting",
-  storageBucket: "fir-virtual-meeting.appspot.com",
-  messagingSenderId: "737531674288",
-  appId: "1:737531674288:web:92e0dea04a550f963ec575",
-  measurementId: "G-VLET9B2MS9"
-};
-
-const app = initializeApp(firebaseConfig);
-// Get a reference to the database service
-export const firebaseDatabase = getDatabase(app);
-
-export async function initFirebase(){
-
-  const roomRef = ref(firebaseDatabase, 'rooms');
-  onValue(roomRef, (snapshot) => {
-    const data = snapshot.val();
-    console.log("datadata ",data);
-  });
-
-}
 
 export async function getSceneUrlForHub(hub) {
   let sceneUrl;
@@ -402,9 +374,14 @@ export async function getSceneUrlForHub(hub) {
   if (hub.scene) {
     isLegacyBundle = false;
     sceneUrl = hub.scene.model_url;
-    sceneUrl = "https://asiahubmeta-assets.asiahubmeta.com/files/08c94286-3b5f-4ba8-9316-19dc14fbc009.glb";
 
-    initFirebase();
+
+    /**
+     * Auth: Duy 
+     * TODO: will remove when deploy 
+     */
+    // sceneUrl = "https://asiahubmeta-assets.asiahubmeta.com/files/08c94286-3b5f-4ba8-9316-19dc14fbc009.glb";
+
   } else if (hub.scene === null) {
     // delisted/removed scene
     sceneUrl = loadingEnvironment;
