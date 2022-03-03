@@ -8,11 +8,6 @@ import "./utils/debug-log";
 import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
-
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getDatabase , ref, onValue} from "firebase/database";
 import { firebaseConfig } from "./utils/firebase-util";
 
 console.log(
