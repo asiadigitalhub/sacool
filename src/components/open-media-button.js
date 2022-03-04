@@ -2,7 +2,6 @@ import { isLocalHubsUrl, isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUr
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 import { changeHub } from "../change-hub";
-import { FormattedMessage } from "react-intl";
 
 AFRAME.registerComponent("open-media-button", {
   schema: {
@@ -21,7 +20,7 @@ AFRAME.registerComponent("open-media-button", {
       this.el.object3D.visible = !!visible;
 
       if (visible) {
-        let label = <FormattedMessage id="room.open-link" defaultMessage="Open link" />;
+        let label = "Open link";
         if (!this.data.onlyOpenLink) {
           let hubId;
           if (await isLocalHubsAvatarUrl(src)) {
