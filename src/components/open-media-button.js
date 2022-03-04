@@ -2,6 +2,7 @@ import { isLocalHubsUrl, isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUr
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 import { changeHub } from "../change-hub";
+import { FormattedMessage } from "react-intl";
 
 AFRAME.registerComponent("open-media-button", {
   schema: {
