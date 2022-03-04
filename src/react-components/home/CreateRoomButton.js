@@ -18,7 +18,7 @@ export function CreateRoomButton() {
         tag.classList.add('popupSafari')
         const add = "<p class='close'> " 
         const add1 = "</p>"
-        const para = document.createElement("div");
+        const para = document.createElement("div"); 
         para.classList.add('popupSafari')
         
         if(/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && window['safari'].pushNotification)) == true){
