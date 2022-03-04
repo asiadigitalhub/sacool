@@ -95,6 +95,8 @@ import { TipContainer, FullscreenTip } from "./room/TipContainer";
 import { SpectatingLabel } from "./room/SpectatingLabel";
 import { SignInMessages } from "./auth/SignInModal";
 
+import { setLocale } from "../utils/i18n";
+
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
 const IN_ROOM_MODAL_ROUTER_PATHS = ["/media"];
@@ -1537,7 +1539,7 @@ class UIRoot extends Component {
                 toolbarCenter={
                   <>
                     {watching && (
-                      <>
+                      <>                      
                         <ToolbarButton
                           icon={<EnterIcon />}
                           label={<FormattedMessage id="toolbar.join-room-button" defaultMessage="Join Room" />}
@@ -1594,6 +1596,20 @@ class UIRoot extends Component {
                 }
                 toolbarRight={
                   <>
+                  {/* add Vietnamese flag */}
+                    <ToolbarButton
+                      icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
+                      onClick={() => {
+                        setLocale('vi');
+                      }}
+                    />
+                    {/* add USA flag */}
+                    <ToolbarButton
+                      icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
+                      onClick={() => {
+                        setLocale('en');
+                      }}
+                    />                    
                     {entered &&
                       isMobileVR && (
                         <ToolbarButton

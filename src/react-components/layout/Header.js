@@ -11,11 +11,6 @@ import { SignInButton } from "../home/SignInButton";
 
 import { setLocale } from "../../utils/i18n";
 
-// language button clicked
-function onLanguageButtonClicked(language) {
-  setLocale(language); // update language
-}
-
 export function Header({
   appName,
   appLogo,
@@ -90,13 +85,13 @@ export function Header({
               </li>
             )}
             <li>
-              <button onClick = {()=> onLanguageButtonClicked('vi')} style={{marginLeft: "16px", marginRight: "6px"} }>                
+              <button onClick = {()=> setLocale('vi')} style={{marginLeft: "16px", marginRight: "6px"} }>                
                   <img src="../../assets/images/flags/icon_flag_vietnam.png" style={{height: '20px', width : '30px'}} />                                                  
                   
               </button>
             </li>
             <li>
-              <button onClick = {()=> onLanguageButtonClicked('en')}>                
+              <button onClick = {()=> setLocale('en')}>                
                   <img src="../../assets/images/flags/icon_flag_us.png" style={{height: '20px', width : '30px'}} />                                                  
               </button>
             </li>
