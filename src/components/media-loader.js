@@ -447,19 +447,6 @@ AFRAME.registerComponent("media-loader", {
       
       const localRefresh = this.refresh;
 
-      console.log('contentType ',contentType);
-      console.log('Object name ',this.el.object3D.name);
-      if(this.el.object3D.name=='video'){
-        document.addEventListener("keypress", function(event) {
-            console.log(event.key);
-            if(event.key == 'r'){
-              localRefresh();
-            }
-          });
-      }
-  
-
-
       if (
         contentType.startsWith("video/") ||
         contentType.startsWith("audio/") ||
