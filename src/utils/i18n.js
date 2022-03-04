@@ -1,4 +1,3 @@
-import configs from "./configs";
 import { AVAILABLE_LOCALES, FALLBACK_LOCALES } from "../assets/locales/locale_config";
 
 // temporarily only support English & Vietnamese
@@ -6,17 +5,18 @@ import en from "../assets/locales/en"
 import vi from "../assets/locales/vi"
 
 // These are set in the admin panel and are only included as fallbacks.
-const defaultLocaleData = {
-  "app-name": "App",
-  "editor-name": "Scene Editor",
-  "contact-email": "app@company.com",
-  "company-name": "Company",
-  "share-hashtag": "#app",
-  "app-description": "Gather share and collaborate together in a virtual, private and safe space",
-  "app-tagline": "Private social VR in your web browser"
-};
+const defaultLocaleData = vi;
+// {
+//     "app-name": "App",
+//   "editor-name": "Scene Editor",
+//   "contact-email": "app@company.com",
+//   "company-name": "Company",
+//   "share-hashtag": "#app",
+//   "app-description": "Gather share and collaborate together in a virtual, private and safe space",
+//   "app-tagline": "Private social VR in your web browser"
+// };
 
-const DEFAULT_LOCALE = "en";
+const DEFAULT_LOCALE = "vi";
 const cachedMessages = new Map();
 
 const countryCodeMessages = {en : en, vi: vi};
@@ -67,6 +67,9 @@ function findLocale(locale) {
 export function setLocale(locale) {
   const resolvedLocale = findLocale(locale);
 
+  // update locale in cookie
+  window.APP.store.update({ preferences: { locale: resolvedLocale } });
+  
   if (resolvedLocale === DEFAULT_LOCALE) {
     _locale = resolvedLocale;
     _localeData = defaultLocaleData;
@@ -85,17 +88,20 @@ export function setLocale(locale) {
   }
 }
 
-const interval = window.setInterval(() => {
-  if (window.APP && window.APP.store) {
-    window.clearInterval(interval);
-    setLocale(window.APP.store.state.preferences.locale);
-    window.APP.store.addEventListener("statechanged", () => {
-      setLocale(window.APP.store.state.preferences.locale);
-    });
-  }
-}, 100);
+// const interval = window.setInterval(() => {
+//   if (window.APP && window.APP.store) {
+//     window.clearInterval(interval);
+//     setLocale(window.APP.store.state.preferences.locale);
+//     window.APP.store.addEventListener("statechanged", () => {
+//       setLocale(window.APP.store.state.preferences.locale);
+//     });
+//   }
+// }, 100);
 
 export const getLocale = () => {
+  // get locale from cookie
+  if (window.APP.store.state.preferences.locale)
+    _locale = window.APP.store.state.preferences.locale;
   return _locale;
 };
 
