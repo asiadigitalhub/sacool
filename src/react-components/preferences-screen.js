@@ -10,7 +10,7 @@ import styles from "../assets/stylesheets/preferences-screen.scss";
 import { defaultMaterialQualitySetting } from "../storage/store";
 import { AVAILABLE_LOCALES } from "../assets/locales/locale_config";
 import { themes } from "./styles/theme";
-
+import { setLocale } from "../utils/i18n";
 export const CLIPPING_THRESHOLD_ENABLED = false;
 export const CLIPPING_THRESHOLD_MIN = 0.0;
 export const CLIPPING_THRESHOLD_MAX = 0.1;
@@ -698,6 +698,10 @@ function createItem(itemProps, store) {
       store.update({ preferences: { [itemProps.key]: v, shouldPromptForRefresh: true } });
     } else {
       store.update({ preferences: { [itemProps.key]: v } });
+    }
+    // translate the ui
+    if (itemProps.key == "locale") {
+      setLocale(v);
     }
   };
   return (
