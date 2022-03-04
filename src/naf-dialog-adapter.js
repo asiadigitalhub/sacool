@@ -457,11 +457,11 @@ export class DialogAdapter extends EventEmitter {
     const serverParams = await APP.hubChannel.getHost();
     const { host, port } = serverParams;
     const newServerUrl = `wss://${host}:${port}`;
-    if (this._serverUrl === newServerUrl) {
-      console.error("Reconnect to dialog failed.");
-      this.emit(DIALOG_CONNECTION_ERROR_FATAL);
-      return;
-    }
+    // if (this._serverUrl === newServerUrl) {
+    //   console.error("Reconnect to dialog failed.");
+    //   this.emit(DIALOG_CONNECTION_ERROR_FATAL);
+    //   return;
+    // }
     console.log(`The Dialog server has changed to ${newServerUrl}, reconnecting with the new server...`);
     await this.connect({
       serverUrl: newServerUrl,
