@@ -31,7 +31,7 @@ export function CreateRoomButton() {
               createAndRedirectToNewHub(null, null, false);
             });
 
-          }, 1000);
+          }, 1000); 
         } else{
           createAndRedirectToNewHub(null, null, false);
         }
