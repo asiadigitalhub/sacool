@@ -21,6 +21,7 @@ import { SocialBar } from "../home/SocialBar";
 import { SignInButton } from "./SignInButton";
 import maskEmail from "../../utils/mask-email";
 import { ReactComponent as HmcLogo } from "../icons/HmcLogo.svg";
+import { Body } from "node-fetch";
 
 export function HomePage() {
   const auth = useContext(AuthContext);
@@ -33,6 +34,8 @@ export function HomePage() {
   const sortedPublicRooms = Array.from(publicRooms).sort((a, b) => b.member_count - a.member_count);
   const wrapInBold = chunk => <b>{chunk}</b>;
   const isHmc = configs.feature("show_cloud");
+  
+  
   useEffect(() => {
     const qs = new URLSearchParams(location.search);
 
@@ -50,6 +53,7 @@ export function HomePage() {
     if (qs.has("new")) {
       createAndRedirectToNewHub(null, null, true);
     }
+
   }, []);
 
   const canCreateRooms = !configs.feature("disable_room_creation") || auth.isAdmin;
