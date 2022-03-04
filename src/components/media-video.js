@@ -1,13 +1,14 @@
 /* global performance THREE AFRAME NAF MediaStream setTimeout */
 
 ///Firebase import
-import {firebaseDatabase} from "../hub";
+import {} from "../hub";
+import { getVideoRef } from "../utils/firebase-util";
 import { ref, onValue, update} from "firebase/database";
 
 
 
 import configs from "../utils/configs";
-import { getVideoRef } from "../utils/firebase-util";
+
 import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
