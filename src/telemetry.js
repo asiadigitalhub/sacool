@@ -1,5 +1,7 @@
 import Raven from "raven-js";
 import configs from "./utils/configs";
+import {logTelemetry} from "./utils/firebase-util";
+
 
 const ga = window.ga;
 
@@ -27,4 +29,7 @@ export default function registerTelemetry(trackedPage, trackedTitle) {
 
     ga("send", "pageview");
   }
+
+  //Our GA Tracking
+  logTelemetry(trackedPage, trackedTitle) ;
 }

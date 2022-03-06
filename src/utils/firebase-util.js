@@ -1,7 +1,7 @@
 
 ///Firebase import
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase , ref, onValue} from "firebase/database";
 
 export const firebaseConfig = {
@@ -21,6 +21,8 @@ const app = initializeApp(firebaseConfig);
 // Get a reference to the database service
 export const firebaseDatabase = getDatabase(app);
 
+const analytics = getAnalytics();
+
 
 /**
  * 
@@ -30,4 +32,16 @@ export const firebaseDatabase = getDatabase(app);
  */
 export function getVideoRef(videoName) {
   return ref(firebaseDatabase,"/rooms/"+window.APP.hubChannel.hubId+ '/videos/'+videoName);
+}
+
+
+export function logTelemetry(trackedPage, trackedTitle) {
+
+    if (trackedPage) {
+      logEvent(analytics, "page", trackedPage);
+    }
+
+    if (trackedTitle) {
+      logEvent(analytics, "title", trackedTitle);
+    }
 }
