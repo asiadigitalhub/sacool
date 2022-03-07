@@ -257,6 +257,8 @@ import { SignInMessages } from "./react-components/auth/SignInModal";
 import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
+import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, openSabecoWithRoomId, RoomUserStatus} from "./utils/firebase-util";
+
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
 NAF.options.syncSource = PHOENIX_RELIABLE_NAF;
@@ -771,6 +773,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
   window.APP.entryManager = entryManager;
 
+  // get is_sabeco component from url
+  var isSabeco = entryManager.getIsSabecoFromQueryUrl();
+  // if the room is opened from ".../sabeco..." url (isSabeco == true) then increase number of user in room & decrease it if the window unloads
+  if (isSabeco) {
+    // increase number of user in a room
+    increaseUserNumberInRoom(hubId);
+    // register a decrease process
+    decreaseUserNumberIfWindowUnload(hubId);      
+  } else { // if room is not open from ".../sabeco..."" url, then check the maximum number of user of checkRoomId in firebase          
+    getAvailableRoomForJoining((roomId, status) => {      
+      if (roomId) {  // if there is a room that have number of user < 25   
+        if (status == RoomUserStatus.FoundANewRoomId) { // if roomIdNeedCheck is limited & we have another available room where the nunber of user < 25     
+          openSabecoWithRoomId(roomId);
+        } else if (status == RoomUserStatus.CheckingRoomIdAvailable) { // if roomIdNeedCheck can add a new user
+          // increase number of user in a room with room id: hubId
+          increaseUserNumberInRoom(hubId);
+          // register a decrease process
+          decreaseUserNumberIfWindowUnload(hubId); 
+        }        
+      } else { // if all rooms are full, or roomIdNeedCheck is not in firebase("rooms_user")
+        
+      }
+    }, hubId);  
+  }
+  
   APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {
     scene.emit("didConnectToDialog");
   });

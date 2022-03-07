@@ -21,6 +21,7 @@ import {
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
 import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
+// import { descreaseUserNumberInRoom, FirebaseDatabaseKeys} from "./utils/firebase-util";
 
 const isIOS = detectIOS();
 
@@ -51,6 +52,16 @@ export default class SceneEntryManager {
 
   hasEntered = () => {
     return this._entered;
+  };
+  // check decrease user number flag from url component
+  getIsSabecoFromQueryUrl = () => {
+    // get sabeco status in url
+    if (window.location.search.length > 0) {      
+      const qs = new URLSearchParams(window.location.search);
+      var sabeco = qs.get("is_sabeco");
+      return sabeco != null ? sabeco : false;                 
+    }    
+    return false;
   };
 
   enterScene = async (enterInVR, muteOnEntry) => {
@@ -149,6 +160,13 @@ export default class SceneEntryManager {
     if (this.scene.renderer) {
       this.scene.renderer.setAnimationLoop(null); // Stop animation loop, TODO A-Frame should do this
     }
+    // // decrease number of user in a room
+    // var isSabeco = this.getIsSabecoFromQueryUrl();
+    // if (isSabeco) {
+    //   descreaseUserNumberInRoom(hubId);
+    //   window.removeEventListener("beforeunload", ()=>{});
+    // }    
+
     this.scene.parentNode.removeChild(this.scene);
   };
 
