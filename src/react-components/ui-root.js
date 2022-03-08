@@ -1571,13 +1571,14 @@ class UIRoot extends Component {
                      * Update: only Admin and Moderator can Share and Place Media
                      */
                         }
-                      {isModerator &&  <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />}
-                      {isModerator &&  <PlacePopoverContainer
+                        <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />
+                        <PlacePopoverContainer
                           scene={this.props.scene}
                           hubChannel={this.props.hubChannel}
+                          isModerator ={isModerator}
                           mediaSearchStore={this.props.mediaSearchStore}
                           showNonHistoriedDialog={this.showNonHistoriedDialog}
-                        />}
+                        />
                         {this.props.hubChannel.can("spawn_emoji") && <ReactionPopoverContainer />}
                       </>
                     )}
