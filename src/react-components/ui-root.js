@@ -1171,12 +1171,12 @@ class UIRoot extends Component {
         id: "room",
         label: <FormattedMessage id="more-menu.room" defaultMessage="Room" />,
         items: [
-          // {
-          //   id: "room-info",
-          //   label: <FormattedMessage id="more-menu.room-info" defaultMessage="Room Info and Settings" />,
-          //   icon: HomeIcon,
-          //   onClick: () => this.setSidebar("room-info")
-          // },
+          isModerator && {
+            id: "room-info",
+            label: <FormattedMessage id="more-menu.room-info" defaultMessage="Room Info and Settings" />,
+            icon: HomeIcon,
+            onClick: () => this.setSidebar("room-info")
+          },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
             (this.props.hub.entry_mode !== "invite" || this.props.hubChannel.can("update_hub")) && {
               id: "invite",

@@ -533,6 +533,8 @@ AFRAME.registerComponent("media-video", {
     if (!this.mesh || projection !== oldData.projection) {
       const material = new THREE.MeshBasicMaterial();
 
+      // const material = new THREE.Mec
+
       let geometry;
 
       if (projection === "360-equirectangular") {
