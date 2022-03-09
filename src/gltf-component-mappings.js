@@ -104,6 +104,7 @@ AFRAME.GLTFModelPlus.registerComponent(
 );
 AFRAME.GLTFModelPlus.registerComponent("visible", "visible", (el, componentName, componentData) => {
   if (typeof componentData === "object") {
+    
     el.setAttribute(componentName, componentData.visible);
   } else {
     el.setAttribute(componentName, componentData);

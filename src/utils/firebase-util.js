@@ -34,6 +34,11 @@ export function getVideoRef(videoName) {
   return ref(firebaseDatabase,"/rooms/"+window.APP.hubChannel.hubId+ '/videos/'+videoName);
 }
 
+export function getVideoControlRef() {
+  return ref(firebaseDatabase,"/videos_control");
+}
+
+
 export function logActionClick(actionName) {
   logEvent(analytics, "action", {
     action_type: 'click',
