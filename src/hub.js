@@ -8,7 +8,7 @@ import "./utils/debug-log";
 import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
-import { firebaseConfig } from "./utils/firebase-util";
+import { firebaseConfig, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
 
 console.log(
   `App version: ${
@@ -257,7 +257,10 @@ import { SignInMessages } from "./react-components/auth/SignInModal";
 import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
-import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, openSabecoWithRoomId, RoomUserStatus} from "./utils/firebase-util";
+import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, 
+  openMetabarWithRoomId, descreaseUserNumberInRoom} from "./utils/firebase-util";
+import { FullRoomModal } from "./react-components/FullRoomModal";
+import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
@@ -325,6 +328,12 @@ window.APP.history = history;
 
 const qsVREntryType = qs.get("vr_entry_type");
 
+// when the full-room modal close
+function onCloseFullRoomModal() {
+  // open home page    
+  window.location = window.location.origin;
+}
+
 function mountUI(props = {}) {
   const scene = document.querySelector("a-scene");
   const disableAutoExitOnIdle =
@@ -358,6 +367,8 @@ function mountUI(props = {}) {
             }
           />
         </Router>
+        {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullRoomModal> }
+        {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullAllRoomModal} onAccept={onCloseFullAllRoomModal}></FullAllRoomModal> }
       </ThemeProvider>
     </WrappedIntlProvider>,
     document.getElementById("ui-root")
@@ -773,29 +784,43 @@ document.addEventListener("DOMContentLoaded", async () => {
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
   window.APP.entryManager = entryManager;
 
-  // get is_sabeco component from url
-  var isSabeco = entryManager.getIsSabecoFromQueryUrl();
-  // if the room is opened from ".../sabeco..." url (isSabeco == true) then increase number of user in room & decrease it if the window unloads
-  if (isSabeco) {
-    // increase number of user in a room
-    increaseUserNumberInRoom(hubId);
-    // register a decrease process
-    decreaseUserNumberIfWindowUnload(hubId);      
-  } else { // if room is not open from ".../sabeco..."" url, then check the maximum number of user of checkRoomId in firebase          
-    getAvailableRoomForJoining((roomId, status) => {      
-      if (roomId) {  // if there is a room that have number of user < 25   
-        if (status == RoomUserStatus.FoundANewRoomId) { // if roomIdNeedCheck is limited & we have another available room where the nunber of user < 25     
-          openSabecoWithRoomId(roomId);
-        } else if (status == RoomUserStatus.CheckingRoomIdAvailable) { // if roomIdNeedCheck can add a new user
-          // increase number of user in a room with room id: hubId
-          increaseUserNumberInRoom(hubId);
+  // get is_metabar component from url
+  var isMetabar = entryManager.getIsMetabarFromQueryUrl();
+  
+  // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
+  if (isMetabar == 1) {
+    // increase number of user in a room    
+    increaseUserNumberInRoom(hubId, (roomMap) => {
+      if (roomMap) { // if we find hubId in firebase db
+        // register a decrease process      
+        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
           // register a decrease process
-          decreaseUserNumberIfWindowUnload(hubId); 
-        }        
-      } else { // if all rooms are full, or roomIdNeedCheck is not in firebase("rooms_user")
-        
+          decreaseUserNumberIfWindowUnload(hubId);           
+        } else { // if the user number is above the limitation, then file another foom
+          getAvailableRoomForJoining((roomId, status) => {      
+            if (roomId) {  // if there is a room that have number of user < 25   
+              openMetabarWithRoomId(roomId);        
+            } else { // if all rooms are full, then show full-all-room alert              
+              descreaseUserNumberInRoom(roomId);
+              remountUI({ showFullAllRoomModal: true });
+            }
+          });          
+        }
       }
-    }, hubId);  
+    });    
+  } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
+    // increase number of user in a room    
+    increaseUserNumberInRoom(hubId, (roomMap) => {
+      if (roomMap) { // if we find hubId in firebase db
+        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
+          // register a decrease process
+          decreaseUserNumberIfWindowUnload(hubId);           
+        } else { // if the user number is above the limitation        
+          descreaseUserNumberInRoom(hubId);
+          remountUI({ showFullRoomModal: true });        
+        }
+      }      
+    });
   }
   
   APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {

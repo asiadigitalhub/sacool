@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import classNames from "classnames";
 import configs from "../../utils/configs";
@@ -21,7 +21,8 @@ import { SocialBar } from "../home/SocialBar";
 import { SignInButton } from "./SignInButton";
 import maskEmail from "../../utils/mask-email";
 import { ReactComponent as HmcLogo } from "../icons/HmcLogo.svg";
-import { Body } from "node-fetch";
+import { Rooms} from "../../rooms";
+import { FullRoomModal } from "../FullRoomModal"
 
 export function HomePage() {
   const auth = useContext(AuthContext);
@@ -35,7 +36,9 @@ export function HomePage() {
   const wrapInBold = chunk => <b>{chunk}</b>;
   const isHmc = configs.feature("show_cloud");
   
-  
+  // Declare a new state variable roomName
+  const [roomName, setRoomName] = useState(null);
+
   useEffect(() => {
     const qs = new URLSearchParams(location.search);
 
@@ -58,8 +61,17 @@ export function HomePage() {
 
   const canCreateRooms = !configs.feature("disable_room_creation") || auth.isAdmin;
   const email = auth.email;
-  return (
-    <PageContainer className={styles.homePage}>
+  
+  var onCloseFullRoomModal = () => {
+    setRoomName(null);
+  };
+  var onSelectAFullRoomCallBack = (roomName) => {
+    setRoomName(roomName);
+  };
+
+  return (     
+    <PageContainer className={styles.homePage}>                      
+      {roomName != null && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal} ></FullRoomModal>}
       <Container>
         <div className={styles.hero}>
           {auth.isSignedIn ? (
@@ -147,7 +159,13 @@ export function HomePage() {
           </Column>
         </Container>
       )}
-      {sortedPublicRooms.length > 0 && (
+      <Container className={styles.roomsContainer}>
+        <h3 className={styles.roomsHeading}>
+          <FormattedMessage id="home-page.public--rooms" defaultMessage="Public Rooms" />
+        </h3>
+        <Rooms onSelectAFullRoomCallBack = {onSelectAFullRoomCallBack} />
+      </Container>
+      {/* {sortedPublicRooms.length > 0 && (
         <Container className={styles.roomsContainer}>
           <h3 className={styles.roomsHeading}>
             <FormattedMessage id="home-page.public--rooms" defaultMessage="Public Rooms" />
@@ -168,7 +186,7 @@ export function HomePage() {
             </MediaGrid>
           </Column>
         </Container>
-      )}
+      )} */}
       {sortedFavoriteRooms.length > 0 && (
         <Container className={styles.roomsContainer}>
           <h3 className={styles.roomsHeading}>
@@ -203,6 +221,7 @@ export function HomePage() {
           <SocialBar />
         </Column>
       ) : null}
-    </PageContainer>
+      
+    </PageContainer>      
   );
 }

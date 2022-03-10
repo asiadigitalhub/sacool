@@ -2,7 +2,7 @@
 ///Firebase import
 import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
-import { getDatabase, ref, get, child, update, increment} from "firebase/database";
+import { getDatabase, ref, get, child, update, increment, runTransaction} from "firebase/database";
 
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
@@ -22,7 +22,7 @@ const app = initializeApp(firebaseConfig);
 export const firebaseDatabase = getDatabase(app);
 
 const analytics = getAnalytics();
-const LimitUserNumberInRoom = 25; // the maximum number of user in a room
+export const LimitUserNumberInRoom = 25; // the maximum number of user in a room
 
 /**
  * 
@@ -47,6 +47,7 @@ export function logTelemetry(trackedPage, trackedTitle) {
 
 export class FirebaseDatabaseKeys {
     static RoomsUser = "rooms_user"
+    static RoomName = "room_name"
     static UserNumber = "user_number"
 }
 
@@ -57,35 +58,51 @@ export class RoomUserStatus {
   static CheckingRoomIdNotInFirebase = 3;
 }
 
-function updateNumberOfUserInRoom(roomId, isIncrease) {
-    const incrementFieldValue = increment(1);
-    const decrementFieldValue = increment(-1);
-    
-    const updates = {};
-    var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
-    updates[path] = isIncrease ? incrementFieldValue : decrementFieldValue;
-    
-    return update(ref(firebaseDatabase), updates); // call firebase's update function
+function updateNumberOfUserInRoom(roomId, isIncrease, callBack) {
+    const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
+    runTransaction(postRef, (post) => {
+      if (post) {
+        if (post.user_number) {
+          if (isIncrease) {
+            post.user_number++;              
+          } else {
+            post.user_number = post.user_number - 1;               
+          }          
+        }
+      }
+      return post;
+    }).then(function (updatedValue) {      
+      if (callBack) {
+        callBack(updatedValue.snapshot.val());
+      }      
+    });    
 }
+
 // decrease the number of user in room if the window unloads
 export function decreaseUserNumberIfWindowUnload (roomId) {    
     //When Brower close, decrease the number of user in a room
-    window.addEventListener("beforeunload", function (e) {            
-        descreaseUserNumberInRoom(roomId, false)
+    window.addEventListener("beforeunload", function (e) {              
+      descreaseUserNumberInRoom(roomId);
     });      
 }
 
 // increase the number of user in a room by 1
-export function increaseUserNumberInRoom(roomId) {       
-    return updateNumberOfUserInRoom(roomId, true);
+export function increaseUserNumberInRoom(roomId, callBack) {       
+    updateNumberOfUserInRoom(roomId, true, callBack);
 }
 // decrease the number of user in a room by 1
 export function descreaseUserNumberInRoom(roomId) {
-    updateNumberOfUserInRoom(roomId, false);    
+  const decrementFieldValue = increment(-1);
+  
+  const updates = {};
+  var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
+  updates[path] = decrementFieldValue;
+
+  update(ref(firebaseDatabase), updates); // call firebase's update function
 }
 
 // get list of rooms in firebase db
-function getRooms(callBack) {
+export function getRoomsInFirebase(callBack) {
     const dbRef = ref(firebaseDatabase);
     
     get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
@@ -102,7 +119,7 @@ function getRooms(callBack) {
 
 // get a room id & number of user in room that is available(the current number of user in room is not limitted)
 export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
-  getRooms((roomMap) => {
+  getRoomsInFirebase((roomMap) => {
       var maximumNumber = -1;
       var maximumNumberRoomId = null;        
       if (roomMap) {
@@ -134,7 +151,7 @@ export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
   )
 }
 
-export function openSabecoWithRoomId(roomId) {
+export function openMetabarWithRoomId(roomId, isCheckRoom) {
   var domain = window.location;
   var urlComponents = "/hub.html";
   const redirectUrl = new URL(urlComponents, domain);
@@ -142,6 +159,7 @@ export function openSabecoWithRoomId(roomId) {
     redirectUrl.search += "&";
   }        
   redirectUrl.search += "hub_id=" + roomId;
-  redirectUrl.search += "&is_sabeco=true";                
+  redirectUrl.search += "&is_metabar=" + (isCheckRoom ? 2 : 1);    
+  
   document.location = redirectUrl;        
 }

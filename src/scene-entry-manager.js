@@ -54,14 +54,14 @@ export default class SceneEntryManager {
     return this._entered;
   };
   // check decrease user number flag from url component
-  getIsSabecoFromQueryUrl = () => {
-    // get sabeco status in url
+  getIsMetabarFromQueryUrl = () => {
+    // get metabar status in url
     if (window.location.search.length > 0) {      
       const qs = new URLSearchParams(window.location.search);
-      var sabeco = qs.get("is_sabeco");
-      return sabeco != null ? sabeco : false;                 
+      var metabar = qs.get("is_metabar");
+      return metabar != null ? metabar : 0;                 
     }    
-    return false;
+    return 0;
   };
 
   enterScene = async (enterInVR, muteOnEntry) => {
@@ -161,8 +161,8 @@ export default class SceneEntryManager {
       this.scene.renderer.setAnimationLoop(null); // Stop animation loop, TODO A-Frame should do this
     }
     // // decrease number of user in a room
-    // var isSabeco = this.getIsSabecoFromQueryUrl();
-    // if (isSabeco) {
+    // var isMetabar = this.getIsMetabarFromQueryUrl();
+    // if (isMetabar) {
     //   descreaseUserNumberInRoom(hubId);
     //   window.removeEventListener("beforeunload", ()=>{});
     // }    

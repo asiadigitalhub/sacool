@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import ReactDOM from "react-dom";
-import PropTypes from "prop-types";
 import { WrappedIntlProvider } from "./react-components/wrapped-intl-provider";
 import registerTelemetry from "./telemetry";
 import Store from "./storage/store";
@@ -11,72 +10,65 @@ import "./assets/stylesheets/globals.scss";
 import { ThemeProvider } from "./react-components/styles/theme";
 import { PageContainer } from "./react-components/layout/PageContainer";
 import { Center } from "./react-components/layout/Center";
-import { Modal } from "./react-components/modal/Modal";
-import { Column } from "./react-components/layout/Column";
+import { FullRoomModal } from "./react-components/FullRoomModal";
+import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 
-// import { increment } from "firebase/database";
-import { FormattedMessage } from "react-intl";
-import {openSabecoWithRoomId, getAvailableRoomForJoining} from "./utils/firebase-util";
+import {openMetabarWithRoomId, getAvailableRoomForJoining, RoomUserStatus} from "./utils/firebase-util";
 
-registerTelemetry("/sabeco", "Sabeco Page");
+registerTelemetry("/metabar", "Metabar Page");
 
 const store = new Store();
 window.APP = { store };
 
-// generate ui for full-room status
-function FullRoomModal() {
-  // const intl = useIntl();
-  return (
-    <Modal title={<FormattedMessage id="sabeco.cant-join-room" defaultMessage="Can not join any room" />}>
-      <Column padding center>
-        <b>
-          <FormattedMessage
-            id="sabeco.all-room-are-full"
-            defaultMessage="All rooms are full"            
-          />
-        </b>
-      </Column>
-    </Modal>
-  );
-}
-
-
-class Sabeco extends Component {
-  state = {
-    showFullRoomModel: false
+class Metabar extends Component {
+  state = {    
+    showFullRoomModel: false,
+    showFullAllRoomModel: false
   };
 
   componentDidMount() {
     this.loadRoomFromFirebaseThenOpen();
   }
   
+  // when the full-room modal close
+  onCloseFullRoomModal() {
+    // open home page    
+    window.location = window.location.origin;
+  };
+
   // load available room in firebase db
   loadRoomFromFirebaseThenOpen() {    
     var roomIdNeedCheck = null;
     // get room id from url's path
     var pathArray = window.location.pathname.split('/');
     pathArray = pathArray.filter(function(item) {
-      return (item !== "sabeco" && item !== "")
+      return (item !== "metabar" && item !== "")
     })    
     if (pathArray.length > 0) {
       roomIdNeedCheck = pathArray[0];
     }
     // get or check the room id(roomIdNeedCheck), then open the room
     getAvailableRoomForJoining((roomId, status) => {      
-      if (roomId) { // if we have an available room where the nunber of user < 25        
-        openSabecoWithRoomId(roomId);
-      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
+      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
         // show FullRoomModal
         this.setState({showFullRoomModel: true});
+        return;
+      }
+      if (roomId) { // if we have an available room where the nunber of user < 25        
+        openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
+      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
+        // show FullRoomModal
+        this.setState({showFullAllRoomModel: true});
       }
     }, roomIdNeedCheck);
   }
 
   render() {
-    return (
-      <PageContainer>
+    return (      
+      <PageContainer>        
         <Center>
-          {this.state.showFullRoomModel && <FullRoomModal /> }
+          {this.state.showFullRoomModel && <FullRoomModal onClose={this.onCloseFullRoomModal} onAccept={this.onCloseFullRoomModal} ></FullRoomModal> }
+          {this.state.showFullAllRoomModel && <FullAllRoomModal onClose={this.onCloseFullRoomModal} onAccept={this.onCloseFullRoomModal} ></FullAllRoomModal> }
         </Center>
       </PageContainer>
     );
@@ -88,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     <WrappedIntlProvider>
       <ThemeProvider store={store}>
         <AuthContextProvider store={store}>
-          <Sabeco />
+          <Metabar />
         </AuthContextProvider>
       </ThemeProvider>
     </WrappedIntlProvider>,

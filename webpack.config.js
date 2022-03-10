@@ -271,7 +271,8 @@ module.exports = async (env, argv) => {
       signin: path.join(__dirname, "src", "signin.js"),
       verify: path.join(__dirname, "src", "verify.js"),
       tokens: path.join(__dirname, "src", "tokens.js"),
-      sabeco: path.join(__dirname, "src", "sabeco.js"), // sabeco page
+      metabar: path.join(__dirname, "src", "metabar.js"), // metabar page
+      rooms: path.join(__dirname, "src", "rooms.js"), // rooms page
       "whats-new": path.join(__dirname, "src", "whats-new.js"),
       "webxr-polyfill": path.join(__dirname, "src", "webxr-polyfill.js")
     },
@@ -298,7 +299,8 @@ module.exports = async (env, argv) => {
           { from: /^\/cloud/, to: "/cloud.html" },
           { from: /^\/verify/, to: "/verify.html" },
           { from: /^\/tokens/, to: "/tokens.html" },
-          { from: /^\/sabeco/, to: "/sabeco.html" },
+          { from: /^\/metabar/, to: "/metabar.html" },
+          { from: /^\/rooms/, to: "/rooms.html" },
           { from: /^\/whats-new/, to: "/whats-new.html" }
         ]
       },
@@ -616,9 +618,17 @@ module.exports = async (env, argv) => {
         }
       }),
       new HTMLWebpackPlugin({
-        filename: "sabeco.html",
-        template: path.join(__dirname, "src", "sabeco.html"),
-        chunks: ["sabeco"],
+        filename: "metabar.html",
+        template: path.join(__dirname, "src", "metabar.html"),
+        chunks: ["metabar"],
+        minify: {
+          removeComments: false
+        }
+      }),
+      new HTMLWebpackPlugin({
+        filename: "rooms.html",
+        template: path.join(__dirname, "src", "rooms.html"),
+        chunks: ["rooms"],
         minify: {
           removeComments: false
         }
