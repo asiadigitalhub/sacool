@@ -1,6 +1,6 @@
 import "./stats-plus.css";
 import qsTruthy from "../utils/qs_truthy";
-
+import {logFPS} from "../utils/firebase-util";
 // Adapted from https://github.com/aframevr/aframe/blob/master/src/components/scene/stats.js
 
 function createStats(scene) {
@@ -35,6 +35,8 @@ AFRAME.registerComponent("stats-plus", {
     this.onEnterVr = this.onEnterVr.bind(this);
     this.onExitVr = this.onExitVr.bind(this);
 
+    this.fpsLogged = false;
+
     const scene = this.el.sceneEl;
     this.stats = createStats(scene);
     this.statsEl = document.querySelector(".rs-base");
@@ -66,7 +68,7 @@ AFRAME.registerComponent("stats-plus", {
     this.lastFps = 0;
     this.frameCount = 0;
     this.inVR = scene.is("vr-mode");
-    this.showFPSCounter = window.APP.store.state.preferences.showFPSCounter;
+    this.showFPSCounter = true ;//window.APP.store.state.preferences.showFPSCounter;
     this.fpsEl.style.display = this.showFPSCounter ? "block" : "none";
 
     if (scene.isMobile) {
@@ -130,10 +132,10 @@ AFRAME.registerComponent("stats-plus", {
   tick(time) {
     const stats = this.stats;
     if (!this.statsEl) return;
-    if (this.showFPSCounter !== window.APP.store.state.preferences.showFPSCounter) {
-      this.showFPSCounter = window.APP.store.state.preferences.showFPSCounter;
-      this.fpsEl.style.display = this.showFPSCounter ? "block" : "none";
-    }
+    // if (this.showFPSCounter !== window.APP.store.state.preferences.showFPSCounter) {
+    //   this.showFPSCounter = window.APP.store.state.preferences.showFPSCounter;
+    //   this.fpsEl.style.display = this.showFPSCounter ? "block" : "none";
+    // }
     if (!this.showFPSCounter) {
       return;
     }
@@ -162,7 +164,16 @@ AFRAME.registerComponent("stats-plus", {
         const fps = Math.round(this.frameCount / ((now - this.lastFpsUpdate) / 1000));
         if (fps !== this.lastFps) {
           this.fpsEl.innerHTML = Math.round(fps) + " FPS";
+         
           this.lastFps = fps;
+        }
+        
+        //Log FPS after 50s
+        if(time > 50000 && !this.fpsLogged){
+          this.fpsLogged = true;
+          logFPS(Math.round(fps));
+          console.log('Math.round(fps) + " FPS";"', (Math.round(fps) + " FPS"));
+          console.log('Time Time Time ', (Math.round(fps) + " FPS"));
         }
         this.lastFpsUpdate = now;
         this.frameCount = 0;

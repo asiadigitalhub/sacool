@@ -46,6 +46,10 @@ export function logActionClick(actionName) {
   });
 }
 
+export function logFPS(fps) {
+  logEvent(analytics, "frame_rate", {value:fps});
+}
+
 export function logTelemetry(trackedPage, trackedTitle) {
 
     if (trackedPage) {
