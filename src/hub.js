@@ -258,7 +258,7 @@ import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
 import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, 
-  openMetabarWithRoomId, descreaseUserNumberInRoom} from "./utils/firebase-util";
+  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus} from "./utils/firebase-util";
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 
@@ -368,7 +368,7 @@ function mountUI(props = {}) {
           />
         </Router>
         {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullRoomModal> }
-        {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullAllRoomModal} onAccept={onCloseFullAllRoomModal}></FullAllRoomModal> }
+        {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullAllRoomModal> }
       </ThemeProvider>
     </WrappedIntlProvider>,
     document.getElementById("ui-root")
@@ -783,8 +783,38 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
   window.APP.entryManager = entryManager;
+  // open room if hubId is special metabar
+  if (hubId == "metabar") {    
+    var roomIdNeedCheck = null;
+    // get room id from url's path
+    var pathArray = window.location.pathname.split('/');
+    pathArray = pathArray.filter(function(item) {
+      return (item !== "metabar" && item !== "")
+    })    
+    if (pathArray.length > 0) {
+      roomIdNeedCheck = pathArray[0];
+    }
+    
+    // get or check the room id(roomIdNeedCheck), then open the room
+    getAvailableRoomForJoining((roomId, status) => {      
+      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
+        // show FullRoomModal
+        remountUI({ showFullRoomModal: true });        
+        return;
+      }
+            
+      if (roomId) { // if we have an available room where the nunber of user < 25        
+        openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
+      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
+        // show FullRoomModal
+        remountUI({ showFullAllRoomModal: true });        
+      }
+    }, roomIdNeedCheck);  
 
-  // get is_metabar component from url
+    return;
+  } 
+
+  // get is_metabar component from url—≠
   var isMetabar = entryManager.getIsMetabarFromQueryUrl();
   
   // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
@@ -796,7 +826,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
           // register a decrease process
           decreaseUserNumberIfWindowUnload(hubId);           
-        } else { // if the user number is above the limitation, then file another foom
+        } else { // if the user number is above the limitation, then find another foom
+          descreaseUserNumberInRoom(hubId);           
           getAvailableRoomForJoining((roomId, status) => {      
             if (roomId) {  // if there is a room that have number of user < 25   
               openMetabarWithRoomId(roomId);        

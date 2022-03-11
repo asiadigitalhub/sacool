@@ -70,7 +70,7 @@ export class FirebaseDatabaseKeys {
 export class RoomUserStatus {
   static FoundANewRoomId = 0;
   static AllRoomsAreFull = 1;
-  static CheckingRoomIdAvailable = 2;
+  static CheckingRoomIdAvailable = 2;  
   static CheckingRoomIdNotInFirebase = 3;
 }
 
@@ -78,12 +78,10 @@ function updateNumberOfUserInRoom(roomId, isIncrease, callBack) {
     const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
     runTransaction(postRef, (post) => {
       if (post) {
-        if (post.user_number) {
-          if (isIncrease) {
-            post.user_number++;              
-          } else {
-            post.user_number = post.user_number - 1;               
-          }          
+        if (isIncrease) {
+          post.user_number++;              
+        } else {
+          post.user_number--; 
         }
       }
       return post;
@@ -137,7 +135,7 @@ export function getRoomsInFirebase(callBack) {
 export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
   getRoomsInFirebase((roomMap) => {
       var maximumNumber = -1;
-      var maximumNumberRoomId = null;        
+      var maximumNumberRoomId = null;         
       if (roomMap) {
         if (roomIdNeedCheck) {
           if (roomMap[roomIdNeedCheck]) {
@@ -168,14 +166,27 @@ export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
 }
 
 export function openMetabarWithRoomId(roomId, isCheckRoom) {
-  var domain = window.location;
-  var urlComponents = "/hub.html";
-  const redirectUrl = new URL(urlComponents, domain);
-  if (redirectUrl.search.length > 0) {
-    redirectUrl.search += "&";
-  }        
-  redirectUrl.search += "hub_id=" + roomId;
-  redirectUrl.search += "&is_metabar=" + (isCheckRoom ? 2 : 1);    
-  
-  document.location = redirectUrl;        
+  var isDeploy = true;
+  if (isDeploy) { // if deploy mode
+    var domain = window.location;
+    var urlComponents = "/" + roomId + "?";
+    const redirectUrl = new URL(urlComponents, domain);
+    if (redirectUrl.search.length > 0) {
+      redirectUrl.search += "&";
+    }            
+    redirectUrl.search += "is_metabar=" + (isCheckRoom ? 2 : 1);    
+    
+    document.location = redirectUrl;          
+  } else {
+    var domain = window.location;
+    var urlComponents = "/hub.html";
+    const redirectUrl = new URL(urlComponents, domain);
+    if (redirectUrl.search.length > 0) {
+      redirectUrl.search += "&";
+    }        
+    redirectUrl.search += "hub_id=" + roomId;
+    redirectUrl.search += "&is_metabar=" + (isCheckRoom ? 2 : 1);    
+    
+    document.location = redirectUrl;        
+  }  
 }
