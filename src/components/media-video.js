@@ -2,7 +2,7 @@
 
 ///Firebase import
 import {} from "../hub";
-import { getVideoRef } from "../utils/firebase-util";
+import { getVideoControlRef, getVideoRef } from "../utils/firebase-util";
 import { ref, onValue, update} from "firebase/database";
 
 
@@ -82,6 +82,7 @@ AFRAME.registerComponent("media-video", {
     tickRate: { default: 1000 }, // ms interval to send time interval updates
     syncTolerance: { default: 2 },
     isModerator : { default: false },
+    scheduleInfo :{ default: null },
     linkedVideoTexture: { default: null },
     linkedAudioSource: { default: null },
     linkedMediaElementAudioSource: { default: null }
@@ -235,7 +236,6 @@ AFRAME.registerComponent("media-video", {
   changeVolumeBy(v) {
     let gainMultiplier = APP.gainMultipliers.get(this.el);
     gainMultiplier = THREE.Math.clamp(gainMultiplier + v, 0, MAX_MULTIPLIER);
-    console.log('gainMultiplier ',gainMultiplier);
     APP.gainMultipliers.set(this.el, gainMultiplier);
     this.updateVolumeLabel();
     const audio = APP.audios.get(this.el);
@@ -385,7 +385,9 @@ AFRAME.registerComponent("media-video", {
   update(oldData) {
     this.updatePlaybackState();
 
-    const shouldUpdateSrc = this.data.src && this.data.src !== oldData.src;
+    const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src) 
+    || (this.data.loop != oldData.loop)
+    || (this.data.videoPaused != oldData.videoPaused);
     if (shouldUpdateSrc) {
       this.updateSrc(oldData);
       return;
@@ -430,19 +432,41 @@ AFRAME.registerComponent("media-video", {
 
     /**
    * Auth: Duy 
-   * update feature : Sync Videos src by Firebase Realtime Database
+   * update feature : Sync Videos volumn by Firebase Realtime Database
    */
      const videoRef = getVideoRef(this.el.object3D.name);
      //Listen Videos node
      onValue(videoRef, (snapshot) => {
        const data = snapshot.val();
        if(data && (data.volumn || data.volumn == 0) ){
-         console.log(this.el.object3D.name +" data.volumn   ",data.volumn );
          this.updateVolumnFromFirebase(data.volumn);
        }else{
          //0.5 is default Volumn value
         this.updateVolumnFromFirebase(0.5);
        }
+     });
+
+
+    /**
+   * Auth: Duy 
+   * update feature : Sync Videos Control by Firebase Realtime Database
+   */
+
+     const objectName = this.el.object3D.name;
+     const videoControl = getVideoControlRef();
+     //Listen videos_control node
+     onValue(videoControl, (snapshot) => {
+       const data = snapshot.val();
+       if(data && Array.isArray(data)){
+          for (const videoInfo of data) {
+            if(videoInfo.video_id == objectName){
+              this.scheduleInfo = videoInfo;
+            }
+            
+          }
+        }
+      
+     
      });
   },
 
@@ -532,6 +556,8 @@ AFRAME.registerComponent("media-video", {
 
     if (!this.mesh || projection !== oldData.projection) {
       const material = new THREE.MeshBasicMaterial();
+
+      // const material = new THREE.Mec
 
       let geometry;
 
@@ -837,7 +863,10 @@ AFRAME.registerComponent("media-video", {
 
   tick: (() => {
     return function() {
+
       if (!this.video) return;
+
+      
 
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;

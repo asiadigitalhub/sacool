@@ -14,7 +14,7 @@ import { ObjectUrlModalContainer } from "./ObjectUrlModalContainer";
 import configs from "../../utils/configs";
 import { FormattedMessage } from "react-intl";
 
-export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistoriedDialog, hubChannel }) {
+export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistoriedDialog, hubChannel, isModerator }) {
   const [items, setItems] = useState([]);
 
   useEffect(
@@ -69,7 +69,7 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
               label: <FormattedMessage id="place-popover.item-type.avatar" defaultMessage="Avatar" />,
               onSelect: () => mediaSearchStore.sourceNavigate("avatars")
             },
-            {
+            isModerator && {
               id: "scene",
               icon: SceneIcon,
               color: "accent1",
@@ -77,7 +77,7 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
               onSelect: () => mediaSearchStore.sourceNavigate("scenes")
             },
             // TODO: Launch system file prompt directly
-            {
+            isModerator && {
               id: "upload",
               icon: UploadIcon,
               color: "accent3",
@@ -118,6 +118,7 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
 PlacePopoverContainer.propTypes = {
   hubChannel: PropTypes.object.isRequired,
   scene: PropTypes.object.isRequired,
+  isModerator: PropTypes.object.isRequired,
   mediaSearchStore: PropTypes.object.isRequired,
   showNonHistoriedDialog: PropTypes.func.isRequired
 };

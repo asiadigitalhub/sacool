@@ -45,6 +45,7 @@ AFRAME.registerComponent("trigger-volume", {
       const collidingLastFrame = this.collidingLastFrame[object3D.id];
 
       if (isColliding && !collidingLastFrame) {
+        console.log('isColliding ',this.el.object3D.name);
         this.data.target.setAttribute(this.data.enterComponent, this.data.enterProperty, this.data.enterValue);
       } else if (!isColliding && collidingLastFrame) {
         this.data.target.setAttribute(this.data.leaveComponent, this.data.leaveProperty, this.data.leaveValue);

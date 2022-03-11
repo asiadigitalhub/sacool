@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
+import { logActionClick } from "../../utils/firebase-util";
 import { ReactComponent as VideoIcon } from "../icons/Video.svg";
 import { ReactComponent as DesktopIcon } from "../icons/Desktop.svg";
 import { ReactComponent as AvatarIcon } from "../icons/Avatar.svg";
@@ -68,6 +69,7 @@ function useShare(scene, hubChannel) {
 
   const toggleShareCamera = useCallback(
     () => {
+      logActionClick('shareCamera');
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {
@@ -79,6 +81,7 @@ function useShare(scene, hubChannel) {
 
   const toggleShareScreen = useCallback(
     () => {
+      logActionClick('shareScreen');
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {

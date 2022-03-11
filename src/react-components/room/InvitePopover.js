@@ -8,8 +8,10 @@ import { ReactComponent as InviteIcon } from "../icons/Invite.svg";
 import { Column } from "../layout/Column";
 import { InviteLinkInputField } from "./InviteLinkInputField";
 import { FormattedMessage, defineMessage, useIntl } from "react-intl";
+import { logActionClick } from "../../utils/firebase-util";
 
 function InvitePopoverContent({ url, embed, inviteRequired, fetchingInvite, inviteUrl, revokeInvite }) {
+  
   return (
     <Column center padding grow gap="lg" className={styles.invitePopover}>
       {inviteRequired ? (
@@ -85,7 +87,10 @@ export function InvitePopoverButton({
           ref={triggerRef}
           icon={<InviteIcon />}
           selected={popoverVisible}
-          onClick={togglePopover}
+          onClick={()=>{
+            logActionClick('inviteClick');
+            togglePopover();
+          }}
           label={title}
           {...rest}
         />

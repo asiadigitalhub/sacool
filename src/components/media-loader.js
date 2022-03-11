@@ -1,5 +1,5 @@
 ///Firebase import
-import { getVideoRef } from "../utils/firebase-util";
+import { getVideoControlRef } from "../utils/firebase-util";
 import { ref, onValue} from "firebase/database";
 
 
@@ -60,6 +60,10 @@ AFRAME.registerComponent("media-loader", {
     contentType: { default: null },
     contentSubtype: { default: null },
     animate: { default: true },
+    scheduleInfo :{ default: null },
+    firebaseVersionObject :{ default:null },
+    firebaseEnable :{ default:true },
+    loopVideo :{ default : true },
     linkedEl: { default: null }, // This is the element of which this is a linked derivative. See linked-media.js
     mediaOptions: {
       default: {},
@@ -88,24 +92,28 @@ AFRAME.registerComponent("media-loader", {
     } catch (e) {
       // NAF may not exist on scene landing page
     }
-    console.log('init data ' ,this.data);
-    console.log('this.el.object3D.name data ' ,this.el.object3D.name);
 
     
-  /**
-   * Auth: Duy 
-   * update feature : Sync Videos src by Firebase Realtime Database
-   */
-    const videoRef = getVideoRef(this.el.object3D.name);
-    //Listen Videos node
-    onValue(videoRef, (snapshot) => {
-      const data = snapshot.val();
-      if(data && data.src ){
-        //https://asiahubmeta-assets.asiahubmeta.com/files/8234dca5-55f5-499e-9d55-a7cdda33e8bf.mp4
-        console.log("data.src  ",data.src);
-        this.refresh(data.src)
-      }
-    });
+  //    /**
+  //  * Auth: Duy 
+  //  * update feature : Sync Videos Control by Firebase Realtime Database
+  //  */
+
+      const objectName = this.el.object3D.name;
+      const videoControl = getVideoControlRef();
+      //Listen videos_control node
+      onValue(videoControl, (snapshot) => {
+        const data = snapshot.val();
+        if(data && Array.isArray(data)){
+           for (const videoInfo of data) {
+             if(videoInfo.video_id == objectName){
+               this.scheduleInfo = videoInfo;
+              
+             }
+             
+           }
+         }
+      });
   },
 
   updateScale: (function() {
@@ -162,6 +170,50 @@ AFRAME.registerComponent("media-loader", {
   tick(t, dt) {
     if (this.loaderMixer) {
       this.loaderMixer.update(dt / 1000);
+    }
+
+    if(this.scheduleInfo 
+      && (this.scheduleInfo.schedule_src != this.data.src
+      || this.firebaseVersionObject != this.scheduleInfo.version)
+      ){
+        
+      const d = new Date();
+      try {
+
+        const currentHours = d.getHours();
+        const currentMins = d.getMinutes();
+
+        const startTimes = this.scheduleInfo.start_time.split(":");
+        const hoursStart = parseInt(startTimes[0]);
+        const minsStart = parseInt(startTimes[1]);
+
+        const endTimes = this.scheduleInfo.end_time.split(":");
+        const hoursEnd = parseInt(endTimes[0]);
+        const minsEnd = parseInt(endTimes[1]);
+
+
+        if(
+          (currentHours> hoursStart || 
+          (currentHours ==hoursStart && currentMins >= minsStart))
+          && 
+          (currentHours< hoursEnd || 
+          (currentHours == minsEnd && currentMins <= minsEnd))){
+
+          const objectEnable =  this.scheduleInfo?.enable??true;
+          this.el.setAttribute("visible", objectEnable);
+           
+          this.refresh(
+            this.scheduleInfo.schedule_src,
+             this.scheduleInfo.loop ?? true,
+             this.scheduleInfo.version,
+             objectEnable);
+        }
+
+      } catch (error) {
+        console.error(error);
+       
+      }
+      
     }
   },
 
@@ -333,24 +385,26 @@ AFRAME.registerComponent("media-loader", {
     }
   },
 
-  refresh(newSrc) {
+  refresh(newSrc, loopVideo = true, version, enable = true) {
     if (this.networkedEl && !NAF.utils.isMine(this.networkedEl) && !NAF.utils.takeOwnership(this.networkedEl)) return;
 
     // When we refresh, we bump the version to the current timestamp.
     //
     // The only use-case for refresh right now is re-fetching screenshots.
-    
-    this.el.setAttribute("media-loader", { version: Math.floor(Date.now() / 1000),src: sanitizeUrl(newSrc) });
+    this.el.setAttribute("media-loader", { version: Math.floor(Date.now() / 1000)
+    , src: sanitizeUrl(newSrc)
+    , loopVideo:loopVideo
+    , firebaseVersionObject : version
+    , firebaseEnable: enable });
   },
-
 
   async update(oldData, forceLocalRefresh) {
     const { version, contentSubtype } = this.data;
     let src = this.data.src;
+    this.firebaseVersionObject = this.data.firebaseVersionObject;
     if (!src) return;
 
     if(this.el.object3D.name=='video'){
-      console.log('Src ---- ', src);
       // src = 'https://asiahubmeta-assets.asiahubmeta.com/files/8234dca5-55f5-499e-9d55-a7cdda33e8bf.mp4';
     }
 
@@ -483,6 +537,8 @@ AFRAME.registerComponent("media-loader", {
             audioSrc: canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null,
             time: startTime,
             contentType,
+            loop: this.data.loopVideo,
+            videoPaused: !(this.data.firebaseEnable??true),
             linkedVideoTexture,
             linkedAudioSource,
             linkedMediaElementAudioSource
