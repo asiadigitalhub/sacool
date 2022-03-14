@@ -172,11 +172,7 @@ AFRAME.registerComponent("media-loader", {
       this.loaderMixer.update(dt / 1000);
     }
 
-    if(this.scheduleInfo 
-      && (this.scheduleInfo.schedule_src != this.data.src
-      || this.firebaseVersionObject != this.scheduleInfo.version)
-      ){
-        
+    if(this.scheduleInfo){
       const d = new Date();
       try {
 
@@ -191,14 +187,15 @@ AFRAME.registerComponent("media-loader", {
         const hoursEnd = parseInt(endTimes[0]);
         const minsEnd = parseInt(endTimes[1]);
 
-
-        if(
-          (currentHours> hoursStart || 
+        var isInRange = (currentHours> hoursStart || 
           (currentHours ==hoursStart && currentMins >= minsStart))
           && 
           (currentHours< hoursEnd || 
-          (currentHours == minsEnd && currentMins <= minsEnd))){
+          (currentHours == minsEnd && currentMins <= minsEnd));
 
+        if(isInRange && ((this.scheduleInfo.schedule_src != this.data.src
+          || this.firebaseVersionObject != this.scheduleInfo.version)
+          )){
           const objectEnable =  this.scheduleInfo?.enable??true;
           this.el.setAttribute("visible", objectEnable);
            
@@ -207,6 +204,17 @@ AFRAME.registerComponent("media-loader", {
              this.scheduleInfo.loop ?? true,
              this.scheduleInfo.version,
              objectEnable);
+        }else if (!isInRange && (this.scheduleInfo.default_src != this.data.src
+          || this.firebaseVersionObject != this.scheduleInfo.version
+          )){
+            const objectEnable =  this.scheduleInfo?.enable??true;
+            this.el.setAttribute("visible", objectEnable);
+             
+            this.refresh(
+              this.scheduleInfo.default_src,
+               this.scheduleInfo.loop ?? true,
+               this.scheduleInfo.version,
+               objectEnable);
         }
 
       } catch (error) {

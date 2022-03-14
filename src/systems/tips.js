@@ -19,8 +19,8 @@ const FINISH = 2;
 const LOCAL_STORAGE_KEY = "__hubs_finished_tips";
 
 const TIPS = {
-  desktop: ["look", "locomotion", "turning", "invite"],
-  mobile: ["look", "locomotion", "invite"],
+  desktop: ["look", "locomotion", "turning", "watchingNFT"],
+  mobile: ["look", "locomotion"],
   standalone: []
 };
 
@@ -61,10 +61,17 @@ const VALIDATORS = {
     if (userinput.get(paths.actions.snapRotateLeft) || userinput.get(paths.actions.snapRotateRight)) return FINISH;
     return VALID;
   },
-  invite: function(_userinput, scene, hub) {
-    if (hub && hub.entry_mode === "invite") return INVALID;
-    return scene.is("copresent") ? FINISH : VALID;
-  }
+  watchingNFT: function(_userinput, scene, hub,isNearNFT) {
+    
+    if (isNearNFT) return FINISH;
+    else return VALID;
+  },
+  // invite: function(_userinput, scene, hub) {
+  //   console.log("hub ",hub);
+  //   console.log(" hub.entry_mode ", hub?.entry_mode??'');
+  //   if (hub && hub.entry_mode === "invite") return INVALID;
+  //   return scene.is("copresent") ? FINISH : VALID;
+  // }
 };
 
 AFRAME.registerSystem("tips", {
@@ -131,7 +138,7 @@ AFRAME.registerSystem("tips", {
         continue;
       }
 
-      switch (VALIDATORS[tip](this._userinput, this.el, window.APP.hub)) {
+      switch (VALIDATORS[tip](this._userinput, this.el, window.APP.hub, window.APP.nearNFT)) {
         case FINISH:
           markTipFinished(tip);
           break;
