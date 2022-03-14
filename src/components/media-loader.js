@@ -191,8 +191,10 @@ AFRAME.registerComponent("media-loader", {
           (currentHours ==hoursStart && currentMins >= minsStart))
           && 
           (currentHours< hoursEnd || 
-          (currentHours == minsEnd && currentMins <= minsEnd));
+          (currentHours == hoursEnd && currentMins <= minsEnd));
+        
 
+        console.log('isInRange ', isInRange);
         if(isInRange && ((this.scheduleInfo.schedule_src != this.data.src
           || this.firebaseVersionObject != this.scheduleInfo.version)
           )){
