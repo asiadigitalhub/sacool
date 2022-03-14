@@ -827,7 +827,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           // register a decrease process
           decreaseUserNumberIfWindowUnload(hubId);           
         } else { // if the user number is above the limitation, then find another foom
-          descreaseUserNumberInRoom(hubId);           
+          descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
           getAvailableRoomForJoining((roomId, status) => {      
             if (roomId) {  // if there is a room that have number of user < 25   
               openMetabarWithRoomId(roomId);        
