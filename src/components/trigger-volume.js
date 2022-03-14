@@ -43,12 +43,14 @@ AFRAME.registerComponent("trigger-volume", {
       object3D.getWorldPosition(colliderWorldPositionVec);
       const isColliding = this.boundingBox.containsPoint(colliderWorldPositionVec);
       const collidingLastFrame = this.collidingLastFrame[object3D.id];
-
+     
       if (isColliding && !collidingLastFrame) {
         console.log('isColliding ',this.el.object3D.name);
         this.data.target.setAttribute(this.data.enterComponent, this.data.enterProperty, this.data.enterValue);
+        window.APP.nearNFT = true;
       } else if (!isColliding && collidingLastFrame) {
         this.data.target.setAttribute(this.data.leaveComponent, this.data.leaveProperty, this.data.leaveValue);
+        window.APP.nearNFT = false;
       }
 
       this.collidingLastFrame[object3D.id] = isColliding;

@@ -36,6 +36,10 @@ const onboardingMessages = defineMessages({
   "tips.mobile.locomotion": {
     id: "tips.mobile.locomotion",
     defaultMessage: "Great! To move, pinch with two fingers."
+  },  
+  "tips.mobile.watchingNFT": {
+    id: "tips.mobile.watchingNFT",
+    defaultMessage: "Move close to NFT"
   },
   "tips.mobile.invite": {
     id: "tips.mobile.invite",
@@ -48,6 +52,10 @@ const onboardingMessages = defineMessages({
   "tips.desktop.locomotion": {
     id: "tips.desktop.locomotion",
     defaultMessage: "Use the {moveKeys} keys to move. Hold shift to boost."
+  }, 
+  "tips.desktop.watchingNFT": {
+    id: "tips.desktop.watchingNFT",
+    defaultMessage: "Move close to NFT"
   },
   "tips.desktop.turning": {
     id: "tips.desktop.turning",
@@ -55,7 +63,7 @@ const onboardingMessages = defineMessages({
   },
   "tips.desktop.invite": {
     id: "tips.desktop.invite",
-    defaultMessage: "Nobody else is here. Use the invite button in the bottom left to share this room."
+    defaultMessage: "Nobody else is here. UUse the invite button in the bottom left to share this room."
   }
 });
 
