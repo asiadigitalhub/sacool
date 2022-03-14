@@ -55,7 +55,7 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
               label: <FormattedMessage id="place-popover.item-type.gif" defaultMessage="GIF" />,
               onSelect: () => mediaSearchStore.sourceNavigate("gifs")
             },
-            configs.integration("sketchfab") && {
+            isModerator &&  configs.integration("sketchfab") && {
               id: "model",
               icon: ObjectIcon,
               color: "accent2",

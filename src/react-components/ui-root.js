@@ -1571,7 +1571,7 @@ class UIRoot extends Component {
                      * Update: only Admin and Moderator can Share and Place Media
                      */
                         }
-                        <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />
+                       {isModerator && <SharePopoverContainer scene={this.props.scene} hubChannel={this.props.hubChannel} />}  
                         <PlacePopoverContainer
                           scene={this.props.scene}
                           hubChannel={this.props.hubChannel}
