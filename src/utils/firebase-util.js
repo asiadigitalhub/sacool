@@ -4,6 +4,8 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction} from "firebase/database";
 
+const isDeploy = true;
+
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
   authDomain: "fir-virtual-meeting.firebaseapp.com",
@@ -14,7 +16,6 @@ export const firebaseConfig = {
   appId: "1:737531674288:web:92e0dea04a550f963ec575",
   measurementId: "G-VLET9B2MS9"
 };
-
 
 //Init Firebase config
 const app = initializeApp(firebaseConfig);
@@ -93,11 +94,13 @@ function updateNumberOfUserInRoom(roomId, isIncrease, callBack) {
 }
 
 // decrease the number of user in room if the window unloads
-export function decreaseUserNumberIfWindowUnload (roomId) {    
-    //When Brower close, decrease the number of user in a room
-    window.addEventListener("beforeunload", function (e) {              
-      descreaseUserNumberInRoom(roomId);
-    });      
+export function decreaseUserNumberIfWindowUnload (roomId) {   
+  var isOnIOS = navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i);
+  var eventName = isOnIOS ? "pagehide" : "beforeunload"; 
+  //When Brower close, decrease the number of user in a room
+  window.addEventListener(eventName, function (e) {              
+    descreaseUserNumberInRoom(roomId);
+  });      
 }
 
 // increase the number of user in a room by 1
@@ -166,7 +169,6 @@ export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
 }
 
 export function openMetabarWithRoomId(roomId, isCheckRoom) {
-  var isDeploy = true;
   if (isDeploy) { // if deploy mode
     var domain = window.location;
     var urlComponents = "/" + roomId + "?";
@@ -174,7 +176,7 @@ export function openMetabarWithRoomId(roomId, isCheckRoom) {
     if (redirectUrl.search.length > 0) {
       redirectUrl.search += "&";
     }            
-    redirectUrl.search += "is_metabar=" + (isCheckRoom ? 2 : 1);    
+    redirectUrl.search += "ismetabar=" + (isCheckRoom ? 2 : 1);    
     
     document.location = redirectUrl;          
   } else {
@@ -185,7 +187,7 @@ export function openMetabarWithRoomId(roomId, isCheckRoom) {
       redirectUrl.search += "&";
     }        
     redirectUrl.search += "hub_id=" + roomId;
-    redirectUrl.search += "&is_metabar=" + (isCheckRoom ? 2 : 1);    
+    redirectUrl.search += "&ismetabar=" + (isCheckRoom ? 2 : 1);    
     
     document.location = redirectUrl;        
   }  

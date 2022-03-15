@@ -58,7 +58,7 @@ export default class SceneEntryManager {
     // get metabar status in url
     if (window.location.search.length > 0) {      
       const qs = new URLSearchParams(window.location.search);
-      var metabar = qs.get("is_metabar");
+      var metabar = qs.get("ismetabar");
       return metabar != null ? metabar : 0;                 
     }    
     return 0;
