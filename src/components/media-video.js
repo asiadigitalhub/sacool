@@ -312,6 +312,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   onPauseStateChange() {
+    console.log("Video State Trigger|Is Paused: ",  this.video.paused)
     // iOS Safari will auto-pause other videos if one is manually started (not autoplayed.) So, to keep things
     // easy to reason about, we *never* broadcast pauses from iOS.
     //
@@ -343,6 +344,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   updatePlaybackState(force) {
+    console.log("updatePlaybackState per second - Is Video Paused: ",  this.data.videoPaused)
     this.updateHoverMenu();
 
     // Only update playback position for videos you don't own
@@ -376,6 +378,7 @@ AFRAME.registerComponent("media-video", {
     } else {
       // Need to deal with the fact play() may fail if user has not interacted with browser yet.
       this.video.play().catch(() => {
+        console.log("Fail to play Video ");
         if (pause !== this.data.videoPaused) return;
         this._playbackStateChangeTimeout = setTimeout(() => this.tryUpdateVideoPlaybackState(pause, currentTime), 1000);
       });
