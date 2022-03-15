@@ -48,19 +48,19 @@ class Metabar extends Component {
       roomIdNeedCheck = pathArray[0];
     }
     // get or check the room id(roomIdNeedCheck), then open the room
-    getAvailableRoomForJoining((roomId, status) => {      
-      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
-        // show FullRoomModal
-        this.setState({showFullRoomModel: true});
-        return;
-      }
-      if (roomId) { // if we have an available room where the nunber of user < 25        
-        openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
-      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
-        // show FullRoomModal
-        this.setState({showFullAllRoomModel: true});
-      }
-    }, roomIdNeedCheck);
+    // getAvailableRoomForJoining((roomId, status) => {      
+    //   if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
+    //     // show FullRoomModal
+    //     this.setState({showFullRoomModel: true});
+    //     return;
+    //   }
+    //   if (roomId) { // if we have an available room where the nunber of user < 25        
+    //     openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
+    //   } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
+    //     // show FullRoomModal
+    //     this.setState({showFullAllRoomModel: true});
+    //   }
+    // }, roomIdNeedCheck);
   }
 
   render() {

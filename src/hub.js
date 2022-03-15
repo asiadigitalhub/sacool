@@ -795,63 +795,73 @@ document.addEventListener("DOMContentLoaded", async () => {
       roomIdNeedCheck = pathArray[0];
     }
     
+    // var roomIdNeedCheck = null;// "i9wvxf3";
+    
     // get or check the room id(roomIdNeedCheck), then open the room
-    getAvailableRoomForJoining((roomId, status) => {      
-      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
+    var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
+    var roomId = availableRoomMap["room_id"];
+    var status = availableRoomMap["status"];
+        
+    if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
+      // show FullRoomModal
+      remountUI({ showFullRoomModal: true });  
+      return;              
+    }
+          
+    if (roomId != null) { // if we have an available room where the nunber of user < 25              
+      openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
+      return;     
+    } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
+      if (status == RoomUserStatus.AllRoomsAreFull) { // if all room are full
         // show FullRoomModal
-        remountUI({ showFullRoomModal: true });        
+        remountUI({ showFullAllRoomModal: true });                  
         return;
+      } else if (roomIdNeedCheck != null && status == RoomUserStatus.CheckingRoomIdNotInFirebase) { // if roomIdNeedCheck is not in firebase db
+        openMetabarWithRoomId(roomIdNeedCheck);  
+        return;      
       }
-            
-      if (roomId) { // if we have an available room where the nunber of user < 25        
-        openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
-      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
-        // show FullRoomModal
-        remountUI({ showFullAllRoomModal: true });        
-      }
-    }, roomIdNeedCheck);  
-
-    return;
+    }    
   } 
 
-  // get is_metabar component from url—≠
+  // get ismetabar component from url—≠
   var isMetabar = entryManager.getIsMetabarFromQueryUrl();
   
   // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
   if (isMetabar == 1) {
     // increase number of user in a room    
-    increaseUserNumberInRoom(hubId, (roomMap) => {
-      if (roomMap) { // if we find hubId in firebase db
-        // register a decrease process      
-        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
-          // register a decrease process
-          decreaseUserNumberIfWindowUnload(hubId);           
-        } else { // if the user number is above the limitation, then find another foom
-          descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
-          getAvailableRoomForJoining((roomId, status) => {      
-            if (roomId) {  // if there is a room that have number of user < 25   
-              openMetabarWithRoomId(roomId);        
-            } else { // if all rooms are full, then show full-all-room alert              
-              descreaseUserNumberInRoom(roomId);
-              remountUI({ showFullAllRoomModal: true });
-            }
-          });          
-        }
+    var roomMap = await increaseUserNumberInRoom(hubId);    
+    if (roomMap) { // if we find hubId in firebase db
+      // register a decrease process      
+      if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
+        // register a decrease process
+        decreaseUserNumberIfWindowUnload(hubId);           
+      } else { // if the user number is above the limitation, then find another foom
+        descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
+        // get or check the room id(roomIdNeedCheck), then open the room
+        var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
+        var roomId = availableRoomMap["room_id"];          
+        if (roomId) {  // if there is a room that have number of user < 25   
+          openMetabarWithRoomId(roomId, 1);        
+          return;
+        } else { // if all rooms are full, then show full-all-room alert              
+          descreaseUserNumberInRoom(roomId);
+          remountUI({ showFullAllRoomModal: true });
+          return;
+        }                   
       }
-    });    
+    }    
   } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
     // increase number of user in a room    
-    increaseUserNumberInRoom(hubId, (roomMap) => {
-      if (roomMap) { // if we find hubId in firebase db
-        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
-          // register a decrease process
-          decreaseUserNumberIfWindowUnload(hubId);           
-        } else { // if the user number is above the limitation        
-          descreaseUserNumberInRoom(hubId);
-          remountUI({ showFullRoomModal: true });        
-        }
-      }      
-    });
+    var roomMap = await increaseUserNumberInRoom(hubId)
+    if (roomMap) { // if we find hubId in firebase db
+      if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
+        // register a decrease process
+        decreaseUserNumberIfWindowUnload(hubId);           
+      } else { // if the user number is above the limitation        
+        descreaseUserNumberInRoom(hubId);
+        remountUI({ showFullRoomModal: true });        
+      }
+    }          
   }
   
   APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {
