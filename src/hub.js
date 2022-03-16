@@ -263,6 +263,10 @@ import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailabl
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 
+const metabarText = "metabar";
+var roomIdNeedCheck = null;
+var hubId = null;
+
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
 NAF.options.syncSource = PHOENIX_RELIABLE_NAF;
@@ -337,8 +341,12 @@ function onCloseFullRoomModal() {
 
 // when the continue button in full-room modal clicked
 function onContinueFullRoomModal() {
-  // hide the full-room alert  
-  remountUI({ showFullRoomModal: false });
+  if (hubId == metabarText && roomIdNeedCheck != null) { // if continue with the full room, then open this room
+    openMetabarWithRoomId(roomIdNeedCheck, 3); // 3: no open the full-room alert again
+  } else {
+    // hide the full-room alert  
+    remountUI({ showFullRoomModal: false });
+  }  
 }
 
 function mountUI(props = {}) {
@@ -741,7 +749,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const hubId = getCurrentHubId();
+  hubId = getCurrentHubId();
   console.log(`Hub ID: ${hubId}`);
 
   const shouldRedirectToSignInPage =
@@ -792,18 +800,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.APP.entryManager = entryManager;
 
   // open room if hubId is special metabar
-  if (hubId == "metabar") {    
-    var roomIdNeedCheck = null;
+  if (hubId == metabarText) {        
     // get room id from url's path
     var pathArray = window.location.pathname.split('/');
     pathArray = pathArray.filter(function(item) {
-      return (item !== "metabar" && item !== "")
+      return (item !== metabarText && item !== "")
     })    
     if (pathArray.length > 0) {
       roomIdNeedCheck = pathArray[0];
     }
     
-    // var roomIdNeedCheck = null;// "i9wvxf3";
+    // roomIdNeedCheck = "SMyzKvY"; // "i9wvxf3";
     
     // get or check the room id(roomIdNeedCheck), then open the room
     var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
@@ -831,6 +838,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }    
   } 
 
+  var isShowFullRoomModal = false;
   // get ismetabar component from url
   var isMetabar = entryManager.getIsMetabarFromQueryUrl();
   
@@ -867,8 +875,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         decreaseUserNumberIfWindowUnload(hubId);           
       } else { // if the user number is above the limitation        
         descreaseUserNumberInRoom(hubId);
-        if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert
-          remountUI({ showFullRoomModal: true });        
+        if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert          
+          isShowFullRoomModal = true; // will show full-room alert at the end of this function, to avoid error
         }        
       }
     }          
@@ -1521,4 +1529,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   authChannel.setSocket(socket);
   linkChannel.setSocket(socket);
+
+  // show full-room modal
+  if (isShowFullRoomModal) {
+    remountUI({ showFullRoomModal: true });        
+  }
 });
