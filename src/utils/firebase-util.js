@@ -4,6 +4,8 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction} from "firebase/database";
 
+const isDeploy = true;
+
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
   authDomain: "fir-virtual-meeting.firebaseapp.com",
@@ -14,7 +16,6 @@ export const firebaseConfig = {
   appId: "1:737531674288:web:92e0dea04a550f963ec575",
   measurementId: "G-VLET9B2MS9"
 };
-
 
 //Init Firebase config
 const app = initializeApp(firebaseConfig);
@@ -62,7 +63,7 @@ export function logTelemetry(trackedPage, trackedTitle) {
 }
 
 export class FirebaseDatabaseKeys {
-    static RoomsUser = "rooms_user"
+    static RoomsUser = isDeploy ? "rooms_user" : "rooms_user_test"
     static RoomName = "room_name"
     static UserNumber = "user_number"
 }
@@ -74,9 +75,9 @@ export class RoomUserStatus {
   static CheckingRoomIdNotInFirebase = 3;
 }
 
-function updateNumberOfUserInRoom(roomId, isIncrease, callBack) {
+async function updateNumberOfUserInRoom(roomId, isIncrease) {
     const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
-    runTransaction(postRef, (post) => {
+    var transaction = await runTransaction(postRef, (post) => {
       if (post) {
         if (isIncrease) {
           post.user_number++;              
@@ -86,23 +87,41 @@ function updateNumberOfUserInRoom(roomId, isIncrease, callBack) {
       }
       return post;
     }).then(function (updatedValue) {      
-      if (callBack) {
-        callBack(updatedValue.snapshot.val());
-      }      
-    });    
+      return updatedValue;      
+    });   
+    return transaction.snapshot.val(); 
 }
 
 // decrease the number of user in room if the window unloads
-export function decreaseUserNumberIfWindowUnload (roomId) {    
-    //When Brower close, decrease the number of user in a room
-    window.addEventListener("beforeunload", function (e) {              
-      descreaseUserNumberInRoom(roomId);
-    });      
+export function decreaseUserNumberIfWindowUnload (roomId) {   
+  var isOnIOS = navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i);  
+  var eventName = isOnIOS ? "pagehide" : "beforeunload"; 
+  // When Brower close, decrease the number of user in a room
+  window.addEventListener(eventName, function (e) {              
+    descreaseUserNumberInRoom(roomId);
+  });      
+  
+  // //When Brower close, decrease the number of user in a room
+  // if (isOnIOS) { // for iphone/ipad
+  //   window.addEventListener("visibilitychange", function(e)
+  //   {
+  //       if (document.visibilityState == 'hidden') // hidden
+  //       {
+  //         descreaseUserNumberInRoom(roomId); // decrease the number of user
+  //       } else { // if window is visible, then we have to increase the user number, because we decrease it when window is hidden
+  //         increaseUserNumberInRoom(roomId);
+  //       }
+  //   });
+  // } else { // for desktop
+  //   window.addEventListener("beforeunload", function (e) {              
+  //     descreaseUserNumberInRoom(roomId);
+  //   });      
+  // }  
 }
 
 // increase the number of user in a room by 1
-export function increaseUserNumberInRoom(roomId, callBack) {       
-    updateNumberOfUserInRoom(roomId, true, callBack);
+export async function increaseUserNumberInRoom(roomId) {       
+    return await updateNumberOfUserInRoom(roomId, true);
 }
 // decrease the number of user in a room by 1
 export function descreaseUserNumberInRoom(roomId) {
@@ -115,66 +134,82 @@ export function descreaseUserNumberInRoom(roomId) {
   update(ref(firebaseDatabase), updates); // call firebase's update function
 }
 
-// get list of rooms in firebase db
 export function getRoomsInFirebase(callBack) {
+  const dbRef = ref(firebaseDatabase);
+    
+  get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
+      if (snapshot.exists()) { // if rooms existed
+          callBack(snapshot.val());
+      } else { // if rooms did not existed
+        callBack(null);
+      }
+  }).catch((error) => {
+      console.error(error);
+  });    
+}
+// get list of rooms in firebase db
+export async function getRoomsInFirebaseSync() {
     const dbRef = ref(firebaseDatabase);
     
-    get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
+    var roomMap = await get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
         if (snapshot.exists()) { // if rooms existed
-            var roomMap = snapshot.val();            
-            callBack(roomMap); 
+            return snapshot.val();                
         } else { // if rooms did not existed
-            callBack(null);            
+          return null;            
         }
     }).catch((error) => {
         console.error(error);
-    });
+    });        
+    return roomMap;
 }
 
 // get a room id & number of user in room that is available(the current number of user in room is not limitted)
-export function getAvailableRoomForJoining(callBack, roomIdNeedCheck) {
-  getRoomsInFirebase((roomMap) => {
-      var maximumNumber = -1;
-      var maximumNumberRoomId = null;         
-      if (roomMap) {
-        if (roomIdNeedCheck) {
-          if (roomMap[roomIdNeedCheck]) {
-            var userNumber = roomMap[roomIdNeedCheck][FirebaseDatabaseKeys.UserNumber];
-            if (userNumber < LimitUserNumberInRoom) { // if roomIdNeedCheck can add a new user
-              callBack(roomIdNeedCheck, RoomUserStatus.CheckingRoomIdAvailable);
-              return;
-            }
-          } else { // if the roomIdNeedCheck is not in firebase
-            callBack(null, RoomUserStatus.CheckingRoomIdNotInFirebase);
-            return;
-          }
-        }   
-        
-        // If roomIdNeedCheck == null then find another room            
-        for (var roomId in roomMap) {            
-          var userNumber = roomMap[roomId][FirebaseDatabaseKeys.UserNumber];
-          if (userNumber < LimitUserNumberInRoom && userNumber > maximumNumber) {
-              maximumNumberRoomId = roomId;
-              maximumNumber = userNumber;                
-          }
-        }         
-      }        
-      // call callBack
-      callBack(maximumNumberRoomId, maximumNumberRoomId != null ? RoomUserStatus.FoundANewRoomId : RoomUserStatus.AllRoomsAreFull);
-    }
-  )
+export async function getAvailableRoomForJoining(roomIdNeedCheck) {
+  var roomMap = await getRoomsInFirebaseSync();  
+  var maximumNumber = -1;
+  var maximumNumberRoomId = null;         
+  if (roomMap) {
+    if (roomIdNeedCheck) {
+      if (roomMap[roomIdNeedCheck]) {
+        var userNumber = roomMap[roomIdNeedCheck][FirebaseDatabaseKeys.UserNumber];
+        if (userNumber < LimitUserNumberInRoom) { // if roomIdNeedCheck can add a new user          
+          return {room_id: roomIdNeedCheck, status: RoomUserStatus.CheckingRoomIdAvailable};
+        }
+      } else { // if the roomIdNeedCheck is not in firebase        
+        return {room_id: null, status: RoomUserStatus.CheckingRoomIdNotInFirebase};        
+      }
+    }   
+    
+    // If roomIdNeedCheck == null then find another room            
+    for (var roomId in roomMap) {            
+      var userNumber = roomMap[roomId][FirebaseDatabaseKeys.UserNumber];      
+      if (userNumber < LimitUserNumberInRoom && userNumber > maximumNumber) {
+          maximumNumberRoomId = roomId;
+          maximumNumber = userNumber;                
+      }
+    }         
+  }          
+  return {room_id: maximumNumberRoomId, status: maximumNumberRoomId != null ? RoomUserStatus.FoundANewRoomId : RoomUserStatus.AllRoomsAreFull};        
 }
 
+// isCheckRoom = 1 => auto find other room if the current room is full
+// isCheckRoom = 2 => open a specific room, alert if this room is full
+// isCheckRoom = null => open a normal room, no need to user number
 export function openMetabarWithRoomId(roomId, isCheckRoom) {
-  var isDeploy = true;
   if (isDeploy) { // if deploy mode
     var domain = window.location;
-    var urlComponents = "/" + roomId + "?";
+    var urlComponents = "/" + roomId;
+    if (isCheckRoom != null) {
+      urlComponents += "?";
+    }
     const redirectUrl = new URL(urlComponents, domain);
     if (redirectUrl.search.length > 0) {
       redirectUrl.search += "&";
     }            
-    redirectUrl.search += "is_metabar=" + (isCheckRoom ? 2 : 1);    
+    if (isCheckRoom != null) {
+      redirectUrl.search += "ismetabar=" + isCheckRoom;    
+    }
+    
     
     document.location = redirectUrl;          
   } else {
@@ -185,8 +220,9 @@ export function openMetabarWithRoomId(roomId, isCheckRoom) {
       redirectUrl.search += "&";
     }        
     redirectUrl.search += "hub_id=" + roomId;
-    redirectUrl.search += "&is_metabar=" + (isCheckRoom ? 2 : 1);    
-    
+    if (isCheckRoom != null) {
+      redirectUrl.search += "&ismetabar=" + isCheckRoom;    
+    }
     document.location = redirectUrl;        
   }  
 }
