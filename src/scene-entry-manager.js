@@ -21,7 +21,7 @@ import {
 import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
 import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
-// import { descreaseUserNumberInRoom, FirebaseDatabaseKeys} from "./utils/firebase-util";
+import { MediaDevices, MediaDevicesEvents } from "./utils/media-devices-utils";
 
 const isIOS = detectIOS();
 
@@ -132,7 +132,7 @@ export default class SceneEntryManager {
 
     this.scene.addState("entered");
 
-    APP.dialog.enableMicrophone(!muteOnEntry);
+    APP.mediaDevicesManager.enableMic = !muteOnEntry;
   };
 
   whenSceneLoaded = callback => {
@@ -305,8 +305,17 @@ export default class SceneEntryManager {
 
     document.addEventListener("dragover", e => e.preventDefault());
 
+    let lastDebugScene;
     document.addEventListener("drop", e => {
       e.preventDefault();
+
+      if (qsTruthy("debugLocalScene")) {
+        URL.revokeObjectURL(lastDebugScene);
+        const url = URL.createObjectURL(e.dataTransfer.files[0]);
+        this.hubChannel.updateScene(url);
+        lastDebugScene = url;
+        return;
+      }
 
       let url = e.dataTransfer.getData("url");
 
@@ -342,10 +351,13 @@ export default class SceneEntryManager {
         } else {
           currentVideoShareEntity = spawnMediaInfrontOfPlayer(this.mediaDevicesManager.mediaStream, undefined);
           // Wire up custom removal event which will stop the stream.
-          currentVideoShareEntity.setAttribute("emit-scene-event-on-remove", "event:action_end_video_sharing");
+          currentVideoShareEntity.setAttribute(
+            "emit-scene-event-on-remove",
+            `event:${MediaDevicesEvents.VIDEO_SHARE_ENDED}`
+          );
         }
 
-        this.scene.emit("share_video_enabled", { source: isDisplayMedia ? "screen" : "camera" });
+        this.scene.emit("share_video_enabled", { source: isDisplayMedia ? MediaDevices.SCREEN : MediaDevices.CAMERA });
         this.scene.addState("sharing_video");
       }
     };
@@ -373,7 +385,7 @@ export default class SceneEntryManager {
       const preferredCamera = store.state.preferences.preferredCamera || "default";
       switch (preferredCamera) {
         case "default":
-          constraints.video.mediaSource = "camera";
+          constraints.video.mediaSource = MediaDevices.CAMERA;
           break;
         case "user":
         case "environment":
@@ -413,7 +425,7 @@ export default class SceneEntryManager {
       );
     });
 
-    this.scene.addEventListener("action_end_video_sharing", async () => {
+    this.scene.addEventListener(MediaDevicesEvents.VIDEO_SHARE_ENDED, async () => {
       if (isHandlingVideoShare) return;
       isHandlingVideoShare = true;
 
@@ -431,7 +443,7 @@ export default class SceneEntryManager {
       isHandlingVideoShare = false;
     });
 
-    this.scene.addEventListener("action_end_mic_sharing", async () => {
+    this.scene.addEventListener(MediaDevicesEvents.MIC_SHARE_ENDED, async () => {
       await this.mediaDevicesManager.stopMicShare();
     });
 

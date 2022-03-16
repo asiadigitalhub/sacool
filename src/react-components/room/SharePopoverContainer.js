@@ -7,8 +7,10 @@ import { ReactComponent as AvatarIcon } from "../icons/Avatar.svg";
 import { SharePopoverButton } from "./SharePopover";
 import { FormattedMessage } from "react-intl";
 import useAvatar from "./useAvatar";
+import { MediaDevicesEvents, MediaDevices } from "../../utils/media-devices-utils";
 
 function useShare(scene, hubChannel) {
+  const mediaDevicesManager = window.APP.mediaDevicesManager;
   const [sharingSource, setSharingSource] = useState(null);
   const [canShareCamera, setCanShareCamera] = useState(false);
   const [canShareScreen, setCanShareScreen] = useState(false);
@@ -32,7 +34,7 @@ function useShare(scene, hubChannel) {
           navigator.mediaDevices
             .enumerateDevices()
             .then(devices => {
-              const hasCamera = devices.find(device => device.kind === "videoinput");
+              const hasCamera = devices.some(device => device.kind === "videoinput");
               setCanShareCamera(hasCamera);
               setCanShareCameraToAvatar(hasCamera && hasVideoTextureTarget);
             })
@@ -57,6 +59,15 @@ function useShare(scene, hubChannel) {
 
       onPermissionsUpdated();
 
+      // We currently only support sharing one video stream at the same time
+      setSharingSource(
+        mediaDevicesManager.isVideoShared
+          ? mediaDevicesManager.isWebcamShared
+            ? MediaDevices.CAMERA
+            : MediaDevices.SCREEN
+          : null
+      );
+
       return () => {
         scene.removeEventListener("share_video_enabled", onShareVideoEnabled);
         scene.removeEventListener("share_video_disabled", onShareVideoDisabled);
@@ -64,14 +75,14 @@ function useShare(scene, hubChannel) {
         hubChannel.removeEventListener("permissions_updated", onPermissionsUpdated);
       };
     },
-    [scene, hubChannel, hasVideoTextureTarget]
+    [scene, hubChannel, hasVideoTextureTarget, mediaDevicesManager]
   );
 
   const toggleShareCamera = useCallback(
     () => {
       logActionClick('shareCamera');
       if (sharingSource) {
-        scene.emit("action_end_video_sharing");
+        scene.emit(MediaDevicesEvents.VIDEO_SHARE_ENDED);
       } else {
         scene.emit("action_share_camera");
       }
@@ -83,7 +94,7 @@ function useShare(scene, hubChannel) {
     () => {
       logActionClick('shareScreen');
       if (sharingSource) {
-        scene.emit("action_end_video_sharing");
+        scene.emit(MediaDevicesEvents.V);
       } else {
         scene.emit("action_share_screen");
       }
@@ -94,7 +105,7 @@ function useShare(scene, hubChannel) {
   const toggleShareCameraToAvatar = useCallback(
     () => {
       if (sharingSource) {
-        scene.emit("action_end_video_sharing");
+        scene.emit(MediaDevicesEvents.VIDEO_SHARE_ENDED);
       } else {
         scene.emit("action_share_camera", { target: "avatar" });
       }
@@ -131,7 +142,7 @@ export function SharePopoverContainer({ scene, hubChannel }) {
       color: "accent5",
       label: <FormattedMessage id="share-popover.source.camera" defaultMessage="Camera" />,
       onSelect: toggleShareCamera,
-      active: sharingSource === "camera"
+      active: sharingSource === MediaDevices.CAMERA
     },
     canShareScreen && {
       id: "screen",
@@ -139,7 +150,7 @@ export function SharePopoverContainer({ scene, hubChannel }) {
       color: "accent5",
       label: <FormattedMessage id="share-popover.source.screen" defaultMessage="Screen" />,
       onSelect: toggleShareScreen,
-      active: sharingSource === "screen"
+      active: sharingSource === MediaDevices.SCREEN
     },
     canShareCameraToAvatar && {
       id: "camera-to-avatar",

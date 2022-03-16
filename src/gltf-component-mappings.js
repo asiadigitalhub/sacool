@@ -83,6 +83,7 @@ AFRAME.GLTFModelPlus.registerComponent("morph-audio-feedback", "morph-audio-feed
 AFRAME.GLTFModelPlus.registerComponent("animation-mixer", "animation-mixer");
 AFRAME.GLTFModelPlus.registerComponent("loop-animation", "loop-animation");
 AFRAME.GLTFModelPlus.registerComponent("uv-scroll", "uv-scroll");
+AFRAME.GLTFModelPlus.registerComponent("frustrum", "frustrum");
 AFRAME.GLTFModelPlus.registerComponent(
   "box-collider",
   "shape-helper",
@@ -526,6 +527,7 @@ AFRAME.GLTFModelPlus.registerComponent(
 AFRAME.GLTFModelPlus.registerComponent("video-texture-source", "video-texture-source");
 
 AFRAME.GLTFModelPlus.registerComponent("text", "text");
+
 AFRAME.GLTFModelPlus.registerComponent(
   "audio-target",
   "audio-target",
@@ -619,3 +621,12 @@ AFRAME.GLTFModelPlus.registerComponent(
     });
   }
 );
+
+AFRAME.GLTFModelPlus.registerComponent("reflection-probe", "reflection-probe", (el, componentName, componentData) => {
+  // TODO PMREMGenerator should be fixed to not assume this
+  componentData.envMapTexture.flipY = true;
+  // Assume texture is always an equirect for now
+  componentData.envMapTexture.mapping = THREE.EquirectangularReflectionMapping;
+
+  el.setAttribute(componentName, componentData);
+});
