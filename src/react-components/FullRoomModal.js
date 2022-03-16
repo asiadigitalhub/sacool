@@ -19,8 +19,8 @@ export function FullRoomModal({ onClose, onAccept, isShowBackButton }) {
         <Column padding center centerMd="both" grow>          
           <p>
             <FormattedMessage
-              id="metabar.room-is-full-message"
-              defaultMessage="This room is full. Do you want to continue?"
+              id="metabar.select-other-room"
+              defaultMessage="This room is full. Please select another one."
               values={{ linebreak: <br /> }}
             />
           </p>
@@ -28,10 +28,10 @@ export function FullRoomModal({ onClose, onAccept, isShowBackButton }) {
             <FormattedMessage id="metabar.back" defaultMessage="Back"/>
           </Button> }
           { !isShowBackButton && <Button preset="cancel" onClick={onClose}>
-            <FormattedMessage id="metabar.no" defaultMessage="No"/>
+            <FormattedMessage id="metabar.cancel" defaultMessage="Cancel"/>
           </Button> }
           <Button preset="accept" onClick={onAccept}>
-            <FormattedMessage id="metabar.continue" defaultMessage="Continue"/>
+            <FormattedMessage id="metabar.continue-join-room" defaultMessage="Continue Join Room"/>
           </Button>           
           
         </Column>
