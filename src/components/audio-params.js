@@ -43,7 +43,7 @@ export const MediaAudioDefaults = Object.freeze({
   coneInnerAngle: 360,
   coneOuterAngle: 0,
   coneOuterGain: 0.9,
-  gain: 0.5
+  gain: 0.0
 });
 
 export const TargetAudioDefaults = Object.freeze({

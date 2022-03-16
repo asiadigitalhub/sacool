@@ -1,14 +1,5 @@
 /* global performance THREE AFRAME NAF MediaStream setTimeout */
-
-///Firebase import
-import {} from "../hub";
-import { getVideoControlRef, getVideoRef } from "../utils/firebase-util";
-import { ref, onValue, update} from "firebase/database";
-
-
-
 import configs from "../utils/configs";
-
 import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
@@ -30,7 +21,8 @@ import { errorTexture } from "../utils/error-texture";
 import { scaleToAspectRatio } from "../utils/scale-to-aspect-ratio";
 import { isSafari } from "../utils/detect-safari";
 import { isIOS as detectIOS } from "../utils/is-mobile";
-
+import { getVideoControlRef, getVideoRef } from "../utils/firebase-util";
+import { ref, onValue, update} from "firebase/database";
 import qsTruthy from "../utils/qs_truthy";
 
 const ONCE_TRUE = { once: true };
@@ -38,12 +30,6 @@ const TYPE_IMG_PNG = { type: "image/png" };
 
 const isIOS = detectIOS();
 const audioIconTexture = new HubsTextureLoader().load(audioIcon);
-
-/**
- * Auth: Duy 
- * update feature : Only Admin can interact with Video Controler
- */
-const isMobileVR = AFRAME.utils.device.isMobileVR();
 
 export const VOLUME_LABELS = [];
 for (let i = 0; i <= 20; i++) {
@@ -81,14 +67,12 @@ AFRAME.registerComponent("media-video", {
     time: { type: "number" },
     tickRate: { default: 1000 }, // ms interval to send time interval updates
     syncTolerance: { default: 2 },
-    isModerator : { default: false },
-    scheduleInfo :{ default: null },
     linkedVideoTexture: { default: null },
     linkedAudioSource: { default: null },
     linkedMediaElementAudioSource: { default: null }
   },
 
-  init() { 
+  init() {
     APP.gainMultipliers.set(this.el, 1);
     this.onPauseStateChange = this.onPauseStateChange.bind(this);
     this.updateHoverMenu = this.updateHoverMenu.bind(this);
@@ -116,14 +100,11 @@ AFRAME.registerComponent("media-video", {
     this.onSnapImageLoaded = () => (this.isSnapping = false);
     this.hasAudioTracks = false;
 
+    
+    const isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users") ;
 
+    if(isModerator){
 
-    /**
-     * Auth: Duy 
-     * update feature : Only Admin can interact with Video Controler
-     */
-    this.isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users") && !isMobileVR;
-    if(this.isModerator){
       this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
       this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
         // If we got removed while waiting, do nothing.
@@ -153,8 +134,8 @@ AFRAME.registerComponent("media-video", {
         this.updateHoverMenu();
         this.updatePlaybackState();
       });
-  }
 
+    }
     NAF.utils
       .getNetworkedEntity(this.el)
       .then(networkedEl => {
@@ -204,6 +185,25 @@ AFRAME.registerComponent("media-video", {
     };
     APP.store.addEventListener("statechanged", this.onPreferenceChanged);
     this.el.addEventListener("audio_type_changed", this.setupAudio);
+
+
+     /**
+   * Auth: Duy 
+   * update feature : Sync Videos src by Firebase Realtime Database
+   * update feature : Sync Videos volumn by Firebase Realtime Database
+   */
+      const videoRef = getVideoRef(this.el.object3D.name);
+      //Listen Videos node
+      onValue(videoRef, (snapshot) => {
+        const data = snapshot.val();
+        if(data && (data.volumn || data.volumn == 0) ){
+          console.log(this.el.object3D.name +" data.volumn   ",data.volumn );
+          this.updateVolumnFromFirebase(data.volumn);
+        }else{
+          //0.5 is default Volumn value
+        //  this.updateVolumnFromFirebase(0);
+        }
+      });
   },
 
   play() {
@@ -246,9 +246,10 @@ AFRAME.registerComponent("media-video", {
     }
   },
 
+
   updateVolumnFromFirebase(v) {
     let gainMultiplier = APP.gainMultipliers.get(this.el);
-    gainMultiplier = THREE.Math.clamp(v, 0, MAX_MULTIPLIER);
+    gainMultiplier = THREE.Math.clamp(v, 0, MAX_GAIN_MULTIPLIER);
     
     APP.gainMultipliers.set(this.el, gainMultiplier);
     this.updateVolumeLabel();
@@ -258,26 +259,20 @@ AFRAME.registerComponent("media-video", {
     }
   },
 
+
   volumeUp() {
     this.changeVolumeBy(0.2);
 
-    /**
-     * Sync volumn value to Firebase Database
-     */
     let gainMultiplier = APP.gainMultipliers.get(this.el);
     const updates = {};
     updates['/volumn'] = gainMultiplier;
     update(getVideoRef(this.el.object3D.name), updates);
-    
 
   },
 
   volumeDown() {
     this.changeVolumeBy(-0.2);
 
-     /**
-     * Sync volumn value to Firebase Database
-     */
     let gainMultiplier = APP.gainMultipliers.get(this.el);
     const updates = {};
     updates['/volumn'] = gainMultiplier;
@@ -314,7 +309,6 @@ AFRAME.registerComponent("media-video", {
   },
 
   onPauseStateChange() {
-    console.log("Video State Trigger|Is Paused: ",  this.video.paused)
     // iOS Safari will auto-pause other videos if one is manually started (not autoplayed.) So, to keep things
     // easy to reason about, we *never* broadcast pauses from iOS.
     //
@@ -346,7 +340,6 @@ AFRAME.registerComponent("media-video", {
   },
 
   updatePlaybackState(force) {
-    console.log("updatePlaybackState per second - Is Video Paused: ",  this.data.videoPaused)
     this.updateHoverMenu();
 
     // Only update playback position for videos you don't own
@@ -380,7 +373,6 @@ AFRAME.registerComponent("media-video", {
     } else {
       // Need to deal with the fact play() may fail if user has not interacted with browser yet.
       this.video.play().catch(() => {
-        console.log("Fail to play Video ");
         if (pause !== this.data.videoPaused) return;
         this._playbackStateChangeTimeout = setTimeout(() => this.tryUpdateVideoPlaybackState(pause, currentTime), 1000);
       });
@@ -390,9 +382,7 @@ AFRAME.registerComponent("media-video", {
   update(oldData) {
     this.updatePlaybackState();
 
-    const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src) 
-    || (this.data.loop != oldData.loop)
-    || (this.data.videoPaused != oldData.videoPaused);
+    const shouldUpdateSrc = this.data.src && this.data.src !== oldData.src;
     if (shouldUpdateSrc) {
       this.updateSrc(oldData);
       return;
@@ -400,6 +390,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   setupAudio() {
+    
     this.removeAudio();
 
     APP.sourceType.set(this.el, SourceType.MEDIA_VIDEO);
@@ -426,49 +417,10 @@ AFRAME.registerComponent("media-video", {
     // Its matrix may not update if this element is not visible.
     // See https://github.com/mozilla/hubs/issues/2855
     this.audio.updateMatrixWorld();
-
+    console.log("this.audiothis.audiothis.audio "+this.el.object3D.name+" ",this.audio );
     APP.audios.set(this.el, this.audio);
     updateAudioSettings(this.el, this.audio);
 
-
-    /**
-   * Auth: Duy 
-   * update feature : Sync Videos volumn by Firebase Realtime Database
-   */
-     const videoRef = getVideoRef(this.el.object3D.name);
-     //Listen Videos node
-     onValue(videoRef, (snapshot) => {
-       const data = snapshot.val();
-       if(data && (data.volumn || data.volumn == 0) ){
-         this.updateVolumnFromFirebase(data.volumn);
-       }else{
-         //0.5 is default Volumn value
-        this.updateVolumnFromFirebase(0.5);
-       }
-     });
-
-
-    /**
-   * Auth: Duy 
-   * update feature : Sync Videos Control by Firebase Realtime Database
-   */
-
-     const objectName = this.el.object3D.name;
-     const videoControl = getVideoControlRef();
-     //Listen videos_control node
-     onValue(videoControl, (snapshot) => {
-       const data = snapshot.val();
-       if(data && Array.isArray(data)){
-          for (const videoInfo of data) {
-            if(videoInfo.video_id == objectName){
-              this.scheduleInfo = videoInfo;
-            }
-            
-          }
-        }
-      
-     
-     });
   },
 
   async updateSrc(oldData) {
@@ -559,8 +511,6 @@ AFRAME.registerComponent("media-video", {
       const material = new THREE.MeshBasicMaterial();
       material.toneMapped = false;
 
-      // const material = new THREE.Mec
-
       let geometry;
 
       if (projection === "360-equirectangular") {
@@ -568,11 +518,9 @@ AFRAME.registerComponent("media-video", {
         // invert the geometry on the x-axis so that all of the faces point inward
         geometry.scale(-1, 1, 1);
       } else {
-        console.log("THREE.FrontSide - Texture Fliped ", texture.flipY);
-        console.log("THREE.FrontSide - Texture Fliped ", this.el.object3D.rotation);
         const flipY = texture.isVideoTexture ? texture.flipY : audioIconTexture.flipY;
         geometry = createPlaneBufferGeometry(undefined, undefined, undefined, undefined, flipY);
-        material.side = THREE.FrontSide;
+        material.side = THREE.DoubleSide;
       }
 
       this.mesh = new THREE.Mesh(geometry, material);
@@ -829,7 +777,12 @@ AFRAME.registerComponent("media-video", {
 
   updateHoverMenu() {
     if (!this.hoverMenu) return;
-
+    this.playbackControls.object3D.position.setZ( 0.01 );
+    this.timeLabel.object3D.position.setZ(  0.01 );
+    this.volumeLabel.object3D.position.setZ(  0.01 );
+    this.snapButton.object3D.position.setZ(  0.01 );
+    this.volumeUpButton.object3D.position.setZ(  0.01 );
+    this.volumeDownButton.object3D.position.setZ(  0.01 );
 
     const mediaLoader = this.el.components["media-loader"].data;
     const pinnableElement = mediaLoader.linkedEl || this.el;
@@ -856,7 +809,6 @@ AFRAME.registerComponent("media-video", {
   },
 
   updateVolumeLabel() {
-    if (!this.hoverMenu) return;
     const gainMultiplier = APP.gainMultipliers.get(this.el);
     this.volumeLabel.setAttribute(
       "text",
@@ -867,10 +819,7 @@ AFRAME.registerComponent("media-video", {
 
   tick: (() => {
     return function() {
-
       if (!this.video) return;
-
-      
 
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;

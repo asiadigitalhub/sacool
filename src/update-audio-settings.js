@@ -33,6 +33,10 @@ export function getCurrentAudioSettings(el) {
   const defaults = defaultSettingsForSourceType.get(sourceType);
   const sceneOverrides = APP.sceneAudioDefaults.get(sourceType);
   const audioOverrides = APP.audioOverrides.get(el);
+
+  console.log('audioOverrides '+el.object3D.name+" ",audioOverrides);
+  console.log('defaults '+el.object3D.name+" ",defaults);
+
   const audioDebugPanelOverrides = APP.audioDebugPanelOverrides.get(sourceType);
   const zoneSettings = APP.zoneOverrides.get(el);
   const preferencesOverrides = APP.store.state.preferences.disableLeftRightPanning
@@ -59,7 +63,6 @@ export function getCurrentAudioSettings(el) {
   if (APP.supplementaryAttenuation.has(el)) {
     settings.gain = settings.gain * APP.supplementaryAttenuation.get(el);
   }
-
   return settings;
 }
 
