@@ -23,6 +23,7 @@ import maskEmail from "../../utils/mask-email";
 import { ReactComponent as HmcLogo } from "../icons/HmcLogo.svg";
 import { Rooms} from "../../rooms";
 import { FullRoomModal } from "../FullRoomModal"
+import { openMetabarWithRoomId } from "../../utils/firebase-util";
 
 export function HomePage() {
   const auth = useContext(AuthContext);
@@ -36,8 +37,8 @@ export function HomePage() {
   const wrapInBold = chunk => <b>{chunk}</b>;
   const isHmc = configs.feature("show_cloud");
   
-  // Declare a new state variable roomName
-  const [roomName, setRoomName] = useState(null);
+  // Declare a new state variable selectedRoomId
+  const [selectedRoomId, setSelectedRoomId] = useState(null);
 
   useEffect(() => {
     const qs = new URLSearchParams(location.search);
@@ -63,15 +64,20 @@ export function HomePage() {
   const email = auth.email;
   
   var onCloseFullRoomModal = () => {
-    setRoomName(null);
+    setSelectedRoomId(null);
   };
-  var onSelectAFullRoomCallBack = (roomName) => {
-    setRoomName(roomName);
+  var onContinueFullRoomModal = () => {
+    if (selectedRoomId) {
+      openMetabarWithRoomId(selectedRoomId, 3); // open the room without showing full-room alert
+    }
+  };
+  var onSelectAFullRoomCallBack = (roomId) => {
+    setSelectedRoomId(roomId);
   };
 
   return (     
     <PageContainer className={styles.homePage}>                      
-      {roomName != null && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal} ></FullRoomModal>}
+      {selectedRoomId != null && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onContinueFullRoomModal} ></FullRoomModal>}
       <Container>
         <div className={styles.hero}>
           {auth.isSignedIn ? (

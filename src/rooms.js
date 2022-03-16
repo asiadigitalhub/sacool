@@ -23,8 +23,7 @@ export class Rooms extends Component {
     showNoRoomModal: false
   };
 
-  componentDidMount() {
-    
+  componentDidMount() {    
     this.loadRoomsFromFirebase();
     this.listenFirebaseUpdateUserNumberEvent();
   }
@@ -67,19 +66,19 @@ export class Rooms extends Component {
     });
   }
   // if user select a room, then open this room
-  selectARoom(roomId, roomName, userNumber) {
+  selectARoom(roomId, userNumber) {
     if (userNumber < LimitUserNumberInRoom) {
-      openMetabarWithRoomId(roomId); // open a room
+      openMetabarWithRoomId(roomId); // open the room
     } else {
       if (this.props.onSelectAFullRoomCallBack) { // call props function        
-        this.props.onSelectAFullRoomCallBack(roomName);
+        this.props.onSelectAFullRoomCallBack(roomId);
       }
     }    
   }
   // create a 'a' html tag that has room name
   createATag(roomId, roomName, userNumber) {    
     return (
-      <a style={{cursor:"pointer"}} onClick={() => this.selectARoom(roomId, roomName, userNumber)}>
+      <a style={{cursor:"pointer"}} onClick={() => this.selectARoom(roomId, userNumber)}>
         {roomName}
       </a>
     );

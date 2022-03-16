@@ -8,7 +8,6 @@ import "./utils/debug-log";
 import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
-import { firebaseConfig, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
 
 console.log(
   `App version: ${
@@ -258,7 +257,9 @@ import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
 import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, 
-  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus} from "./utils/firebase-util";
+  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus,
+  setNumberOfUserInRoom, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
+
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 
@@ -330,8 +331,14 @@ const qsVREntryType = qs.get("vr_entry_type");
 
 // when the full-room modal close
 function onCloseFullRoomModal() {
-  // open home page    
+  // open the home page    
   window.location = window.location.origin;
+}
+
+// when the continue button in full-room modal clicked
+function onContinueFullRoomModal() {
+  // hide the full-room alert  
+  remountUI({ showFullRoomModal: false });
 }
 
 function mountUI(props = {}) {
@@ -367,7 +374,7 @@ function mountUI(props = {}) {
             }
           />
         </Router>
-        {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullRoomModal> }
+        {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onContinueFullRoomModal} isShowBackButton={true}></FullRoomModal> }
         {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullAllRoomModal> }
       </ThemeProvider>
     </WrappedIntlProvider>,
@@ -783,6 +790,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
   window.APP.entryManager = entryManager;
+
   // open room if hubId is special metabar
   if (hubId == "metabar") {    
     var roomIdNeedCheck = null;
@@ -823,7 +831,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }    
   } 
 
-  // get ismetabar component from url—≠
+  // get ismetabar component from url
   var isMetabar = entryManager.getIsMetabarFromQueryUrl();
   
   // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
@@ -853,13 +861,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
     // increase number of user in a room    
     var roomMap = await increaseUserNumberInRoom(hubId)
-    if (roomMap) { // if we find hubId in firebase db
+    if (roomMap) { // if we find hubId in firebase db      
       if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
         // register a decrease process
         decreaseUserNumberIfWindowUnload(hubId);           
       } else { // if the user number is above the limitation        
         descreaseUserNumberInRoom(hubId);
-        remountUI({ showFullRoomModal: true });        
+        if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert
+          remountUI({ showFullRoomModal: true });        
+        }        
       }
     }          
   }
@@ -1356,7 +1366,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   events.on(`hub:sync`, ({ presence }) => {
     updateSceneCopresentState(presence, scene);
   });
+
+  
   events.on(`hub:sync`, ({ presence }) => {
+    // update number of user in the room hubId in firebase
+    var numberOfUser = Object.keys(presence.state).length;    
+    if (presence.state) {
+      setNumberOfUserInRoom(hubId, numberOfUser);
+    }
+    
     remountUI({
       sessionId: socket.params().session_id,
       presences: presence.state,
