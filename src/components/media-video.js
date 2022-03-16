@@ -570,6 +570,7 @@ AFRAME.registerComponent("media-video", {
         geometry.scale(-1, 1, 1);
       } else {
         console.log("THREE.FrontSide - Texture Fliped ", texture.flipY);
+        console.log("THREE.FrontSide - Texture Fliped ", this.el.object3D.rotation);
         const flipY = texture.isVideoTexture ? texture.flipY : audioIconTexture.flipY;
         geometry = createPlaneBufferGeometry(undefined, undefined, undefined, undefined, flipY);
         material.side = THREE.FrontSide;
