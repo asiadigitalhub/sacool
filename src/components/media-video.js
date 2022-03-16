@@ -2,8 +2,8 @@
 
 ///Firebase import
 import {} from "../hub";
-import { getVideoControlRef, getVideoRef } from "../utils/firebase-util";
-import { ref, onValue, update} from "firebase/database";
+import { getVideoControlRef, getVideoRef ,} from "../utils/firebase-util";
+import { ref, onValue, update,get} from "firebase/database";
 
 
 
@@ -152,6 +152,26 @@ AFRAME.registerComponent("media-video", {
         this.updateHoverMenu();
         this.updatePlaybackState();
       });
+
+
+
+    /**
+   * Auth: Duy 
+   * update feature : Sync Videos volumn by Firebase Realtime Database
+   */
+     const videoRef = getVideoRef(this.el.object3D.name);
+     //Listen Videos node
+     onValue(videoRef, (snapshot) => {
+       const data = snapshot.val();
+       if(data && (data.volumn || data.volumn == 0) ){
+         this.updateVolumnFromFirebase(data.volumn);
+       }else{
+         //0.5 is default Volumn value
+        this.updateVolumnFromFirebase(0.5);
+       }
+     });
+
+    
   }
 
     NAF.utils
@@ -388,9 +408,14 @@ AFRAME.registerComponent("media-video", {
   update(oldData) {
     this.updatePlaybackState();
 
-    const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src) 
-    || (this.data.loop != oldData.loop)
-    || (this.data.videoPaused != oldData.videoPaused);
+    const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src);
+
+//TODO: this lines code will reproduce the looping issue
+// const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src) 
+// || (this.data.loop != oldData.loop)
+// || (this.data.videoPaused != oldData.videoPaused);
+//TODO: this lines code will reproduce the looping issue
+
     if (shouldUpdateSrc) {
       this.updateSrc(oldData);
       return;
@@ -431,46 +456,6 @@ AFRAME.registerComponent("media-video", {
 
     APP.audios.set(this.el, this.audio);
     updateAudioSettings(this.el, this.audio);
-
-
-    /**
-   * Auth: Duy 
-   * update feature : Sync Videos volumn by Firebase Realtime Database
-   */
-     const videoRef = getVideoRef(this.el.object3D.name);
-     //Listen Videos node
-     onValue(videoRef, (snapshot) => {
-       const data = snapshot.val();
-       if(data && (data.volumn || data.volumn == 0) ){
-         this.updateVolumnFromFirebase(data.volumn);
-       }else{
-         //0.5 is default Volumn value
-        this.updateVolumnFromFirebase(0.5);
-       }
-     });
-
-
-    /**
-   * Auth: Duy 
-   * update feature : Sync Videos Control by Firebase Realtime Database
-   */
-
-     const objectName = this.el.object3D.name;
-     const videoControl = getVideoControlRef();
-     //Listen videos_control node
-     onValue(videoControl, (snapshot) => {
-       const data = snapshot.val();
-       if(data && Array.isArray(data)){
-          for (const videoInfo of data) {
-            if(videoInfo.video_id == objectName){
-              this.scheduleInfo = videoInfo;
-            }
-            
-          }
-        }
-      
-     
-     });
   },
 
   async updateSrc(oldData) {
@@ -494,7 +479,6 @@ AFRAME.registerComponent("media-video", {
           await refreshMediaMirror();
         }
       }
-
       this.hasAudioTracks = hasAudioTracks(audioSourceEl);
 
       // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
@@ -549,6 +533,8 @@ AFRAME.registerComponent("media-video", {
 
       this.videoTexture = texture;
       this.audioSource = audioSourceEl;
+      console.log("this.audioSourcethis.audioSourcethis.audioSource ",this.audioSource)
+
     } catch (e) {
       console.error("Error loading video", this.data.src, e);
       texture = errorTexture;
@@ -599,6 +585,33 @@ AFRAME.registerComponent("media-video", {
       this.videoMutedAt = performance.now();
     }
 
+
+    /**
+     * Fix issue Echo sound
+     */
+    //Get Video Info from Firebase and handle Video.muted
+    const videoRef = getVideoRef(this.el.object3D.name);
+    get(videoRef).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        if(data && (data.volumn || data.volumn == 0) ){
+          this.updateVolumnFromFirebase(data.volumn);
+        }else{
+          //0.5 is default Volumn value
+          this.updateVolumnFromFirebase(0.5);
+        }
+
+        //wait 
+        setTimeout(() => {
+          this.video.muted = false;
+        }, 500);
+      } else {
+        console.log("No data available");
+      }
+    }).catch((error) => {
+      console.error(error);
+    });
+
     this.el.emit("video-loaded", { projection: projection });
   },
 
@@ -622,6 +635,12 @@ AFRAME.registerComponent("media-video", {
       };
 
       const videoEl = createVideoOrAudioEl("video");
+
+      /**
+      * Fix issue Echo sound
+      */
+      videoEl.muted = true;
+
 
       let texture, audioEl, isReady;
       if (contentType.startsWith("audio/")) {

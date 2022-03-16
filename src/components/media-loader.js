@@ -522,9 +522,10 @@ AFRAME.registerComponent("media-loader", {
 
           linkedVideoTexture = linkedMediaVideo.videoTexture;
           linkedAudioSource = linkedMediaVideo.audioSource;
+        
           linkedMediaElementAudioSource = linkedMediaVideo.mediaElementAudioSource;
         }
-
+  console.log('linkedAudioSource ',( canonicalAudioUrl ? proxiedUrlFor(canonicalAudioUrl) : null));
         const qsTime = parseInt(parsedUrl.searchParams.get("t"));
         const hashTime = parseInt(new URLSearchParams(parsedUrl.hash.substring(1)).get("t"));
         const startTime = hashTime || qsTime || 0;
