@@ -46,6 +46,7 @@ AFRAME.registerComponent("media-image", {
       const { src, version, contentType } = this.data;
       if (!src) return;
 
+      console.log("Loading Image - ContentType: "+contentType +" - Src ", src );
       this.el.emit("image-loading");
 
       if (this.mesh && this.mesh.material.map && (src !== oldData.src || version !== oldData.version)) {

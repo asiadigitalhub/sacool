@@ -769,6 +769,7 @@ AFRAME.registerComponent("gltf-model-plus", {
         return;
       }
 
+      console.log("Loading Model - ContentType: "+contentType +" - Src ", src );
       this.el.emit("model-loading");
       const gltf = await loadModel(src, contentType, this.data.useCache, this.jsonPreprocessor);
 
@@ -846,6 +847,8 @@ AFRAME.registerComponent("gltf-model-plus", {
       object3DToSet.visible = true;
       this.el.emit("model-loaded", { format: "gltf", model: object3DToSet });
     } catch (e) {
+      console.log("model-error - ContentType: "+contentType +" - Src ", src );
+
       gltfCache.release(src);
       console.error("Failed to load glTF model", e, this);
       this.el.emit("model-error", { format: "gltf", src });
