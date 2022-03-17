@@ -74,7 +74,20 @@ export class RoomUserStatus {
   static CheckingRoomIdAvailable = 2;  
   static CheckingRoomIdNotInFirebase = 3;
 }
-
+// assign/set the number of user in room with id(roomid) by number
+export async function setNumberOfUserInRoom(roomId, number) {
+  const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
+  var transaction = await runTransaction(postRef, (post) => {
+    if (post) {
+      post.user_number = number;      
+    }
+    return post;
+  }).then(function (updatedValue) {      
+    return updatedValue;      
+  });   
+  return transaction.snapshot.val(); 
+}
+// increase or decrease the number of user in room
 async function updateNumberOfUserInRoom(roomId, isIncrease) {
     const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
     var transaction = await runTransaction(postRef, (post) => {
@@ -94,12 +107,12 @@ async function updateNumberOfUserInRoom(roomId, isIncrease) {
 
 // decrease the number of user in room if the window unloads
 export function decreaseUserNumberIfWindowUnload (roomId) {   
-  var isOnIOS = navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i);  
-  var eventName = isOnIOS ? "pagehide" : "beforeunload"; 
-  // When Brower close, decrease the number of user in a room
-  window.addEventListener(eventName, function (e) {              
-    descreaseUserNumberInRoom(roomId);
-  });      
+  // var isOnIOS = navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i);  
+  // var eventName = isOnIOS ? "pagehide" : "beforeunload"; 
+  // // When Brower close, decrease the number of user in a room
+  // window.addEventListener(eventName, function (e) {              
+  //   descreaseUserNumberInRoom(roomId);
+  // });      
   
   // //When Brower close, decrease the number of user in a room
   // if (isOnIOS) { // for iphone/ipad
@@ -125,13 +138,13 @@ export async function increaseUserNumberInRoom(roomId) {
 }
 // decrease the number of user in a room by 1
 export function descreaseUserNumberInRoom(roomId) {
-  const decrementFieldValue = increment(-1);
+  // const decrementFieldValue = increment(-1);
   
-  const updates = {};
-  var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
-  updates[path] = decrementFieldValue;
+  // const updates = {};
+  // var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
+  // updates[path] = decrementFieldValue;
 
-  update(ref(firebaseDatabase), updates); // call firebase's update function
+  // update(ref(firebaseDatabase), updates); // call firebase's update function
 }
 
 export function getRoomsInFirebase(callBack) {
@@ -192,22 +205,23 @@ export async function getAvailableRoomForJoining(roomIdNeedCheck) {
   return {room_id: maximumNumberRoomId, status: maximumNumberRoomId != null ? RoomUserStatus.FoundANewRoomId : RoomUserStatus.AllRoomsAreFull};        
 }
 
-// isCheckRoom = 1 => auto find other room if the current room is full
-// isCheckRoom = 2 => open a specific room, alert if this room is full
-// isCheckRoom = null => open a normal room, no need to user number
-export function openMetabarWithRoomId(roomId, isCheckRoom) {
+// openStatus = 1 => auto find other room if the current room is full
+// openStatus = 2 => open a specific room, alert if this room is full
+// openStatus = 3 => no show the full room alert any more
+// openStatus = null => open a normal room, no need to check/update user number
+export function openMetabarWithRoomId(roomId, openStatus) {
   if (isDeploy) { // if deploy mode
     var domain = window.location;
     var urlComponents = "/" + roomId;
-    if (isCheckRoom != null) {
+    if (openStatus != null) {
       urlComponents += "?";
     }
     const redirectUrl = new URL(urlComponents, domain);
     if (redirectUrl.search.length > 0) {
       redirectUrl.search += "&";
     }            
-    if (isCheckRoom != null) {
-      redirectUrl.search += "ismetabar=" + isCheckRoom;    
+    if (openStatus != null) {
+      redirectUrl.search += "ismetabar=" + openStatus;    
     }
     
     
@@ -220,8 +234,8 @@ export function openMetabarWithRoomId(roomId, isCheckRoom) {
       redirectUrl.search += "&";
     }        
     redirectUrl.search += "hub_id=" + roomId;
-    if (isCheckRoom != null) {
-      redirectUrl.search += "&ismetabar=" + isCheckRoom;    
+    if (openStatus != null) {
+      redirectUrl.search += "&ismetabar=" + openStatus;    
     }
     document.location = redirectUrl;        
   }  

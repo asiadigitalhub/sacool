@@ -8,7 +8,6 @@ import "./utils/debug-log";
 import configs from "./utils/configs";
 import "./utils/theme";
 import "@babel/polyfill";
-import { firebaseConfig, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
 
 console.log(
   `App version: ${
@@ -258,9 +257,15 @@ import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
 import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, 
-  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus} from "./utils/firebase-util";
+  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus,
+  setNumberOfUserInRoom, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
+
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
+
+const metabarText = "metabar";
+var roomIdNeedCheck = null;
+var hubId = null;
 
 const PHOENIX_RELIABLE_NAF = "phx-reliable";
 NAF.options.firstSyncSource = PHOENIX_RELIABLE_NAF;
@@ -330,8 +335,18 @@ const qsVREntryType = qs.get("vr_entry_type");
 
 // when the full-room modal close
 function onCloseFullRoomModal() {
-  // open home page    
+  // open the home page    
   window.location = window.location.origin;
+}
+
+// when the continue button in full-room modal clicked
+function onContinueFullRoomModal() {
+  if (hubId == metabarText && roomIdNeedCheck != null) { // if continue with the full room, then open this room
+    openMetabarWithRoomId(roomIdNeedCheck, 3); // 3: no open the full-room alert again
+  } else {
+    // hide the full-room alert  
+    remountUI({ showFullRoomModal: false });
+  }  
 }
 
 function mountUI(props = {}) {
@@ -367,7 +382,7 @@ function mountUI(props = {}) {
             }
           />
         </Router>
-        {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullRoomModal> }
+        {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onContinueFullRoomModal} isShowBackButton={true}></FullRoomModal> }
         {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullAllRoomModal> }
       </ThemeProvider>
     </WrappedIntlProvider>,
@@ -734,7 +749,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  const hubId = getCurrentHubId();
+  hubId = getCurrentHubId();
   console.log(`Hub ID: ${hubId}`);
 
   const shouldRedirectToSignInPage =
@@ -783,19 +798,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
   window.APP.entryManager = entryManager;
+
   // open room if hubId is special metabar
-  if (hubId == "metabar") {    
-    var roomIdNeedCheck = null;
+  if (hubId == metabarText) {        
     // get room id from url's path
     var pathArray = window.location.pathname.split('/');
     pathArray = pathArray.filter(function(item) {
-      return (item !== "metabar" && item !== "")
+      return (item !== metabarText && item !== "")
     })    
     if (pathArray.length > 0) {
       roomIdNeedCheck = pathArray[0];
     }
     
-    // var roomIdNeedCheck = null;// "i9wvxf3";
+    // roomIdNeedCheck = "SMyzKvY"; // "i9wvxf3";
     
     // get or check the room id(roomIdNeedCheck), then open the room
     var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
@@ -823,7 +838,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }    
   } 
 
-  // get ismetabar component from url—≠
+  var isShowFullRoomModal = false;
+  // get ismetabar component from url
   var isMetabar = entryManager.getIsMetabarFromQueryUrl();
   
   // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
@@ -853,13 +869,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
     // increase number of user in a room    
     var roomMap = await increaseUserNumberInRoom(hubId)
-    if (roomMap) { // if we find hubId in firebase db
+    if (roomMap) { // if we find hubId in firebase db      
       if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
         // register a decrease process
         decreaseUserNumberIfWindowUnload(hubId);           
       } else { // if the user number is above the limitation        
         descreaseUserNumberInRoom(hubId);
-        remountUI({ showFullRoomModal: true });        
+        if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert          
+          isShowFullRoomModal = true; // will show full-room alert at the end of this function, to avoid error
+        }        
       }
     }          
   }
@@ -1356,7 +1374,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   events.on(`hub:sync`, ({ presence }) => {
     updateSceneCopresentState(presence, scene);
   });
+
+  
   events.on(`hub:sync`, ({ presence }) => {
+    // update number of user in the room hubId in firebase
+    var numberOfUser = Object.keys(presence.state).length;    
+    if (presence.state) {
+      setNumberOfUserInRoom(hubId, numberOfUser);
+    }
+    
     remountUI({
       sessionId: socket.params().session_id,
       presences: presence.state,
@@ -1503,4 +1529,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   authChannel.setSocket(socket);
   linkChannel.setSocket(socket);
+
+  // show full-room modal
+  if (isShowFullRoomModal) {
+    remountUI({ showFullRoomModal: true });        
+  }
 });
