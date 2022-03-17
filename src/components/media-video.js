@@ -474,7 +474,7 @@ AFRAME.registerComponent("media-video", {
         audioSourceEl = linkedAudioSource;
       } else {
 
-        console.log("Loading video - ContentType: "+contentType +" - Src ", src );
+        console.log("Loading video - :  - Src ", src );
 
         this.el.emit("video-loading");
         ({ texture, audioSourceEl } = await this.createVideoTextureAudioSourceEl());

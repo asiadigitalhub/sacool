@@ -79,7 +79,7 @@ AFRAME.registerComponent("media-pdf", {
         await this.renderTask.promise;
         if (src !== this.data.src || index !== this.data.index) return;
       }
-      console.log("Loading pdf - ContentType: "+contentType +" - Src ", src );
+      console.log("Loading pdf - Src ", src );
 
       this.el.emit("pdf-loading");
 
