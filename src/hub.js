@@ -1404,10 +1404,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   events.on(`hub:sync`, ({ presence }) => {
     // update number of user in the room hubId in firebase
-    var numberOfUser = Object.keys(presence.state).length;    
     if (presence.state) {
+      var numberOfUser = 0;
+      for (var peopleKey in presence.state) { 
+        // if user is entering or in room, then increase the number of user
+        if (presence.state[peopleKey].metas != null && presence.state[peopleKey].metas.length > 0 && 
+          presence.state[peopleKey].metas[0].presence == "room" || presence.state[peopleKey].presence == "entering") {
+          numberOfUser += 1; // increase by 1
+        }
+      } 
+      // update in firebase
       setNumberOfUserInRoom(hubId, numberOfUser);
-    }
+    }    
     
     remountUI({
       sessionId: socket.params().session_id,
