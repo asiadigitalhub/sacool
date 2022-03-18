@@ -214,6 +214,7 @@ AFRAME.registerComponent("media-video", {
 
     let audioOutputModePref = APP.store.state.preferences.audioOutputMode;
     this.onPreferenceChanged = () => {
+      console.log("onPreferenceChanged");
       const newPref = APP.store.state.preferences.audioOutputMode;
       const shouldRecreateAudio = audioOutputModePref !== newPref && this.audio && this.mediaElementAudioSource;
       audioOutputModePref = newPref;
@@ -370,8 +371,11 @@ AFRAME.registerComponent("media-video", {
     // Only update playback position for videos you don't own
     if (this.video && (force || (this.networkedEl && !NAF.utils.isMine(this.networkedEl)))) {
       if (Math.abs(this.data.time - this.video.currentTime) > this.data.syncTolerance) {
+        console.log("update syncTolerance ");
+        //TODO: fix issue Video loopback
         this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
       } else {
+        console.log("update videoPaused ");
         this.tryUpdateVideoPlaybackState(this.data.videoPaused);
       }
     }
@@ -562,7 +566,7 @@ AFRAME.registerComponent("media-video", {
         console.log("THREE.FrontSide - Texture Fliped ", this.el.object3D.rotation);
         const flipY = texture.isVideoTexture ? texture.flipY : audioIconTexture.flipY;
         geometry = createPlaneBufferGeometry(undefined, undefined, undefined, undefined, flipY);
-        material.side = THREE.FrontSide;
+        material.side = THREE.DoubleSide;
       }
 
       this.mesh = new THREE.Mesh(geometry, material);
@@ -652,7 +656,16 @@ AFRAME.registerComponent("media-video", {
         texture.image = videoEl;
         isReady = () => videoEl.readyState > 0;
       } else {
-        texture = new THREE.VideoTexture(videoEl);
+        console.log("Video format ",THREE.RGFormat );
+        texture = new THREE.VideoTexture(videoEl,
+          THREE.UVMapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.ClampToEdgeWrapping,
+          THREE.LinearFilter,
+          THREE.NearestMipMapNearestFilter,
+          THREE._SRGBFormat,
+          THREE.UnsignedByteType,
+          0);
         texture.minFilter = THREE.LinearFilter;
         texture.encoding = THREE.sRGBEncoding;
 
