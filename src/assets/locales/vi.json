@@ -12,6 +12,8 @@
     "metabar.continue-join-room": "Tiếp tục vào phòng",
     "metabar.ok": "OK",
     "metabar.cancel": "Huỷ",
+    "metabar.connection-error-title": "Lỗi kết nối",
+    "metabar.connection-error-message": "Lỗi kết nối! Xin vui lòng mở lại trang!",
     "audio-debug-panel.audio-debug-avatar-title": "Avatar",
     "audio-debug-panel.audio-debug-global-title": "Globals",
     "audio-debug-panel.audio-debug-media-title": "Media",
