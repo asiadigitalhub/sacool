@@ -54,7 +54,7 @@ class Metabar extends Component {
     //     this.setState({showFullRoomModel: true});
     //     return;
     //   }
-    //   if (roomId) { // if we have an available room where the nunber of user < 25        
+    //   if (roomId) { // if we have an available room where the nunber of user < limitation        
     //     openMetabarWithRoomId(roomId, roomIdNeedCheck != null);
     //   } else { // if all rooms are full or roomIdNeedCheck is not in firebase db
     //     // show FullRoomModal

@@ -23,7 +23,7 @@ const app = initializeApp(firebaseConfig);
 export const firebaseDatabase = getDatabase(app);
 
 const analytics = getAnalytics();
-export const LimitUserNumberInRoom = 25; // the maximum number of user in a room
+export const LimitUserNumberInRoom = 18; // the maximum number of user in a room
 
 /**
  * 

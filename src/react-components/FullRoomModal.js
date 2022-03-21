@@ -13,7 +13,7 @@ export function FullRoomModal({ onClose, onAccept, isShowBackButton }) {
     <div style={{position:"absolute", zIndex:"100000", pointerEvents:"visible", width:"100%", height: "100%", top:"0px", backgroundColor:"rgb(170, 170, 170, 0.8)"}}>      
         <Center>
         <Modal
-        title={<FormattedMessage id="metabar.room-is-full" defaultMessage="Room is full" />}
+        title={<FormattedMessage id="metabar.room-is-full" defaultMessage="This Room is full" />}
         beforeTitle={<CloseButton onClick={onClose}/>}
       >
         <Column padding center centerMd="both" grow>          
