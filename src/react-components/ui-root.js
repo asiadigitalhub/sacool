@@ -40,6 +40,7 @@ import maskEmail from "../utils/mask-email";
 import qsTruthy from "../utils/qs_truthy";
 import { LoadingScreenContainer } from "./room/LoadingScreenContainer";
 
+import { AudioPopoverContainer } from "./room/AudioPopoverContainer";
 import { RoomLayoutContainer } from "./room/RoomLayoutContainer";
 import roomLayoutStyles from "./layout/RoomLayout.scss";
 import { useAccessibleOutlineStyle } from "./input/useAccessibleOutlineStyle";
@@ -559,7 +560,9 @@ class UIRoot extends Component {
 
     if (hasGrantedMic) {
       if (!this.mediaDevicesManager.isMicShared) {
-        await this.mediaDevicesManager.startLastUsedMicShare();
+        await this.mediaDevicesManager.startMicShare({
+          deviceId: this.mediaDevicesManager.preferredMicDeviceId
+        });
       }
       this.beginOrSkipAudioSetup();
     } else {
@@ -596,7 +599,9 @@ class UIRoot extends Component {
   onRequestMicPermission = async () => {
     console.log("Microphone permission requested");
     // TODO: Show an error state if getting the microphone permissions fails
-    await this.mediaDevicesManager.startLastUsedMicShare();
+    await this.mediaDevicesManager.startMicShare({
+      deviceId: this.mediaDevicesManager.preferredMicDeviceId
+    });
     this.beginOrSkipAudioSetup();
   };
 
@@ -1560,9 +1565,9 @@ class UIRoot extends Component {
                     )}
                     {entered && (
                       <>
-                        <VoiceButtonContainer
+                        <AudioPopoverContainer
                           scene={this.props.scene}
-                          microphoneEnabled={this.mediaDevicesManager.isMicShared}
+                      
                         />
 
                         {
