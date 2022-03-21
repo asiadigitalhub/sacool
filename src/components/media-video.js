@@ -373,7 +373,7 @@ AFRAME.registerComponent("media-video", {
       if (Math.abs(this.data.time - this.video.currentTime) > this.data.syncTolerance) {
         console.log("update syncTolerance ");
         //TODO: fix issue Video loopback
-        this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
+        // this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
       } else {
         console.log("update videoPaused ");
         this.tryUpdateVideoPlaybackState(this.data.videoPaused);
