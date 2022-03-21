@@ -1,14 +1,11 @@
-/* global performance THREE AFRAME NAF MediaStream setTimeout */
 
-///Firebase import
-import {} from "../hub";
 import { getVideoControlRef, getVideoRef ,} from "../utils/firebase-util";
 import { ref, onValue, update,get} from "firebase/database";
 
 
 
+/* global performance THREE AFRAME NAF MediaStream setTimeout */
 import configs from "../utils/configs";
-
 import audioIcon from "../assets/images/audio.png";
 import { paths } from "../systems/userinput/paths";
 import HLS from "hls.js";
@@ -39,12 +36,6 @@ const TYPE_IMG_PNG = { type: "image/png" };
 const isIOS = detectIOS();
 const audioIconTexture = new HubsTextureLoader().load(audioIcon);
 
-/**
- * Auth: Duy 
- * update feature : Only Admin can interact with Video Controler
- */
-const isMobileVR = AFRAME.utils.device.isMobileVR();
-
 export const VOLUME_LABELS = [];
 for (let i = 0; i <= 20; i++) {
   let s = "[";
@@ -67,7 +58,7 @@ function timeFmt(t) {
   return h === "00" ? `${m}:${s}` : `${h}:${m}:${s}`;
 }
 
-const MAX_MULTIPLIER = 2;
+const MAX_GAIN_MULTIPLIER = 2;
 
 AFRAME.registerComponent("media-video", {
   schema: {
@@ -81,14 +72,12 @@ AFRAME.registerComponent("media-video", {
     time: { type: "number" },
     tickRate: { default: 1000 }, // ms interval to send time interval updates
     syncTolerance: { default: 2 },
-    isModerator : { default: false },
-    scheduleInfo :{ default: null },
     linkedVideoTexture: { default: null },
     linkedAudioSource: { default: null },
     linkedMediaElementAudioSource: { default: null }
   },
 
-  init() { 
+  init() {
     APP.gainMultipliers.set(this.el, 1);
     this.onPauseStateChange = this.onPauseStateChange.bind(this);
     this.updateHoverMenu = this.updateHoverMenu.bind(this);
@@ -104,6 +93,7 @@ AFRAME.registerComponent("media-video", {
     this.snap = this.snap.bind(this);
     this.changeVolumeBy = this.changeVolumeBy.bind(this);
     this.togglePlaying = this.togglePlaying.bind(this);
+    this.setupAudio = this.setupAudio.bind(this);
 
     this.audioSystem = this.el.sceneEl.systems["hubs-systems"].audioSystem;
 
@@ -115,13 +105,7 @@ AFRAME.registerComponent("media-video", {
     this.onSnapImageLoaded = () => (this.isSnapping = false);
     this.hasAudioTracks = false;
 
-
-
-    /**
-     * Auth: Duy 
-     * update feature : Only Admin can interact with Video Controler
-     */
-    this.isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users") && !isMobileVR;
+    this.isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users");
     if(this.isModerator){
       this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
       this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
@@ -152,27 +136,24 @@ AFRAME.registerComponent("media-video", {
         this.updateHoverMenu();
         this.updatePlaybackState();
       });
+    }
 
-
-
-    /**
+       /**
    * Auth: Duy 
    * update feature : Sync Videos volumn by Firebase Realtime Database
    */
-     const videoRef = getVideoRef(this.el.object3D.name);
-     //Listen Videos node
-     onValue(videoRef, (snapshot) => {
-       const data = snapshot.val();
-       if(data && (data.volumn || data.volumn == 0) ){
-         this.updateVolumnFromFirebase(data.volumn);
-       }else{
-         //0.5 is default Volumn value
+    const videoRef = getVideoRef(this.el.object3D.name);
+    //Listen Videos node
+    onValue(videoRef, (snapshot) => {
+      const data = snapshot.val();
+      if(data && (data.volumn || data.volumn == 0) ){
+        this.updateVolumnFromFirebase(data.volumn);
+      }else{
+        //0.5 is default Volumn value
         this.updateVolumnFromFirebase(0.5);
-       }
-     });
+      }
+    });
 
-    
-  }
 
     NAF.utils
       .getNetworkedEntity(this.el)
@@ -212,17 +193,17 @@ AFRAME.registerComponent("media-video", {
       evt.detail.cameraEl.getObject3D("camera").add(sceneEl.audioListener);
     });
 
-    let audioOutputModePref = APP.store.state.preferences.audioOutputMode;
+    let disableLeftRightPanningPref = APP.store.state.preferences.disableLeftRightPanning;
     this.onPreferenceChanged = () => {
-      console.log("onPreferenceChanged");
-      const newPref = APP.store.state.preferences.audioOutputMode;
-      const shouldRecreateAudio = audioOutputModePref !== newPref && this.audio && this.mediaElementAudioSource;
-      audioOutputModePref = newPref;
+      const newPref = APP.store.state.preferences.disableLeftRightPanning;
+      const shouldRecreateAudio = disableLeftRightPanningPref !== newPref && this.audio && this.mediaElementAudioSource;
+      disableLeftRightPanningPref = newPref;
       if (shouldRecreateAudio) {
         this.setupAudio();
       }
     };
     APP.store.addEventListener("statechanged", this.onPreferenceChanged);
+    this.el.addEventListener("audio_type_changed", this.setupAudio);
   },
 
   play() {
@@ -256,7 +237,7 @@ AFRAME.registerComponent("media-video", {
 
   changeVolumeBy(v) {
     let gainMultiplier = APP.gainMultipliers.get(this.el);
-    gainMultiplier = THREE.Math.clamp(gainMultiplier + v, 0, MAX_MULTIPLIER);
+    gainMultiplier = THREE.Math.clamp(gainMultiplier + v, 0, MAX_GAIN_MULTIPLIER);
     APP.gainMultipliers.set(this.el, gainMultiplier);
     this.updateVolumeLabel();
     const audio = APP.audios.get(this.el);
@@ -265,10 +246,8 @@ AFRAME.registerComponent("media-video", {
     }
   },
 
-  updateVolumnFromFirebase(v) {
-    let gainMultiplier = APP.gainMultipliers.get(this.el);
-    gainMultiplier = THREE.Math.clamp(v, 0, MAX_MULTIPLIER);
-    
+  updateVolumnFromFirebase(v){
+    let gainMultiplier  = THREE.Math.clamp(v, 0, MAX_GAIN_MULTIPLIER);
     APP.gainMultipliers.set(this.el, gainMultiplier);
     this.updateVolumeLabel();
     const audio = APP.audios.get(this.el);
@@ -280,6 +259,7 @@ AFRAME.registerComponent("media-video", {
   volumeUp() {
     this.changeVolumeBy(0.2);
 
+
     /**
      * Sync volumn value to Firebase Database
      */
@@ -287,14 +267,13 @@ AFRAME.registerComponent("media-video", {
     const updates = {};
     updates['/volumn'] = gainMultiplier;
     update(getVideoRef(this.el.object3D.name), updates);
-    
-
   },
 
   volumeDown() {
     this.changeVolumeBy(-0.2);
 
-     /**
+
+    /**
      * Sync volumn value to Firebase Database
      */
     let gainMultiplier = APP.gainMultipliers.get(this.el);
@@ -333,7 +312,6 @@ AFRAME.registerComponent("media-video", {
   },
 
   onPauseStateChange() {
-    console.log("Video State Trigger|Is Paused: ",  this.video.paused)
     // iOS Safari will auto-pause other videos if one is manually started (not autoplayed.) So, to keep things
     // easy to reason about, we *never* broadcast pauses from iOS.
     //
@@ -365,17 +343,13 @@ AFRAME.registerComponent("media-video", {
   },
 
   updatePlaybackState(force) {
-    console.log("updatePlaybackState per second - Is Video Paused: ",  this.data.videoPaused)
     this.updateHoverMenu();
 
     // Only update playback position for videos you don't own
     if (this.video && (force || (this.networkedEl && !NAF.utils.isMine(this.networkedEl)))) {
       if (Math.abs(this.data.time - this.video.currentTime) > this.data.syncTolerance) {
-        console.log("update syncTolerance ");
-        //TODO: fix issue Video loopback
-        // this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
+        this.tryUpdateVideoPlaybackState(this.data.videoPaused, this.data.time);
       } else {
-        console.log("update videoPaused ");
         this.tryUpdateVideoPlaybackState(this.data.videoPaused);
       }
     }
@@ -402,7 +376,6 @@ AFRAME.registerComponent("media-video", {
     } else {
       // Need to deal with the fact play() may fail if user has not interacted with browser yet.
       this.video.play().catch(() => {
-        console.log("Fail to play Video ");
         if (pause !== this.data.videoPaused) return;
         this._playbackStateChangeTimeout = setTimeout(() => this.tryUpdateVideoPlaybackState(pause, currentTime), 1000);
       });
@@ -412,14 +385,7 @@ AFRAME.registerComponent("media-video", {
   update(oldData) {
     this.updatePlaybackState();
 
-    const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src);
-
-//TODO: this lines code will reproduce the looping issue
-// const shouldUpdateSrc = (this.data.src && this.data.src !== oldData.src) 
-// || (this.data.loop != oldData.loop)
-// || (this.data.videoPaused != oldData.videoPaused);
-//TODO: this lines code will reproduce the looping issue
-
+    const shouldUpdateSrc = this.data.src && this.data.src !== oldData.src;
     if (shouldUpdateSrc) {
       this.updateSrc(oldData);
       return;
@@ -427,10 +393,8 @@ AFRAME.registerComponent("media-video", {
   },
 
   setupAudio() {
-    if (this.audio) {
-      this.audio.disconnect();
-      this.el.removeObject3D("sound");
-    }
+    this.removeAudio();
+
     APP.sourceType.set(this.el, SourceType.MEDIA_VIDEO);
 
     if (this.data.videoPaused) {
@@ -446,9 +410,7 @@ AFRAME.registerComponent("media-video", {
     } else {
       this.audio = new THREE.Audio(audioListener);
     }
-
-    this.audioSystem.removeAudio(this.audio);
-    this.audioSystem.addAudio(SourceType.MEDIA_VIDEO, this.audio);
+    this.audioSystem.addAudio( SourceType.MEDIA_VIDEO,  this.audio );
 
     this.audio.setNodeSource(this.mediaElementAudioSource);
     this.el.setObject3D("sound", this.audio);
@@ -477,15 +439,13 @@ AFRAME.registerComponent("media-video", {
         texture = linkedVideoTexture;
         audioSourceEl = linkedAudioSource;
       } else {
-
-        console.log("Loading video - :  - Src ", src );
-
         this.el.emit("video-loading");
         ({ texture, audioSourceEl } = await this.createVideoTextureAudioSourceEl());
         if (getCurrentMirroredMedia() === this.el) {
           await refreshMediaMirror();
         }
       }
+
       this.hasAudioTracks = hasAudioTracks(audioSourceEl);
 
       // No way to cancel promises, so if src has changed while we were creating the texture just throw it away.
@@ -540,8 +500,6 @@ AFRAME.registerComponent("media-video", {
 
       this.videoTexture = texture;
       this.audioSource = audioSourceEl;
-      console.log("this.audioSourcethis.audioSourcethis.audioSource ",this.audioSource)
-
     } catch (e) {
       console.error("Error loading video", this.data.src, e);
       texture = errorTexture;
@@ -552,8 +510,7 @@ AFRAME.registerComponent("media-video", {
 
     if (!this.mesh || projection !== oldData.projection) {
       const material = new THREE.MeshBasicMaterial();
-
-      // const material = new THREE.Mec
+      material.toneMapped = false;
 
       let geometry;
 
@@ -562,8 +519,6 @@ AFRAME.registerComponent("media-video", {
         // invert the geometry on the x-axis so that all of the faces point inward
         geometry.scale(-1, 1, 1);
       } else {
-        console.log("THREE.FrontSide - Texture Fliped ", texture.flipY);
-        console.log("THREE.FrontSide - Texture Fliped ", this.el.object3D.rotation);
         const flipY = texture.isVideoTexture ? texture.flipY : audioIconTexture.flipY;
         geometry = createPlaneBufferGeometry(undefined, undefined, undefined, undefined, flipY);
         material.side = THREE.DoubleSide;
@@ -592,33 +547,6 @@ AFRAME.registerComponent("media-video", {
       this.videoMutedAt = performance.now();
     }
 
-
-    /**
-     * Fix issue Echo sound
-     */
-    //Get Video Info from Firebase and handle Video.muted
-    const videoRef = getVideoRef(this.el.object3D.name);
-    get(videoRef).then((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        if(data && (data.volumn || data.volumn == 0) ){
-          this.updateVolumnFromFirebase(data.volumn);
-        }else{
-          //0.5 is default Volumn value
-          this.updateVolumnFromFirebase(0.5);
-        }
-
-        //wait 
-        setTimeout(() => {
-          this.video.muted = false;
-        }, 500);
-      } else {
-        console.log("No data available");
-      }
-    }).catch((error) => {
-      console.error(error);
-    });
-
     this.el.emit("video-loaded", { projection: projection });
   },
 
@@ -643,12 +571,6 @@ AFRAME.registerComponent("media-video", {
 
       const videoEl = createVideoOrAudioEl("video");
 
-      /**
-      * Fix issue Echo sound
-      */
-      videoEl.muted = true;
-
-
       let texture, audioEl, isReady;
       if (contentType.startsWith("audio/")) {
         // We want to treat audio almost exactly like video, so we mock a video texture with an image property.
@@ -656,7 +578,6 @@ AFRAME.registerComponent("media-video", {
         texture.image = videoEl;
         isReady = () => videoEl.readyState > 0;
       } else {
-        console.log("Video format ",THREE.RGFormat );
         texture = new THREE.VideoTexture(videoEl);
         // texture.minFilter = THREE.LinearFilter;
         // texture.encoding = THREE.sRGBEncoding;
@@ -667,9 +588,9 @@ AFRAME.registerComponent("media-video", {
         // I don't think it will be fixed soon. So we set RGBA format for Firefox
         // as workaround so far.
         // See https://github.com/mozilla/hubs/issues/3470
-        // if (/firefox/i.test(navigator.userAgent)) {
-          // texture.format = THREE.RGBAFormat;
-        // }
+        if (/firefox/i.test(navigator.userAgent)) {
+          texture.format = THREE.RGBAFormat;
+        }
 
         isReady = () => {
           if (texture.hls && texture.hls.streamController.audioOnly) {
@@ -858,7 +779,6 @@ AFRAME.registerComponent("media-video", {
   updateHoverMenu() {
     if (!this.hoverMenu) return;
 
-
     const mediaLoader = this.el.components["media-loader"].data;
     const pinnableElement = mediaLoader.linkedEl || this.el;
     const isPinned = pinnableElement.components.pinnable && pinnableElement.components.pinnable.data.pinned;
@@ -884,21 +804,17 @@ AFRAME.registerComponent("media-video", {
   },
 
   updateVolumeLabel() {
-    if (!this.hoverMenu) return;
     const gainMultiplier = APP.gainMultipliers.get(this.el);
     this.volumeLabel.setAttribute(
       "text",
       "value",
-      gainMultiplier === 0 ? "MUTE" : VOLUME_LABELS[Math.floor(gainMultiplier / (MAX_MULTIPLIER / 20))]
+      gainMultiplier === 0 ? "MUTE" : VOLUME_LABELS[Math.floor(gainMultiplier / (MAX_GAIN_MULTIPLIER / 20))]
     );
   },
 
   tick: (() => {
     return function() {
-
       if (!this.video) return;
-
-      
 
       const userinput = this.el.sceneEl.systems.userinput;
       const interaction = this.el.sceneEl.systems.interaction;
@@ -968,11 +884,7 @@ AFRAME.registerComponent("media-video", {
     APP.sourceType.delete(this.el);
     APP.supplementaryAttenuation.delete(this.el);
 
-    if (this.audio) {
-      this.el.removeObject3D("sound");
-      this.audioSystem.removeAudio(this.audio);
-      delete this.audio;
-    }
+    this.removeAudio();
 
     if (this.networkedEl) {
       this.networkedEl.removeEventListener("pinned", this.updateHoverMenu);
@@ -997,5 +909,14 @@ AFRAME.registerComponent("media-video", {
     }
 
     window.APP.store.removeEventListener("statechanged", this.onPreferenceChanged);
+    this.el.addEventListener("audio_type_changed", this.setupAudio);
+  },
+
+  removeAudio() {
+    if (this.audio) {
+      this.el.removeObject3D("sound");
+      this.audioSystem.removeAudio({ node: this.audio });
+      delete this.audio;
+    }
   }
 });
