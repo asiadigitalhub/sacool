@@ -841,7 +841,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;              
       }
             
-      if (roomId != null) { // if we have an available room where the nunber of user < 25              
+      if (roomId != null) { // if we have an available room where the nunber of user < limitation              
         openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
         return;     
       } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
