@@ -658,8 +658,8 @@ AFRAME.registerComponent("media-video", {
       } else {
         console.log("Video format ",THREE.RGFormat );
         texture = new THREE.VideoTexture(videoEl);
-        texture.minFilter = THREE.LinearFilter;
-        texture.encoding = THREE.sRGBEncoding;
+        // texture.minFilter = THREE.LinearFilter;
+        // texture.encoding = THREE.sRGBEncoding;
 
         // Firefox seems to have video play (or decode) performance issue.
         // Somehow setting RGBA format improves the performance very well.
@@ -668,7 +668,7 @@ AFRAME.registerComponent("media-video", {
         // as workaround so far.
         // See https://github.com/mozilla/hubs/issues/3470
         // if (/firefox/i.test(navigator.userAgent)) {
-          texture.format = THREE.RGBAFormat;
+          // texture.format = THREE.RGBAFormat;
         // }
 
         isReady = () => {
