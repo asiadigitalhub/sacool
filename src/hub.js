@@ -1341,6 +1341,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
+  // Issue IOS not autoplay video: cheat trigger play video after enter room
+  events.on(`hub:change`, ({ current }) => {
+    if (scene.is("entered") && current.presence === 'room') {
+      const videos = document.querySelectorAll("[media-video]")
+      videos.forEach(m => {
+        const videoComponent = m.components["media-video"];
+  
+          if (videoComponent) {
+            videoComponent._ignorePauseStateChanges = true;
+  
+            setTimeout(() => {
+              const video = videoComponent.video;
+  
+              if (video && video.paused && !videoComponent.data.videoPaused) {
+                video.play();
+              }
+  
+              videoComponent._ignorePauseStateChanges = false;
+            }, 1000);
+          }
+      })
+    }
+  })
+  //---------------------------------------------------------
+
+
   events.on(`hub:change`, ({ key, previous, current }) => {
     if (
       previous.presence === current.presence ||
