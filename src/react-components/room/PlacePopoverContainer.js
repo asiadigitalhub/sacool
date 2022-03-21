@@ -24,14 +24,14 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
         const hasActivePen = !!scene.systems["pen-tools"].getMyPen();
 
         let nextItems = [
-          hubChannel.can("spawn_drawing") && {
-            id: "pen",
-            icon: PenIcon,
-            color: "accent5",
-            label: <FormattedMessage id="place-popover.item-type.pen" defaultMessage="Pen" />,
-            onSelect: () => scene.emit("penButtonPressed"),
-            selected: hasActivePen
-          },
+          // hubChannel.can("spawn_drawing") && {
+          //   id: "pen",
+          //   icon: PenIcon,
+          //   color: "accent5",
+          //   label: <FormattedMessage id="place-popover.item-type.pen" defaultMessage="Pen" />,
+          //   onSelect: () => scene.emit("penButtonPressed"),
+          //   selected: hasActivePen
+          // },
           hubChannel.can("spawn_camera") && {
             id: "camera",
             icon: CameraIcon,
@@ -62,13 +62,13 @@ export function PlacePopoverContainer({ scene, mediaSearchStore, showNonHistorie
               label: <FormattedMessage id="place-popover.item-type.model" defaultMessage="3D Model" />,
               onSelect: () => mediaSearchStore.sourceNavigate("sketchfab")
             },
-            {
-              id: "avatar",
-              icon: AvatarIcon,
-              color: "accent1",
-              label: <FormattedMessage id="place-popover.item-type.avatar" defaultMessage="Avatar" />,
-              onSelect: () => mediaSearchStore.sourceNavigate("avatars")
-            },
+            // {
+            //   id: "avatar",
+            //   icon: AvatarIcon,
+            //   color: "accent1",
+            //   label: <FormattedMessage id="place-popover.item-type.avatar" defaultMessage="Avatar" />,
+            //   onSelect: () => mediaSearchStore.sourceNavigate("avatars")
+            // },
             isModerator && {
               id: "scene",
               icon: SceneIcon,
