@@ -108,9 +108,16 @@ AFRAME.registerComponent("media-loader", {
            for (const videoInfo of data) {
              if(videoInfo.video_id == objectName){
                this.scheduleInfo = videoInfo;
-              
-             }
-             
+               // change video urls to lower resolution urls for mobile              
+               if (this.isMobileDevice()) { // load video urls for mobile
+                if (this.scheduleInfo.default_src_lower != null) {
+                  this.scheduleInfo.default_src = this.scheduleInfo.default_src_lower;
+                }
+                if (this.scheduleInfo.schedule_src_lower != null) {
+                  this.scheduleInfo.schedule_src = this.scheduleInfo.schedule_src_lower;
+                }                
+               }
+             }             
            }
          }
       });
@@ -165,6 +172,13 @@ AFRAME.registerComponent("media-loader", {
     if (this.el.getAttribute("shape-helper__" + id)) {
       this.el.removeAttribute("shape-helper__" + id);
     }
+  },
+  // check the browser is in mobile or desktop
+  isMobileDevice() {
+    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
+      return true; // mobile
+    }
+    return false; // desktop
   },
 
   tick(t, dt) {

@@ -262,6 +262,7 @@ import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailabl
 
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
+import { FirebaseErrorModal } from "./react-components/FirebaseErrorModal";
 
 const metabarText = "metabar";
 var roomIdNeedCheck = null;
@@ -349,6 +350,17 @@ function onContinueFullRoomModal() {
   }  
 }
 
+// when the Firebase Error modal close
+function onCloseFirebaseErrorModal() {
+  // open the home page    
+  window.location = window.location.origin;
+}
+
+// when the continue button in Firebase Error modal clicked
+function onContinueFirebaseErrorModal() {
+  location.reload(); // refresh the current page
+}
+
 function mountUI(props = {}) {
   const scene = document.querySelector("a-scene");
   const disableAutoExitOnIdle =
@@ -384,6 +396,7 @@ function mountUI(props = {}) {
         </Router>
         {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onContinueFullRoomModal} isShowBackButton={true}></FullRoomModal> }
         {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullAllRoomModal> }
+        {props.showFirebaseErrorModal && <FirebaseErrorModal onClose={onCloseFirebaseErrorModal} onAccept={onContinueFirebaseErrorModal} isShowBackButton={true}></FirebaseErrorModal> }        
       </ThemeProvider>
     </WrappedIntlProvider>,
     document.getElementById("ui-root")
@@ -814,29 +827,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     // get or check the room id(roomIdNeedCheck), then open the room
     var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
+    var error = availableRoomMap["error"];
     var roomId = availableRoomMap["room_id"];
     var status = availableRoomMap["status"];
         
-    if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
-      // show FullRoomModal
-      remountUI({ showFullRoomModal: true });  
-      return;              
-    }
-          
-    if (roomId != null) { // if we have an available room where the nunber of user < 25              
-      openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
-      return;     
-    } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
-      if (status == RoomUserStatus.AllRoomsAreFull) { // if all room are full
+    if (error != null) { // if firebase error
+      remountUI({ showFirebaseErrorModal: true });  
+      return;  
+    } else { // if no error
+      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
         // show FullRoomModal
-        remountUI({ showFullAllRoomModal: true });                  
-        return;
-      } else if (roomIdNeedCheck != null && status == RoomUserStatus.CheckingRoomIdNotInFirebase) { // if roomIdNeedCheck is not in firebase db
-        openMetabarWithRoomId(roomIdNeedCheck);  
-        return;      
+        remountUI({ showFullRoomModal: true });  
+        return;              
       }
-    }    
-  } 
+            
+      if (roomId != null) { // if we have an available room where the nunber of user < 25              
+        openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
+        return;     
+      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
+        if (status == RoomUserStatus.AllRoomsAreFull) { // if all room are full
+          // show FullRoomModal
+          remountUI({ showFullAllRoomModal: true });                  
+          return;
+        } else if (roomIdNeedCheck != null && status == RoomUserStatus.CheckingRoomIdNotInFirebase) { // if roomIdNeedCheck is not in firebase db
+          openMetabarWithRoomId(roomIdNeedCheck);  
+          return;      
+        }
+      }    
+    } 
+    }
+    
 
   var isShowFullRoomModal = false;
   // get ismetabar component from url
@@ -855,14 +875,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
         // get or check the room id(roomIdNeedCheck), then open the room
         var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
-        var roomId = availableRoomMap["room_id"];          
-        if (roomId) {  // if there is a room that have number of user < 25   
-          openMetabarWithRoomId(roomId, 1);        
-          return;
-        } else { // if all rooms are full, then show full-all-room alert              
-          descreaseUserNumberInRoom(roomId);
-          remountUI({ showFullAllRoomModal: true });
-          return;
+        var error = availableRoomMap["error"];
+        var roomId = availableRoomMap["room_id"];    
+        if (error != null) { // if firebase error
+          remountUI({ showFirebaseErrorModal: true });  
+          return;  
+        } else { // if no error      
+          if (roomId) {  // if there is a room that have number of user < 25   
+            openMetabarWithRoomId(roomId, 1);        
+            return;
+          } else { // if all rooms are full, then show full-all-room alert              
+            descreaseUserNumberInRoom(roomId);
+            remountUI({ showFullAllRoomModal: true });
+            return;
+          }
         }                   
       }
     }    
@@ -1378,10 +1404,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   events.on(`hub:sync`, ({ presence }) => {
     // update number of user in the room hubId in firebase
-    var numberOfUser = Object.keys(presence.state).length;    
     if (presence.state) {
+      var numberOfUser = 0;
+      for (var peopleKey in presence.state) { 
+        // if user is entering or in room, then increase the number of user
+        if (presence.state[peopleKey].metas != null && presence.state[peopleKey].metas.length > 0 && 
+          presence.state[peopleKey].metas[0].presence == "room" || presence.state[peopleKey].presence == "entering") {
+          numberOfUser += 1; // increase by 1
+        }
+      } 
+      // update in firebase
       setNumberOfUserInRoom(hubId, numberOfUser);
-    }
+    }    
     
     remountUI({
       sessionId: socket.params().session_id,

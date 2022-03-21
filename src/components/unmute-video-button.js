@@ -2,6 +2,9 @@ import { findAncestorWithComponent } from "../utils/scene-graph";
 
 AFRAME.registerComponent("unmute-video-button", {
   init() {
+    this.el.addEventListener('click', () => {
+      this.onClick()
+    })
     this.onClick = () => {
       const videoEl = findAncestorWithComponent(this.el, "media-video");
       const mediaVideo = videoEl.components["media-video"];

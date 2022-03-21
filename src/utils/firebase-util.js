@@ -74,6 +74,11 @@ export class RoomUserStatus {
   static CheckingRoomIdAvailable = 2;  
   static CheckingRoomIdNotInFirebase = 3;
 }
+
+class FirebaseError {
+
+}
+
 // assign/set the number of user in room with id(roomid) by number
 export async function setNumberOfUserInRoom(roomId, number) {
   const postRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser + "/" + roomId);
@@ -165,13 +170,14 @@ export async function getRoomsInFirebaseSync() {
     const dbRef = ref(firebaseDatabase);
     
     var roomMap = await get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
-        if (snapshot.exists()) { // if rooms existed
-            return snapshot.val();                
-        } else { // if rooms did not existed
-          return null;            
-        }
-    }).catch((error) => {
-        console.error(error);
+      if (snapshot.exists()) { // if rooms existed
+          return snapshot.val();                
+      } else { // if rooms did not existed
+        return null;            
+      }
+    }).catch((error) => { // if error
+      console.error(error);
+      return new FirebaseError();
     });        
     return roomMap;
 }
@@ -182,6 +188,9 @@ export async function getAvailableRoomForJoining(roomIdNeedCheck) {
   var maximumNumber = -1;
   var maximumNumberRoomId = null;         
   if (roomMap) {
+    if (roomMap instanceof FirebaseError) {
+      return {error: roomMap};
+    }
     if (roomIdNeedCheck) {
       if (roomMap[roomIdNeedCheck]) {
         var userNumber = roomMap[roomIdNeedCheck][FirebaseDatabaseKeys.UserNumber];
