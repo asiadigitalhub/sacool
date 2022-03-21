@@ -657,15 +657,7 @@ AFRAME.registerComponent("media-video", {
         isReady = () => videoEl.readyState > 0;
       } else {
         console.log("Video format ",THREE.RGFormat );
-        texture = new THREE.VideoTexture(videoEl,
-          THREE.UVMapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.ClampToEdgeWrapping,
-          THREE.LinearFilter,
-          THREE.NearestMipMapNearestFilter,
-          THREE._SRGBFormat,
-          THREE.UnsignedByteType,
-          0);
+        texture = new THREE.VideoTexture(videoEl);
         texture.minFilter = THREE.LinearFilter;
         texture.encoding = THREE.sRGBEncoding;
 
@@ -675,9 +667,9 @@ AFRAME.registerComponent("media-video", {
         // I don't think it will be fixed soon. So we set RGBA format for Firefox
         // as workaround so far.
         // See https://github.com/mozilla/hubs/issues/3470
-        if (/firefox/i.test(navigator.userAgent)) {
+        // if (/firefox/i.test(navigator.userAgent)) {
           texture.format = THREE.RGBAFormat;
-        }
+        // }
 
         isReady = () => {
           if (texture.hls && texture.hls.streamController.audioOnly) {
