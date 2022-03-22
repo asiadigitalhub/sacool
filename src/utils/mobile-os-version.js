@@ -120,17 +120,20 @@ const getMobileOSVersion = () => {
     const info = {
         os: "Not a Mobile OS",
         version: "Unknow",
-        fromBrowserDetect: detect()
+        fromBrowserDetect: detect(),
+        isLowDisplay: false
     }
     if (isIOS()) {
         // case IOS
         info.os = "iOS"
         info.isSafari = isSafari()
         info.version = getiPhoneModel()
+        info.isLowDisplay = info.version !== "iPhone 11 or Later"
     } else if (isMobile()) {
         // case Android
         info.os = 'Android'
         info.version = getAndroidVersion()
+        info.isLowDisplay = ~~info.version < 10
     }
     //
     return info
