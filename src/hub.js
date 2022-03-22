@@ -841,7 +841,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;              
       }
             
-      if (roomId != null) { // if we have an available room where the nunber of user < 25              
+      if (roomId != null) { // if we have an available room where the nunber of user < limitation              
         openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
         return;     
       } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
@@ -1405,14 +1405,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   events.on(`hub:sync`, ({ presence }) => {
     // update number of user in the room hubId in firebase
     if (presence.state) {
-      var numberOfUser = 0;
-      for (var peopleKey in presence.state) { 
-        // if user is entering or in room, then increase the number of user
-        if (presence.state[peopleKey].metas != null && presence.state[peopleKey].metas.length > 0 && 
-          presence.state[peopleKey].metas[0].presence == "room" || presence.state[peopleKey].presence == "entering") {
-          numberOfUser += 1; // increase by 1
-        }
-      } 
+      var numberOfUser = Object.keys(presence.state).length;     
       // update in firebase
       setNumberOfUserInRoom(hubId, numberOfUser);
     }    

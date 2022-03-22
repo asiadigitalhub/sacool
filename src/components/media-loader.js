@@ -47,6 +47,8 @@ const forceMeshBatching = qsTruthy("batchMeshes");
 const forceImageBatching = qsTruthy("batchImages");
 const disableBatching = qsTruthy("disableBatching");
 
+const isMobile = AFRAME.utils.device.isMobile();
+
 AFRAME.registerComponent("media-loader", {
   schema: {
     playSoundEffect: { default: true },
@@ -107,9 +109,9 @@ AFRAME.registerComponent("media-loader", {
         if(data && Array.isArray(data)){
            for (const videoInfo of data) {
              if(videoInfo.video_id == objectName){
-               this.scheduleInfo = videoInfo;
+               this.scheduleInfo = videoInfo;               
                // change video urls to lower resolution urls for mobile              
-               if (this.isMobileDevice()) { // load video urls for mobile
+               if (isMobile) { // load video urls for mobile
                 if (this.scheduleInfo.default_src_lower != null) {
                   this.scheduleInfo.default_src = this.scheduleInfo.default_src_lower;
                 }
@@ -173,14 +175,7 @@ AFRAME.registerComponent("media-loader", {
       this.el.removeAttribute("shape-helper__" + id);
     }
   },
-  // check the browser is in mobile or desktop
-  isMobileDevice() {
-    if( /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ) {
-      return true; // mobile
-    }
-    return false; // desktop
-  },
-
+  
   tick(t, dt) {
     if (this.loaderMixer) {
       this.loaderMixer.update(dt / 1000);
