@@ -117,19 +117,18 @@ const getAndroidVersion = (ua) => {
 };
 
 const getMobileOSVersion = () => {
-    // case IOS
     const info = {
         os: "Not a Mobile OS",
         version: "Unknow",
         fromBrowserDetect: detect()
     }
     if (isIOS()) {
+        // case IOS
         info.os = "iOS"
         info.isSafari = isSafari()
         info.version = getiPhoneModel()
-    }
-    // case android
-    if (isMobile()) {
+    } else if (isMobile()) {
+        // case Android
         info.os = 'Android'
         info.version = getAndroidVersion()
     }
