@@ -855,7 +855,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       }    
     } 
-    }
+  }
     
 
   var isShowFullRoomModal = false;
@@ -884,8 +884,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (roomId) {  // if there is a room that have number of user < 25   
             openMetabarWithRoomId(roomId, 1);        
             return;
-          } else { // if all rooms are full, then show full-all-room alert              
-            descreaseUserNumberInRoom(roomId);
+          } else { // if all rooms are full, then show full-all-room alert                          
             remountUI({ showFullAllRoomModal: true });
             return;
           }

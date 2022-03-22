@@ -157,13 +157,13 @@ export async function increaseUserNumberInRoom(roomId) {
 }
 // decrease the number of user in a room by 1
 export function descreaseUserNumberInRoom(roomId) {
-  // const decrementFieldValue = increment(-1);
+  const decrementFieldValue = increment(-1);
   
-  // const updates = {};
-  // var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
-  // updates[path] = decrementFieldValue;
+  const updates = {};
+  var path = FirebaseDatabaseKeys.RoomsUser + "/" + roomId + "/" + FirebaseDatabaseKeys.UserNumber;
+  updates[path] = decrementFieldValue;
 
-  // update(ref(firebaseDatabase), updates); // call firebase's update function
+  update(ref(firebaseDatabase), updates); // call firebase's update function
 }
 
 // convert map of room to list of RoomInfo, and sort it by number of user descendently(and "">= 18" go to the end)
