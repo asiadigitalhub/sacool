@@ -9,7 +9,8 @@ import { Modal } from "./react-components/modal/Modal";
 import { Column } from "./react-components/layout/Column";
 
 import { FormattedMessage } from "react-intl";
-import {getRoomsInFirebase, openMetabarWithRoomId, firebaseDatabase, LimitUserNumberInRoom, FirebaseDatabaseKeys} from "./utils/firebase-util";
+import {getRoomsInFirebase, openMetabarWithRoomId, firebaseDatabase, LimitUserNumberInRoom, FirebaseDatabaseKeys,
+  convertRoomMapToRoomInfoAndSort} from "./utils/firebase-util";
 import { ref, onValue } from "firebase/database";
 
 registerTelemetry("/rooms", "Rooms Page");
@@ -19,7 +20,7 @@ window.APP = { store };
 // display vertical list of rooms in firebase realtime db
 export class Rooms extends Component {
   state = {
-    roomMap: null,
+    roomInfos: null,
     showNoRoomModal: false
   };
 
@@ -48,17 +49,17 @@ export class Rooms extends Component {
     const roomsUserListRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser);   
     // this method is fired if the number of user changes
     onValue(roomsUserListRef, (snapshot) => {
-      const roomMap = snapshot.toJSON();
+      const roomInfos = convertRoomMapToRoomInfoAndSort(snapshot.toJSON());
       // call this to update the ui
-      this.setState({roomMap: roomMap});      
+      this.setState({roomInfos: roomInfos});      
     });
   }
   // load available room in firebase db
   loadRoomsFromFirebase() {        
     // get rooms from firebase
-    getRoomsInFirebase((roomMap) => {      
-      if (roomMap) { // if we have rooms map        
-        this.setState({roomMap: roomMap}); // show rooms list
+    getRoomsInFirebase((roomInfos) => {      
+      if (roomInfos) { // if we have rooms map        
+        this.setState({roomInfos: roomInfos}); // show rooms list
       } else { // if there is no rooms
         // show NoRoomModal
         this.setState({showNoRoomModal: true});
@@ -85,26 +86,29 @@ export class Rooms extends Component {
   }
   
   // create list of li tag that has room name & number of user in room
-  createRoomList() {
-    if (this.state.roomMap == null) {
+  createRoomList() {    
+    if (this.state.roomInfos == null) {
       return <div></div>;
     }
+
     var liList = [];
-    for (var roomId in this.state.roomMap) { 
-      var roomInfoMap = this.state.roomMap[roomId];      
+    
+    // for (var roomInfo in this.state.roomInfos) {          
+    this.state.roomInfos.forEach(roomInfo => {
+          
       liList.push(
-        <li key={roomId}>
+        <li key={roomInfo.roomId}>
           <div style={{display:"flex", flexDirection: "row", marginBottom: "10px"}}> 
             <div style={{left:"20px", width: "calc(100% - 80px"}}>
-            {this.createATag(roomId, roomInfoMap[FirebaseDatabaseKeys.RoomName], roomInfoMap[FirebaseDatabaseKeys.UserNumber])}
+            {this.createATag(roomInfo.roomId, roomInfo.roomName, roomInfo.userNumber)}
             </div> 
             <div style={{width: "100px", right:"20px", justifyContent:"right", alignItems: "right", textAlign: "right"}}>
-              {roomInfoMap[FirebaseDatabaseKeys.UserNumber]}
+              {roomInfo.userNumber < 18 ? roomInfo.userNumber : "Full"}
             </div> 
           </div> 
         </li>
       );
-    }    
+    })   
     
     return (
     <div style={{width: "80%", height: '80%', margin:"20px", padding: "20px", borderRadius: "15px", border:"solid 0.5px #666"}} >

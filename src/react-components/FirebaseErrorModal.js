@@ -31,7 +31,7 @@ export function FirebaseErrorModal({ onClose, onAccept, isShowBackButton }) {
             <FormattedMessage id="metabar.cancel" defaultMessage="Cancel"/>
           </Button> }
           <Button preset="accept" onClick={onAccept}>
-            <FormattedMessage id="metabar.continue-join-room" defaultMessage="Continue to join"/>
+            <FormattedMessage id="metabar.refresh" defaultMessage="Refresh"/>
           </Button>           
           
         </Column>
