@@ -95,8 +95,14 @@ const getTs = (() => {
         console.error(err);
         process.exit(1);
       }
-
-      res();
+      //
+      ncp("./src/debug", "./dist/assets/raw-js", err2 => {
+        if (err2) {
+          console.error(err2);
+          process.exit(1);
+        }
+        res();
+      })
     });
   });
   step.text = "Preparing Deploy.";
