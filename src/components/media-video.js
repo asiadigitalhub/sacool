@@ -578,7 +578,24 @@ AFRAME.registerComponent("media-video", {
         texture.image = videoEl;
         isReady = () => videoEl.readyState > 0;
       } else {
-        texture = new THREE.VideoTexture(videoEl);
+        texture = new THREE.Texture(videoEl);
+        // hook during the render progress of video, trying to control the frame rate to optimize the performance
+        texture.isVideoTexture = true;
+        let counter = performance.now();
+        let cDelta = 0;
+        const refreshRate = 1000 / 10;
+        texture.update = () => {
+          const now = performance.now();
+          const delta = now - counter;
+          counter = now;
+          cDelta += delta;
+          texture.needsUpdate = false;
+          if (cDelta > refreshRate) {
+            texture.needsUpdate = true;
+            cDelta = 0;
+            // console.log(cDelta, delta, refreshRate);
+          }
+        }
         // texture.minFilter = THREE.LinearFilter;
         // texture.encoding = THREE.sRGBEncoding;
 
