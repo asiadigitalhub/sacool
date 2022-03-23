@@ -257,8 +257,8 @@ import { ThemeProvider } from "./react-components/styles/theme";
 import { LogMessageType } from "./react-components/room/ChatSidebar";
 
 import { increaseUserNumberInRoom, decreaseUserNumberIfWindowUnload, getAvailableRoomForJoining, 
-  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus,
-  setNumberOfUserInRoom, FirebaseDatabaseKeys, LimitUserNumberInRoom } from "./utils/firebase-util";
+  openMetabarWithRoomId, descreaseUserNumberInRoom, RoomUserStatus, FirebaseError,
+  setNumberOfUserInRoom, FirebaseDatabaseKeys, LimitUserNumberInRoom, isSignedInFirebase } from "./utils/firebase-util";
 
 import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
@@ -762,802 +762,816 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  hubId = getCurrentHubId();
-  console.log(`Hub ID: ${hubId}`);
-
-  const shouldRedirectToSignInPage =
-    // Default room won't work if account is required to access
-    !configs.feature("default_room_id") &&
-    configs.feature("require_account_for_join") &&
-    !(store.state.credentials && store.state.credentials.token);
-  if (shouldRedirectToSignInPage) {
-    document.location = `/?sign_in&sign_in_destination=hub&sign_in_destination_url=${encodeURIComponent(
-      document.location.toString()
-    )}`;
-  }
-
-  const subscriptions = new Subscriptions(hubId);
-  APP.subscriptions = subscriptions;
-  subscriptions.register();
-
-  const scene = document.querySelector("a-scene");
-  window.APP.scene = scene;
-  scene.renderer.debug.checkShaderErrors = false;
-
-  // HACK - Trigger initial batch preparation with an invisible object
-  scene
-    .querySelector("#batch-prep")
-    .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
-
-  const onSceneLoaded = () => {
-    const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
-    physicsSystem.setDebug(isDebug || physicsSystem.debug);
-  };
-  if (scene.hasLoaded) {
-    onSceneLoaded();
-  } else {
-    scene.addEventListener("loaded", onSceneLoaded, { once: true });
-  }
-
-  // If the stored avatar doesn't have a valid src, reset to a legacy avatar.
-  const avatarSrc = await getAvatarSrc(store.state.profile.avatarId);
-  if (!avatarSrc) {
-    await store.resetToRandomDefaultAvatar();
-  }
-
-  const authChannel = new AuthChannel(store);
-  const hubChannel = new HubChannel(store, hubId);
-  window.APP.hubChannel = hubChannel;
-
-  const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
-  window.APP.entryManager = entryManager;
-
-  // open room if hubId is special metabar
-  if (hubId == metabarText) {        
-    // get room id from url's path
-    var pathArray = window.location.pathname.split('/');
-    pathArray = pathArray.filter(function(item) {
-      return (item !== metabarText && item !== "")
-    })    
-    if (pathArray.length > 0) {
-      roomIdNeedCheck = pathArray[0];
-    }
-    
-    // roomIdNeedCheck = "SMyzKvY"; // "i9wvxf3";
-    
-    // get or check the room id(roomIdNeedCheck), then open the room
-    var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
-    var error = availableRoomMap["error"];
-    var roomId = availableRoomMap["room_id"];
-    var status = availableRoomMap["status"];
-        
-    if (error != null) { // if firebase error
-      remountUI({ showFirebaseErrorModal: true });  
-      return;  
-    } else { // if no error
-      if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
-        // show FullRoomModal
-        remountUI({ showFullRoomModal: true });  
-        return;              
-      }
-            
-      if (roomId != null) { // if we have an available room where the nunber of user < limitation              
-        openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
-        return;     
-      } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
-        if (status == RoomUserStatus.AllRoomsAreFull) { // if all room are full
-          // show FullRoomModal
-          remountUI({ showFullAllRoomModal: true });                  
-          return;
-        } else if (roomIdNeedCheck != null && status == RoomUserStatus.CheckingRoomIdNotInFirebase) { // if roomIdNeedCheck is not in firebase db
-          openMetabarWithRoomId(roomIdNeedCheck);  
-          return;      
-        }
-      }    
-    } 
-  }
-    
-
-  var isShowFullRoomModal = false;
-  // get ismetabar component from url
-  var isMetabar = entryManager.getIsMetabarFromQueryUrl();
-  
-  // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
-  if (isMetabar == 1) {
-    // increase number of user in a room    
-    var roomMap = await increaseUserNumberInRoom(hubId);    
-    if (roomMap) { // if we find hubId in firebase db
-      // register a decrease process      
-      if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
-        // register a decrease process
-        decreaseUserNumberIfWindowUnload(hubId);           
-      } else { // if the user number is above the limitation, then find another foom
-        descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
-        // get or check the room id(roomIdNeedCheck), then open the room
-        var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
-        var error = availableRoomMap["error"];
-        var roomId = availableRoomMap["room_id"];    
-        if (error != null) { // if firebase error
-          remountUI({ showFirebaseErrorModal: true });  
-          return;  
-        } else { // if no error      
-          if (roomId) {  // if there is a room that have number of user < 25   
-            openMetabarWithRoomId(roomId, 1);        
-            return;
-          } else { // if all rooms are full, then show full-all-room alert                          
-            remountUI({ showFullAllRoomModal: true });
-            return;
-          }
-        }                   
-      }
-    }    
-  } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
-    // increase number of user in a room    
-    var roomMap = await increaseUserNumberInRoom(hubId)
-    if (roomMap) { // if we find hubId in firebase db      
-      if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
-        // register a decrease process
-        decreaseUserNumberIfWindowUnload(hubId);           
-      } else { // if the user number is above the limitation        
-        descreaseUserNumberInRoom(hubId);
-        if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert          
-          isShowFullRoomModal = true; // will show full-room alert at the end of this function, to avoid error
-        }        
-      }
-    }          
-  }
-  
-  APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {
-    scene.emit("didConnectToDialog");
-  });
-  APP.dialog.on(DIALOG_CONNECTION_ERROR_FATAL, () => {
-    // TODO: Change the wording of the connect error to match dialog connection error
-    // TODO: Tell the user that dialog is broken, but don't completely end the experience
-    remountUI({ roomUnavailableReason: ExitReason.connectError });
-    APP.entryManager.exitScene();
-  });
-
-  const audioSystem = scene.systems["hubs-systems"].audioSystem;
-  window.APP.mediaDevicesManager = new MediaDevicesManager(scene, store, audioSystem);
-
-  const performConditionalSignIn = async (predicate, action, signInMessage, onFailure) => {
-    if (predicate()) return action();
-
-    await handleExitTo2DInterstitial(true, () => remountUI({ showSignInDialog: false }));
-
-    remountUI({
-      showSignInDialog: true,
-      signInMessage,
-      onContinueAfterSignIn: async () => {
-        remountUI({ showSignInDialog: false });
-        let actionError = null;
-        if (predicate()) {
-          try {
-            await action();
-          } catch (e) {
-            actionError = e;
-          }
-        } else {
-          actionError = new Error("Predicate failed post sign-in");
-        }
-
-        if (actionError && onFailure) onFailure(actionError);
-        exit2DInterstitialAndEnterVR();
-      },
-      onSignInDialogVisibilityChanged: visible => {
-        if (visible) {
-          remountUI({ showSignInDialog: true });
-        } else {
-          remountUI({ showSignInDialog: false, onContinueAfterSignIn: null });
-        }
-      }
-    });
-  };
-
-  window.APP.pinningHelper = new PinningHelper(hubChannel, authChannel, store, performConditionalSignIn);
-
-  window.addEventListener("action_create_avatar", () => {
-    performConditionalSignIn(
-      () => hubChannel.signedIn,
-      () => pushHistoryState(history, "overlay", "avatar-editor"),
-      SignInMessages.createAvatar
-    );
-  });
-
-  scene.addEventListener("scene_media_selected", e => {
-    const sceneInfo = e.detail;
-
-    performConditionalSignIn(
-      () => hubChannel.can("update_hub"),
-      () => hubChannel.updateScene(sceneInfo),
-      SignInMessages.changeScene
-    );
-  });
-
-  remountUI({
-    performConditionalSignIn,
-    embed: isEmbed,
-    showPreload: isEmbed
-  });
-  entryManager.performConditionalSignIn = performConditionalSignIn;
-  entryManager.init();
-
-  const linkChannel = new LinkChannel(store);
-  window.dispatchEvent(new CustomEvent("hub_channel_ready"));
-
-  const handleEarlyVRMode = () => {
-    // If VR headset is activated, refreshing page will fire vrdisplayactivate
-    // which puts A-Frame in VR mode, so exit VR mode whenever it is attempted
-    // to be entered and we haven't entered the room yet.
-    if (scene.is("vr-mode") && !scene.is("vr-entered") && !isMobileVR) {
-      console.log("Pre-emptively exiting VR mode.");
-      scene.exitVR();
-      return true;
-    }
-
-    return false;
-  };
-  remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
-  const availableVREntryTypesPromise = getAvailableVREntryTypes();
-  scene.addEventListener("enter-vr", () => {
-    if (handleEarlyVRMode()) return true;
-
-    if (isMobileVR) {
-      // Optimization, stop drawing UI if not visible
-      remountUI({ hide: true });
-    }
-
-    document.body.classList.add("vr-mode");
-
-    availableVREntryTypesPromise.then(availableVREntryTypes => {
-      // Don't stretch canvas on cardboard, since that's drawing the actual VR view :)
-      if ((!isMobile && !isMobileVR) || availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.yes) {
-        document.body.classList.add("vr-mode-stretch");
-      }
-    });
-  });
-  handleEarlyVRMode();
-
-  // HACK A-Frame 0.9.0 seems to fail to wire up vrdisplaypresentchange early enough
-  // to catch presentation state changes and recognize that an HMD is presenting on startup.
-  window.addEventListener(
-    "vrdisplaypresentchange",
-    () => {
-      if (scene.is("vr-entered")) return;
-      if (scene.is("vr-mode")) return;
-
-      const device = AFRAME.utils.device.getVRDisplay();
-
-      if (device && device.isPresenting) {
-        if (!scene.is("vr-mode")) {
-          console.warn("Hit A-Frame bug where VR display is presenting but A-Frame has not entered VR mode.");
-          scene.enterVR();
-        }
-      }
-    },
-    { once: true }
-  );
-
-  scene.addEventListener("exit-vr", () => {
-    document.body.classList.remove("vr-mode");
-    document.body.classList.remove("vr-mode-stretch");
-
-    remountUI({ hide: false });
-
-    // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
-    if (/OculusBrowser/i.test(window.navigator.userAgent)) {
-      document.querySelectorAll("[media-video]").forEach(m => {
-        const videoComponent = m.components["media-video"];
-
-        if (videoComponent) {
-          videoComponent._ignorePauseStateChanges = true;
-
-          setTimeout(() => {
-            const video = videoComponent.video;
-
-            if (video && video.paused && !videoComponent.data.videoPaused) {
-              video.play();
-            }
-
-            videoComponent._ignorePauseStateChanges = false;
-          }, 1000);
-        }
-      });
-    }
-  });
-
-  registerNetworkSchemas();
-
-  remountUI({
-    authChannel,
-    hubChannel,
-    linkChannel,
-    subscriptions,
-    enterScene: entryManager.enterScene,
-    exitScene: reason => {
-      entryManager.exitScene();
-      remountUI({ roomUnavailableReason: reason || ExitReason.exited });
-    }
-  });
-
-  scene.addEventListener("leave_room_requested", () => {
-    entryManager.exitScene();
-    remountUI({ roomUnavailableReason: ExitReason.left });
-  });
-
-  scene.addEventListener("hub_closed", () => {
-    scene.exitVR();
-    entryManager.exitScene();
-    remountUI({ roomUnavailableReason: ExitReason.closed });
-  });
-
-  scene.addEventListener("action_camera_recording_started", () => hubChannel.beginRecording());
-  scene.addEventListener("action_camera_recording_ended", () => hubChannel.endRecording());
-
-  if (qs.get("required_version") && process.env.BUILD_VERSION) {
-    const buildNumber = process.env.BUILD_VERSION.split(" ", 1)[0]; // e.g. "123 (abcd5678)"
-
-    if (qs.get("required_version") !== buildNumber) {
-      remountUI({ roomUnavailableReason: ExitReason.versionMismatch });
-      setTimeout(() => document.location.reload(), 5000);
-      entryManager.exitScene();
-      return;
-    }
-  }
-
-  getReticulumMeta().then(reticulumMeta => {
-    console.log(`Reticulum @ ${reticulumMeta.phx_host}: v${reticulumMeta.version} on ${reticulumMeta.pool}`);
-
-    if (
-      qs.get("required_ret_version") &&
-      (qs.get("required_ret_version") !== reticulumMeta.version || qs.get("required_ret_pool") !== reticulumMeta.pool)
-    ) {
-      remountUI({ roomUnavailableReason: ExitReason.versionMismatch });
-      setTimeout(() => document.location.reload(), 5000);
-      entryManager.exitScene();
-      return;
-    }
-  });
-
-  availableVREntryTypesPromise.then(async availableVREntryTypes => {
-    if (isMobileVR) {
-      remountUI({
-        availableVREntryTypes,
-        forcedVREntryType: qsVREntryType || "vr",
-        checkingForDeviceAvailability: false
-      });
-
-      if (/Oculus/.test(navigator.userAgent) && "getVRDisplays" in navigator) {
-        // HACK - The polyfill reports Cardboard as the primary VR display on startup out ahead of
-        // Oculus Go on Oculus Browser 5.5.0 beta. This display is cached by A-Frame,
-        // so we need to resolve that and get the real VRDisplay before entering as well.
-        const displays = await navigator.getVRDisplays();
-        const vrDisplay = displays.length && displays[0];
-        AFRAME.utils.device.getVRDisplay = () => vrDisplay;
-      }
-    } else {
-      const hasVREntryDevice =
-        availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.no ||
-        availableVREntryTypes.generic !== VR_DEVICE_AVAILABILITY.no ||
-        availableVREntryTypes.daydream !== VR_DEVICE_AVAILABILITY.no;
-
-      remountUI({
-        availableVREntryTypes,
-        forcedVREntryType: qsVREntryType || (!hasVREntryDevice ? "2d" : null),
-        checkingForDeviceAvailability: false
-      });
-    }
-  });
-
-  const environmentScene = document.querySelector("#environment-scene");
-  environmentScene.addEventListener(
-    "model-loaded",
-    () => {
-      // Replace renderer with a noop renderer to reduce bot resource usage.
-      if (isBotMode) {
-        runBotMode(scene, entryManager);
-      }
-    },
-    { once: true }
-  );
-
-  environmentScene.addEventListener("model-loaded", ({ detail: { model } }) => {
-    console.log("Environment scene has loaded");
-
-    if (!scene.is("entered")) {
-      setupLobbyCamera();
-    }
-
-    // This will be run every time the environment is changed (including the first load.)
-    remountUI({ environmentSceneLoaded: true });
-    scene.emit("environment-scene-loaded", model);
-
-    // Re-bind the teleporter controls collision meshes in case the scene changed.
-    document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
-
-    for (const modelEl of environmentScene.children) {
-      addAnimationComponents(modelEl);
-    }
-  });
-
-  // Socket disconnects on refresh but we don't want to show exit scene in that scenario.
-  let isReloading = false;
-  window.addEventListener("beforeunload", () => (isReloading = true));
-
-  const socket = await connectToReticulum(isDebug);
-
-  socket.onClose(e => {
-    // We don't currently have an easy way to distinguish between being kicked (server closes socket)
-    // and a variety of other network issues that seem to produce the 1000 closure code, but the
-    // latter are probably more common. Either way, we just tell the user they got disconnected.
-    const NORMAL_CLOSURE = 1000;
-
-    if (e.code === NORMAL_CLOSURE && !isReloading) {
-      entryManager.exitScene();
-      remountUI({ roomUnavailableReason: ExitReason.disconnected });
-    }
-  });
-
-  // Reticulum global channel
-  APP.retChannel = socket.channel(`ret`, { hub_id: hubId });
-  APP.retChannel
-    .join()
-    .receive("ok", data => {
-      subscriptions.setVapidPublicKey(data.vapid_public_key);
-    })
-    .receive("error", res => {
-      subscriptions.setVapidPublicKey(null);
-      console.error(res);
-    });
-
-  const pushSubscriptionEndpoint = await subscriptions.getCurrentEndpoint();
-
-  APP.hubChannelParamsForPermsToken = permsToken => {
-    return createHubChannelParams({
-      profile: store.state.profile,
-      pushSubscriptionEndpoint,
-      permsToken,
-      isMobile,
-      isMobileVR,
-      isEmbed,
-      hubInviteId: qs.get("hub_invite_id"),
-      authToken: store.state.credentials && store.state.credentials.token
-    });
-  };
-
-  const migrateToNewReticulumServer = async ({ ret_version, ret_pool }, shouldAbandonMigration) => {
-    console.log(`[reconnect] Reticulum deploy detected v${ret_version} on ${ret_pool}.`);
-
-    const didMatchMeta = await tryGetMatchingMeta({ ret_version, ret_pool }, shouldAbandonMigration);
-    if (!didMatchMeta) {
-      console.error(`[reconnect] Failed to reconnect. Did not get meta for v${ret_version} on ${ret_pool}.`);
-      return;
-    }
-
-    console.log("[reconnect] Reconnect in progress. Updated reticulum meta.");
-    const oldSocket = APP.retChannel.socket;
-    const socket = await connectToReticulum(isDebug, oldSocket.params());
-    APP.retChannel = await migrateChannelToSocket(APP.retChannel, socket);
-    await hubChannel.migrateToSocket(socket, APP.hubChannelParamsForPermsToken());
-    authChannel.setSocket(socket);
-    linkChannel.setSocket(socket);
-
-    // Disconnect old socket after a delay to ensure this user is always registered in presence.
-    await sleep(10000);
-    oldSocket.teardown();
-    console.log("[reconnect] Reconnection successful.");
-  };
-
-  const onRetDeploy = (function() {
-    let pendingNotification = null;
-    const hasPendingNotification = function() {
-      return !!pendingNotification;
-    };
-
-    const handleNextMessage = (function() {
-      let isLocked = false;
-      return async function handleNextMessage() {
-        if (isLocked || !pendingNotification) return;
-
-        isLocked = true;
-        const currentNotification = Object.assign({}, pendingNotification);
-        pendingNotification = null;
-        try {
-          await migrateToNewReticulumServer(currentNotification, hasPendingNotification);
-        } catch {
-          console.error("Failed to migrate to new reticulum server after deploy.", currentNotification);
-        } finally {
-          isLocked = false;
-          handleNextMessage();
-        }
-      };
-    })();
-
-    return function onRetDeploy(deployNotification) {
-      // If for some reason we receive multiple deployNotifications, only the
-      // most recent one matters. The rest can be overwritten.
-      pendingNotification = deployNotification;
-      handleNextMessage();
-    };
-  })();
-
-  APP.retChannel.on("notice", data => {
-    if (data.event === "ret-deploy") {
-      onRetDeploy(data);
-    }
-  });
-
-  const messageDispatch = new MessageDispatch(scene, entryManager, hubChannel, remountUI, mediaSearchStore);
-  APP.messageDispatch = messageDispatch;
-  document.getElementById("avatar-rig").messageDispatch = messageDispatch;
-
-  const oauthFlowPermsToken = Cookies.get(OAUTH_FLOW_PERMS_TOKEN_KEY);
-  if (oauthFlowPermsToken) {
-    Cookies.remove(OAUTH_FLOW_PERMS_TOKEN_KEY);
-  }
-  const hubPhxChannel = socket.channel(`hub:${hubId}`, APP.hubChannelParamsForPermsToken(oauthFlowPermsToken));
-  hubChannel.channel = hubPhxChannel;
-  hubChannel.presence = new Presence(hubPhxChannel);
-  const { rawOnJoin, rawOnLeave } = denoisePresence(presenceEventsForHub(events));
-  hubChannel.presence.onJoin(rawOnJoin);
-  hubChannel.presence.onLeave(rawOnLeave);
-  hubChannel.presence.onSync(() => {
-    events.trigger(`hub:sync`, { presence: hubChannel.presence });
-  });
-
-  events.on(`hub:join`, ({ key, meta }) => {
-    scene.emit("presence_updated", {
-      sessionId: key,
-      profile: meta.profile,
-      roles: meta.roles,
-      permissions: meta.permissions,
-      streaming: meta.streaming,
-      recording: meta.recording
-    });
-  });
-  events.on(`hub:join`, ({ key, meta }) => {
-    if (
-      APP.hideHubPresenceEvents ||
-      key === hubChannel.channel.socket.params().session_id ||
-      hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT
-    ) {
-      return;
-    }
-    messageDispatch.receive({
-      type: "join",
-      presence: meta.presence,
-      name: meta.profile.displayName
-    });
-  });
-
-  events.on(`hub:leave`, ({ meta }) => {
-    if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
-      return;
-    }
-    messageDispatch.receive({
-      type: "leave",
-      name: meta.profile.displayName
-    });
-  });
-
-  events.on(`hub:change`, ({ key, previous, current }) => {
-    if (
-      previous.presence === current.presence ||
-      current.presence !== "room" ||
-      key === hubChannel.channel.socket.params().session_id
-    ) {
-      return;
-    }
-
-    messageDispatch.receive({
-      type: "entered",
-      presence: current.presence,
-      name: current.profile.displayName
-    });
-  });
-  events.on(`hub:change`, ({ previous, current }) => {
-    if (previous.profile.displayName !== current.profile.displayName) {
-      messageDispatch.receive({
-        type: "display_name_changed",
-        oldName: previous.profile.displayName,
-        newName: current.profile.displayName
-      });
-    }
-  });
-  events.on(`hub:change`, ({ key, previous, current }) => {
-    if (
-      key === hubChannel.channel.socket.params().session_id &&
-      previous.profile.avatarId !== current.profile.avatarId
-    ) {
-      messageDispatch.log(LogMessageType.avatarChanged);
-    }
-  });
-  events.on(`hub:change`, ({ key, current }) => {
-    scene.emit("presence_updated", {
-      sessionId: key,
-      profile: current.profile,
-      roles: current.roles,
-      permissions: current.permissions,
-      streaming: current.streaming,
-      recording: current.recording
-    });
-  });
-
   // We need to be able to wait for initial presence syncs across reconnects and socket migrations,
   // so we create this object in the outer scope and assign it a new promise on channel join.
   const presenceSync = {
     promise: null,
     resolve: null
   };
-  events.on("hub:sync", () => {
-    presenceSync.resolve();
-  });
-  events.on(`hub:sync`, () => {
-    APP.hideHubPresenceEvents = false;
-  });
-  events.on(`hub:sync`, updateVRHudPresenceCount);
-  events.on(`hub:sync`, ({ presence }) => {
-    updateSceneCopresentState(presence, scene);
-  });
-
   
-  events.on(`hub:sync`, ({ presence }) => {
-    // update number of user in the room hubId in firebase
-    if (presence.state) {
-      var numberOfUser = Object.keys(presence.state).length;     
-      // update in firebase
-      setNumberOfUserInRoom(hubId, numberOfUser);
-    }    
+  // wait until sign in completes
+  isSignedInFirebase(async (signInStatus) => { // when user signed in as anonymous    
+    if (signInStatus instanceof FirebaseError) { // if user can not sign in, show error alert
+      remountUI({ showFirebaseErrorModal: true });
+      return;
+    }
+    hubId = getCurrentHubId();
+    console.log(`Hub ID: ${hubId}`);
+  
+    const shouldRedirectToSignInPage =
+      // Default room won't work if account is required to access
+      !configs.feature("default_room_id") &&
+      configs.feature("require_account_for_join") &&
+      !(store.state.credentials && store.state.credentials.token);
+    if (shouldRedirectToSignInPage) {
+      document.location = `/?sign_in&sign_in_destination=hub&sign_in_destination_url=${encodeURIComponent(
+        document.location.toString()
+      )}`;
+    }
+  
+    const subscriptions = new Subscriptions(hubId);
+    APP.subscriptions = subscriptions;
+    subscriptions.register();
+  
+    const scene = document.querySelector("a-scene");
+    window.APP.scene = scene;
+    scene.renderer.debug.checkShaderErrors = false;
+  
+    // HACK - Trigger initial batch preparation with an invisible object
+    scene
+      .querySelector("#batch-prep")
+      .setAttribute("media-image", { batch: true, src: initialBatchImage, contentType: "image/png" });
+  
+    const onSceneLoaded = () => {
+      const physicsSystem = scene.systems["hubs-systems"].physicsSystem;
+      physicsSystem.setDebug(isDebug || physicsSystem.debug);
+    };
+    if (scene.hasLoaded) {
+      onSceneLoaded();
+    } else {
+      scene.addEventListener("loaded", onSceneLoaded, { once: true });
+    }
+  
+    // If the stored avatar doesn't have a valid src, reset to a legacy avatar.
+    const avatarSrc = await getAvatarSrc(store.state.profile.avatarId);
+    if (!avatarSrc) {
+      await store.resetToRandomDefaultAvatar();
+    }
+  
+    const authChannel = new AuthChannel(store);
+    const hubChannel = new HubChannel(store, hubId);
+    window.APP.hubChannel = hubChannel;
+  
+    const entryManager = new SceneEntryManager(hubChannel, authChannel, history);
+    window.APP.entryManager = entryManager;
+  
+    // open room if hubId is special metabar
+    if (hubId == metabarText) {        
+      // get room id from url's path
+      var pathArray = window.location.pathname.split('/');
+      pathArray = pathArray.filter(function(item) {
+        return (item !== metabarText && item !== "")
+      })    
+      if (pathArray.length > 0) {
+        roomIdNeedCheck = pathArray[0];
+      }
+      
+      // roomIdNeedCheck = "SMyzKvY"; // "i9wvxf3";
+      
+      // get or check the room id(roomIdNeedCheck), then open the room
+      var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
+      var error = availableRoomMap["error"];
+      var roomId = availableRoomMap["room_id"];
+      var status = availableRoomMap["status"];
+          
+      if (error != null) { // if firebase error
+        remountUI({ showFirebaseErrorModal: true });  
+        return;  
+      } else { // if no error
+        if (roomIdNeedCheck != null && roomIdNeedCheck != roomId && status != RoomUserStatus.CheckingRoomIdNotInFirebase) { // roomIdNeedCheck is full
+          // show FullRoomModal
+          remountUI({ showFullRoomModal: true });  
+          return;              
+        }
+              
+        if (roomId != null) { // if we have an available room where the nunber of user < limitation              
+          openMetabarWithRoomId(roomId, (roomIdNeedCheck != null) ? 2: 1);               
+          return;     
+        } else { // if all rooms are full or roomIdNeedCheck is not in firebase db        
+          if (status == RoomUserStatus.AllRoomsAreFull) { // if all room are full
+            // show FullRoomModal
+            remountUI({ showFullAllRoomModal: true });                  
+            return;
+          } else if (roomIdNeedCheck != null && status == RoomUserStatus.CheckingRoomIdNotInFirebase) { // if roomIdNeedCheck is not in firebase db
+            openMetabarWithRoomId(roomIdNeedCheck);  
+            return;      
+          }
+        }    
+      } 
+    }
+      
+  
+    var isShowFullRoomModal = false;
+    // get ismetabar component from url
+    var isMetabar = entryManager.getIsMetabarFromQueryUrl();
     
-    remountUI({
-      sessionId: socket.params().session_id,
-      presences: presence.state,
-      entryDisallowed: !hubChannel.canEnterRoom(uiProps.hub)
+    // if the room is opened from ".../metabar" url (isMetabar == 1) then increase number of user in room & decrease it if the window unloads
+    if (isMetabar == 1) {
+      // increase number of user in a room    
+      var roomMap = await increaseUserNumberInRoom(hubId);    
+      if (roomMap) { // if we find hubId in firebase db
+        // register a decrease process      
+        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
+          // register a decrease process
+          decreaseUserNumberIfWindowUnload(hubId);           
+        } else { // if the user number is above the limitation, then find another foom
+          descreaseUserNumberInRoom(hubId);   // decrease the user number if the room is full
+          // get or check the room id(roomIdNeedCheck), then open the room
+          var availableRoomMap = await getAvailableRoomForJoining(roomIdNeedCheck);
+          var error = availableRoomMap["error"];
+          var roomId = availableRoomMap["room_id"];    
+          if (error != null) { // if firebase error
+            remountUI({ showFirebaseErrorModal: true });  
+            return;  
+          } else { // if no error      
+            if (roomId) {  // if there is a room that have number of user < 25   
+              openMetabarWithRoomId(roomId, 1);        
+              return;
+            } else { // if all rooms are full, then show full-all-room alert                          
+              remountUI({ showFullAllRoomModal: true });
+              return;
+            }
+          }                   
+        }
+      }    
+    } else { // if no metabar in domain or isMetabar == 2(open a specific room) , then check the maximum number of user of room hubId in firebase              
+      // increase number of user in a room    
+      var roomMap = await increaseUserNumberInRoom(hubId)
+      if (roomMap) { // if we find hubId in firebase db      
+        if (roomMap[FirebaseDatabaseKeys.UserNumber] <= LimitUserNumberInRoom) { // if the increase process succeeds
+          // register a decrease process
+          decreaseUserNumberIfWindowUnload(hubId);           
+        } else { // if the user number is above the limitation        
+          descreaseUserNumberInRoom(hubId);
+          if (isMetabar != 3) { // if isMetabar == 3 means: no show the full-room alert          
+            isShowFullRoomModal = true; // will show full-room alert at the end of this function, to avoid error
+          }        
+        }
+      }          
+    }
+    
+    APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {
+      scene.emit("didConnectToDialog");
     });
-  });
-
-  hubPhxChannel
-    .join()
-    .receive("ok", async data => {
-      APP.hideHubPresenceEvents = true;
-      presenceSync.promise = new Promise(resolve => {
-        presenceSync.resolve = resolve;
-      });
-
-      socket.params().session_id = data.session_id;
-      socket.params().session_token = data.session_token;
-
-      const permsToken = oauthFlowPermsToken || data.perms_token;
-      hubChannel.setPermissionsFromToken(permsToken);
-
-      subscriptions.setHubChannel(hubChannel);
-      subscriptions.setSubscribed(data.subscriptions.web_push);
-
+    APP.dialog.on(DIALOG_CONNECTION_ERROR_FATAL, () => {
+      // TODO: Change the wording of the connect error to match dialog connection error
+      // TODO: Tell the user that dialog is broken, but don't completely end the experience
+      remountUI({ roomUnavailableReason: ExitReason.connectError });
+      APP.entryManager.exitScene();
+    });
+  
+    const audioSystem = scene.systems["hubs-systems"].audioSystem;
+    window.APP.mediaDevicesManager = new MediaDevicesManager(scene, store, audioSystem);
+  
+    const performConditionalSignIn = async (predicate, action, signInMessage, onFailure) => {
+      if (predicate()) return action();
+  
+      await handleExitTo2DInterstitial(true, () => remountUI({ showSignInDialog: false }));
+  
       remountUI({
-        hubIsBound: data.hub_requires_oauth,
-        initialIsFavorited: data.subscriptions.favorites
+        showSignInDialog: true,
+        signInMessage,
+        onContinueAfterSignIn: async () => {
+          remountUI({ showSignInDialog: false });
+          let actionError = null;
+          if (predicate()) {
+            try {
+              await action();
+            } catch (e) {
+              actionError = e;
+            }
+          } else {
+            actionError = new Error("Predicate failed post sign-in");
+          }
+  
+          if (actionError && onFailure) onFailure(actionError);
+          exit2DInterstitialAndEnterVR();
+        },
+        onSignInDialogVisibilityChanged: visible => {
+          if (visible) {
+            remountUI({ showSignInDialog: true });
+          } else {
+            remountUI({ showSignInDialog: false, onContinueAfterSignIn: null });
+          }
+        }
       });
-
-      await presenceSync.promise;
-      handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data, permsToken, hubChannel, events);
-    })
-    .receive("error", res => {
-      if (res.reason === "closed") {
-        entryManager.exitScene();
-        remountUI({ roomUnavailableReason: ExitReason.closed });
-      } else if (res.reason === "oauth_required") {
-        entryManager.exitScene();
-        remountUI({ oauthInfo: res.oauth_info, showOAuthScreen: true });
-      } else if (res.reason === "join_denied") {
-        entryManager.exitScene();
-        remountUI({ roomUnavailableReason: ExitReason.denied });
-      }
-
-      console.error(res);
+    };
+  
+    window.APP.pinningHelper = new PinningHelper(hubChannel, authChannel, store, performConditionalSignIn);
+  
+    window.addEventListener("action_create_avatar", () => {
+      performConditionalSignIn(
+        () => hubChannel.signedIn,
+        () => pushHistoryState(history, "overlay", "avatar-editor"),
+        SignInMessages.createAvatar
+      );
     });
-
-  hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
-    const getAuthor = () => {
-      const userInfo = hubChannel.presence.state[session_id];
-      if (from) {
-        return from;
-      } else if (userInfo) {
-        return userInfo.metas[0].profile.displayName;
-      } else {
-        return "Mystery user";
+  
+    scene.addEventListener("scene_media_selected", e => {
+      const sceneInfo = e.detail;
+  
+      performConditionalSignIn(
+        () => hubChannel.can("update_hub"),
+        () => hubChannel.updateScene(sceneInfo),
+        SignInMessages.changeScene
+      );
+    });
+  
+    remountUI({
+      performConditionalSignIn,
+      embed: isEmbed,
+      showPreload: isEmbed
+    });
+    entryManager.performConditionalSignIn = performConditionalSignIn;
+    entryManager.init();
+  
+    const linkChannel = new LinkChannel(store);
+    window.dispatchEvent(new CustomEvent("hub_channel_ready"));
+  
+    const handleEarlyVRMode = () => {
+      // If VR headset is activated, refreshing page will fire vrdisplayactivate
+      // which puts A-Frame in VR mode, so exit VR mode whenever it is attempted
+      // to be entered and we haven't entered the room yet.
+      if (scene.is("vr-mode") && !scene.is("vr-entered") && !isMobileVR) {
+        console.log("Pre-emptively exiting VR mode.");
+        scene.exitVR();
+        return true;
       }
+  
+      return false;
     };
-
-    const name = getAuthor();
-    const maySpawn = scene.is("entered");
-
-    const incomingMessage = {
-      name,
-      type,
-      body,
-      maySpawn,
-      sessionId: session_id,
-      sent: session_id === socket.params().session_id
+    remountUI({ availableVREntryTypes: ONLY_SCREEN_AVAILABLE, checkingForDeviceAvailability: true });
+    const availableVREntryTypesPromise = getAvailableVREntryTypes();
+    scene.addEventListener("enter-vr", () => {
+      if (handleEarlyVRMode()) return true;
+  
+      if (isMobileVR) {
+        // Optimization, stop drawing UI if not visible
+        remountUI({ hide: true });
+      }
+  
+      document.body.classList.add("vr-mode");
+  
+      availableVREntryTypesPromise.then(availableVREntryTypes => {
+        // Don't stretch canvas on cardboard, since that's drawing the actual VR view :)
+        if ((!isMobile && !isMobileVR) || availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.yes) {
+          document.body.classList.add("vr-mode-stretch");
+        }
+      });
+    });
+    handleEarlyVRMode();
+  
+    // HACK A-Frame 0.9.0 seems to fail to wire up vrdisplaypresentchange early enough
+    // to catch presentation state changes and recognize that an HMD is presenting on startup.
+    window.addEventListener(
+      "vrdisplaypresentchange",
+      () => {
+        if (scene.is("vr-entered")) return;
+        if (scene.is("vr-mode")) return;
+  
+        const device = AFRAME.utils.device.getVRDisplay();
+  
+        if (device && device.isPresenting) {
+          if (!scene.is("vr-mode")) {
+            console.warn("Hit A-Frame bug where VR display is presenting but A-Frame has not entered VR mode.");
+            scene.enterVR();
+          }
+        }
+      },
+      { once: true }
+    );
+  
+    scene.addEventListener("exit-vr", () => {
+      document.body.classList.remove("vr-mode");
+      document.body.classList.remove("vr-mode-stretch");
+  
+      remountUI({ hide: false });
+  
+      // HACK: Oculus browser pauses videos when exiting VR mode, so we need to resume them after a timeout.
+      if (/OculusBrowser/i.test(window.navigator.userAgent)) {
+        document.querySelectorAll("[media-video]").forEach(m => {
+          const videoComponent = m.components["media-video"];
+  
+          if (videoComponent) {
+            videoComponent._ignorePauseStateChanges = true;
+  
+            setTimeout(() => {
+              const video = videoComponent.video;
+  
+              if (video && video.paused && !videoComponent.data.videoPaused) {
+                video.play();
+              }
+  
+              videoComponent._ignorePauseStateChanges = false;
+            }, 1000);
+          }
+        });
+      }
+    });
+  
+    registerNetworkSchemas();
+  
+    remountUI({
+      authChannel,
+      hubChannel,
+      linkChannel,
+      subscriptions,
+      enterScene: entryManager.enterScene,
+      exitScene: reason => {
+        entryManager.exitScene();
+        remountUI({ roomUnavailableReason: reason || ExitReason.exited });
+      }
+    });
+  
+    scene.addEventListener("leave_room_requested", () => {
+      entryManager.exitScene();
+      remountUI({ roomUnavailableReason: ExitReason.left });
+    });
+  
+    scene.addEventListener("hub_closed", () => {
+      scene.exitVR();
+      entryManager.exitScene();
+      remountUI({ roomUnavailableReason: ExitReason.closed });
+    });
+  
+    scene.addEventListener("action_camera_recording_started", () => hubChannel.beginRecording());
+    scene.addEventListener("action_camera_recording_ended", () => hubChannel.endRecording());
+  
+    if (qs.get("required_version") && process.env.BUILD_VERSION) {
+      const buildNumber = process.env.BUILD_VERSION.split(" ", 1)[0]; // e.g. "123 (abcd5678)"
+  
+      if (qs.get("required_version") !== buildNumber) {
+        remountUI({ roomUnavailableReason: ExitReason.versionMismatch });
+        setTimeout(() => document.location.reload(), 5000);
+        entryManager.exitScene();
+        return;
+      }
+    }
+  
+    getReticulumMeta().then(reticulumMeta => {
+      console.log(`Reticulum @ ${reticulumMeta.phx_host}: v${reticulumMeta.version} on ${reticulumMeta.pool}`);
+  
+      if (
+        qs.get("required_ret_version") &&
+        (qs.get("required_ret_version") !== reticulumMeta.version || qs.get("required_ret_pool") !== reticulumMeta.pool)
+      ) {
+        remountUI({ roomUnavailableReason: ExitReason.versionMismatch });
+        setTimeout(() => document.location.reload(), 5000);
+        entryManager.exitScene();
+        return;
+      }
+    });
+  
+    availableVREntryTypesPromise.then(async availableVREntryTypes => {
+      if (isMobileVR) {
+        remountUI({
+          availableVREntryTypes,
+          forcedVREntryType: qsVREntryType || "vr",
+          checkingForDeviceAvailability: false
+        });
+  
+        if (/Oculus/.test(navigator.userAgent) && "getVRDisplays" in navigator) {
+          // HACK - The polyfill reports Cardboard as the primary VR display on startup out ahead of
+          // Oculus Go on Oculus Browser 5.5.0 beta. This display is cached by A-Frame,
+          // so we need to resolve that and get the real VRDisplay before entering as well.
+          const displays = await navigator.getVRDisplays();
+          const vrDisplay = displays.length && displays[0];
+          AFRAME.utils.device.getVRDisplay = () => vrDisplay;
+        }
+      } else {
+        const hasVREntryDevice =
+          availableVREntryTypes.cardboard !== VR_DEVICE_AVAILABILITY.no ||
+          availableVREntryTypes.generic !== VR_DEVICE_AVAILABILITY.no ||
+          availableVREntryTypes.daydream !== VR_DEVICE_AVAILABILITY.no;
+  
+        remountUI({
+          availableVREntryTypes,
+          forcedVREntryType: qsVREntryType || (!hasVREntryDevice ? "2d" : null),
+          checkingForDeviceAvailability: false
+        });
+      }
+    });
+  
+    const environmentScene = document.querySelector("#environment-scene");
+    environmentScene.addEventListener(
+      "model-loaded",
+      () => {
+        // Replace renderer with a noop renderer to reduce bot resource usage.
+        if (isBotMode) {
+          runBotMode(scene, entryManager);
+        }
+      },
+      { once: true }
+    );
+  
+    environmentScene.addEventListener("model-loaded", ({ detail: { model } }) => {
+      console.log("Environment scene has loaded");
+  
+      if (!scene.is("entered")) {
+        setupLobbyCamera();
+      }
+  
+      // This will be run every time the environment is changed (including the first load.)
+      remountUI({ environmentSceneLoaded: true });
+      scene.emit("environment-scene-loaded", model);
+  
+      // Re-bind the teleporter controls collision meshes in case the scene changed.
+      document.querySelectorAll("a-entity[teleporter]").forEach(x => x.components["teleporter"].queryCollisionEntities());
+  
+      for (const modelEl of environmentScene.children) {
+        addAnimationComponents(modelEl);
+      }
+    });
+  
+    // Socket disconnects on refresh but we don't want to show exit scene in that scenario.
+    let isReloading = false;
+    window.addEventListener("beforeunload", () => (isReloading = true));
+  
+    const socket = await connectToReticulum(isDebug);
+  
+    socket.onClose(e => {
+      // We don't currently have an easy way to distinguish between being kicked (server closes socket)
+      // and a variety of other network issues that seem to produce the 1000 closure code, but the
+      // latter are probably more common. Either way, we just tell the user they got disconnected.
+      const NORMAL_CLOSURE = 1000;
+  
+      if (e.code === NORMAL_CLOSURE && !isReloading) {
+        entryManager.exitScene();
+        remountUI({ roomUnavailableReason: ExitReason.disconnected });
+      }
+    });
+  
+    // Reticulum global channel
+    APP.retChannel = socket.channel(`ret`, { hub_id: hubId });
+    APP.retChannel
+      .join()
+      .receive("ok", data => {
+        subscriptions.setVapidPublicKey(data.vapid_public_key);
+      })
+      .receive("error", res => {
+        subscriptions.setVapidPublicKey(null);
+        console.error(res);
+      });
+  
+    const pushSubscriptionEndpoint = await subscriptions.getCurrentEndpoint();
+  
+    APP.hubChannelParamsForPermsToken = permsToken => {
+      return createHubChannelParams({
+        profile: store.state.profile,
+        pushSubscriptionEndpoint,
+        permsToken,
+        isMobile,
+        isMobileVR,
+        isEmbed,
+        hubInviteId: qs.get("hub_invite_id"),
+        authToken: store.state.credentials && store.state.credentials.token
+      });
     };
-
-    if (scene.is("vr-mode")) {
-      createInWorldLogMessage(incomingMessage);
+  
+    const migrateToNewReticulumServer = async ({ ret_version, ret_pool }, shouldAbandonMigration) => {
+      console.log(`[reconnect] Reticulum deploy detected v${ret_version} on ${ret_pool}.`);
+  
+      const didMatchMeta = await tryGetMatchingMeta({ ret_version, ret_pool }, shouldAbandonMigration);
+      if (!didMatchMeta) {
+        console.error(`[reconnect] Failed to reconnect. Did not get meta for v${ret_version} on ${ret_pool}.`);
+        return;
+      }
+  
+      console.log("[reconnect] Reconnect in progress. Updated reticulum meta.");
+      const oldSocket = APP.retChannel.socket;
+      const socket = await connectToReticulum(isDebug, oldSocket.params());
+      APP.retChannel = await migrateChannelToSocket(APP.retChannel, socket);
+      await hubChannel.migrateToSocket(socket, APP.hubChannelParamsForPermsToken());
+      authChannel.setSocket(socket);
+      linkChannel.setSocket(socket);
+  
+      // Disconnect old socket after a delay to ensure this user is always registered in presence.
+      await sleep(10000);
+      oldSocket.teardown();
+      console.log("[reconnect] Reconnection successful.");
+    };
+  
+    const onRetDeploy = (function() {
+      let pendingNotification = null;
+      const hasPendingNotification = function() {
+        return !!pendingNotification;
+      };
+  
+      const handleNextMessage = (function() {
+        let isLocked = false;
+        return async function handleNextMessage() {
+          if (isLocked || !pendingNotification) return;
+  
+          isLocked = true;
+          const currentNotification = Object.assign({}, pendingNotification);
+          pendingNotification = null;
+          try {
+            await migrateToNewReticulumServer(currentNotification, hasPendingNotification);
+          } catch {
+            console.error("Failed to migrate to new reticulum server after deploy.", currentNotification);
+          } finally {
+            isLocked = false;
+            handleNextMessage();
+          }
+        };
+      })();
+  
+      return function onRetDeploy(deployNotification) {
+        // If for some reason we receive multiple deployNotifications, only the
+        // most recent one matters. The rest can be overwritten.
+        pendingNotification = deployNotification;
+        handleNextMessage();
+      };
+    })();
+  
+    APP.retChannel.on("notice", data => {
+      if (data.event === "ret-deploy") {
+        onRetDeploy(data);
+      }
+    });
+  
+    const messageDispatch = new MessageDispatch(scene, entryManager, hubChannel, remountUI, mediaSearchStore);
+    APP.messageDispatch = messageDispatch;
+    document.getElementById("avatar-rig").messageDispatch = messageDispatch;
+  
+    const oauthFlowPermsToken = Cookies.get(OAUTH_FLOW_PERMS_TOKEN_KEY);
+    if (oauthFlowPermsToken) {
+      Cookies.remove(OAUTH_FLOW_PERMS_TOKEN_KEY);
     }
-
-    messageDispatch.receive(incomingMessage);
-  });
-
-  hubPhxChannel.on("hub_refresh", ({ session_id, hubs, stale_fields }) => {
-    const hub = hubs[0];
-    const userInfo = hubChannel.presence.state[session_id];
-    const displayName = (userInfo && userInfo.metas[0].profile.displayName) || "API";
-
-    window.APP.hub = hub;
-    updateUIForHub(hub, hubChannel);
-
-    if (
-      stale_fields.includes("scene") ||
-      stale_fields.includes("scene_listing") ||
-      stale_fields.includes("default_environment_gltf_bundle_url")
-    ) {
-      const fader = document.getElementById("viewing-camera").components["fader"];
-
-      fader.fadeOut().then(() => {
-        scene.emit("reset_scene");
-        updateEnvironmentForHub(hub, entryManager);
+    const hubPhxChannel = socket.channel(`hub:${hubId}`, APP.hubChannelParamsForPermsToken(oauthFlowPermsToken));
+    hubChannel.channel = hubPhxChannel;
+    hubChannel.presence = new Presence(hubPhxChannel);
+    const { rawOnJoin, rawOnLeave } = denoisePresence(presenceEventsForHub(events));
+    hubChannel.presence.onJoin(rawOnJoin);
+    hubChannel.presence.onLeave(rawOnLeave);
+    hubChannel.presence.onSync(() => {
+      events.trigger(`hub:sync`, { presence: hubChannel.presence });
+    });
+  
+    events.on(`hub:join`, ({ key, meta }) => {
+      scene.emit("presence_updated", {
+        sessionId: key,
+        profile: meta.profile,
+        roles: meta.roles,
+        permissions: meta.permissions,
+        streaming: meta.streaming,
+        recording: meta.recording
       });
-
+    });
+    events.on(`hub:join`, ({ key, meta }) => {
+      if (
+        APP.hideHubPresenceEvents ||
+        key === hubChannel.channel.socket.params().session_id ||
+        hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT
+      ) {
+        return;
+      }
       messageDispatch.receive({
-        type: "scene_changed",
-        name: displayName,
-        sceneName: hub.scene ? hub.scene.name : "a custom URL"
+        type: "join",
+        presence: meta.presence,
+        name: meta.profile.displayName
       });
-    }
-
-    if (stale_fields.includes("member_permissions")) {
-      hubChannel.fetchPermissions();
-    }
-
-    if (stale_fields.includes("name")) {
-      const titleParts = document.title.split(" | "); // Assumes title has | trailing site name
-      titleParts[0] = hub.name;
-      document.title = titleParts.join(" | ");
-
-      // Re-write the slug in the browser history
-      const pathParts = history.location.pathname.split("/");
-      const oldSlug = pathParts[1];
-      const { search, state } = history.location;
-      const pathname = history.location.pathname.replace(`/${oldSlug}`, `/${hub.slug}`);
-
-      history.replace({ pathname, search, state });
-
+    });
+  
+    events.on(`hub:leave`, ({ meta }) => {
+      if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
+        return;
+      }
       messageDispatch.receive({
-        type: "hub_name_changed",
-        name: displayName,
-        hubName: hub.name
+        type: "leave",
+        name: meta.profile.displayName
       });
+    });
+  
+    events.on(`hub:change`, ({ key, previous, current }) => {
+      if (
+        previous.presence === current.presence ||
+        current.presence !== "room" ||
+        key === hubChannel.channel.socket.params().session_id
+      ) {
+        return;
+      }
+  
+      messageDispatch.receive({
+        type: "entered",
+        presence: current.presence,
+        name: current.profile.displayName
+      });
+    });
+    events.on(`hub:change`, ({ previous, current }) => {
+      if (previous.profile.displayName !== current.profile.displayName) {
+        messageDispatch.receive({
+          type: "display_name_changed",
+          oldName: previous.profile.displayName,
+          newName: current.profile.displayName
+        });
+      }
+    });
+    events.on(`hub:change`, ({ key, previous, current }) => {
+      if (
+        key === hubChannel.channel.socket.params().session_id &&
+        previous.profile.avatarId !== current.profile.avatarId
+      ) {
+        messageDispatch.log(LogMessageType.avatarChanged);
+      }
+    });
+    events.on(`hub:change`, ({ key, current }) => {
+      scene.emit("presence_updated", {
+        sessionId: key,
+        profile: current.profile,
+        roles: current.roles,
+        permissions: current.permissions,
+        streaming: current.streaming,
+        recording: current.recording
+      });
+    });
+  
+    // // We need to be able to wait for initial presence syncs across reconnects and socket migrations,
+    // // so we create this object in the outer scope and assign it a new promise on channel join.
+    // const presenceSync = {
+    //   promise: null,
+    //   resolve: null
+    // };
+    events.on("hub:sync", () => {
+      presenceSync.resolve();
+    });
+    events.on(`hub:sync`, () => {
+      APP.hideHubPresenceEvents = false;
+    });
+    events.on(`hub:sync`, updateVRHudPresenceCount);
+    events.on(`hub:sync`, ({ presence }) => {
+      updateSceneCopresentState(presence, scene);
+    });
+  
+    
+    events.on(`hub:sync`, ({ presence }) => {
+      // update number of user in the room hubId in firebase
+      if (presence.state) {
+        var numberOfUser = Object.keys(presence.state).length;     
+        // update in firebase
+        setNumberOfUserInRoom(hubId, numberOfUser);
+      }    
+      
+      remountUI({
+        sessionId: socket.params().session_id,
+        presences: presence.state,
+        entryDisallowed: !hubChannel.canEnterRoom(uiProps.hub)
+      });
+    });
+  
+    hubPhxChannel
+      .join()
+      .receive("ok", async data => {
+        APP.hideHubPresenceEvents = true;
+        presenceSync.promise = new Promise(resolve => {
+          presenceSync.resolve = resolve;
+        });
+  
+        socket.params().session_id = data.session_id;
+        socket.params().session_token = data.session_token;
+  
+        const permsToken = oauthFlowPermsToken || data.perms_token;
+        hubChannel.setPermissionsFromToken(permsToken);
+  
+        subscriptions.setHubChannel(hubChannel);
+        subscriptions.setSubscribed(data.subscriptions.web_push);
+  
+        remountUI({
+          hubIsBound: data.hub_requires_oauth,
+          initialIsFavorited: data.subscriptions.favorites
+        });
+  
+        await presenceSync.promise;
+        handleHubChannelJoined(entryManager, hubChannel, messageDispatch, data, permsToken, hubChannel, events);
+      })
+      .receive("error", res => {
+        if (res.reason === "closed") {
+          entryManager.exitScene();
+          remountUI({ roomUnavailableReason: ExitReason.closed });
+        } else if (res.reason === "oauth_required") {
+          entryManager.exitScene();
+          remountUI({ oauthInfo: res.oauth_info, showOAuthScreen: true });
+        } else if (res.reason === "join_denied") {
+          entryManager.exitScene();
+          remountUI({ roomUnavailableReason: ExitReason.denied });
+        }
+  
+        console.error(res);
+      });
+  
+    hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
+      const getAuthor = () => {
+        const userInfo = hubChannel.presence.state[session_id];
+        if (from) {
+          return from;
+        } else if (userInfo) {
+          return userInfo.metas[0].profile.displayName;
+        } else {
+          return "Mystery user";
+        }
+      };
+  
+      const name = getAuthor();
+      const maySpawn = scene.is("entered");
+  
+      const incomingMessage = {
+        name,
+        type,
+        body,
+        maySpawn,
+        sessionId: session_id,
+        sent: session_id === socket.params().session_id
+      };
+  
+      if (scene.is("vr-mode")) {
+        createInWorldLogMessage(incomingMessage);
+      }
+  
+      messageDispatch.receive(incomingMessage);
+    });
+  
+    hubPhxChannel.on("hub_refresh", ({ session_id, hubs, stale_fields }) => {
+      const hub = hubs[0];
+      const userInfo = hubChannel.presence.state[session_id];
+      const displayName = (userInfo && userInfo.metas[0].profile.displayName) || "API";
+  
+      window.APP.hub = hub;
+      updateUIForHub(hub, hubChannel);
+  
+      if (
+        stale_fields.includes("scene") ||
+        stale_fields.includes("scene_listing") ||
+        stale_fields.includes("default_environment_gltf_bundle_url")
+      ) {
+        const fader = document.getElementById("viewing-camera").components["fader"];
+  
+        fader.fadeOut().then(() => {
+          scene.emit("reset_scene");
+          updateEnvironmentForHub(hub, entryManager);
+        });
+  
+        messageDispatch.receive({
+          type: "scene_changed",
+          name: displayName,
+          sceneName: hub.scene ? hub.scene.name : "a custom URL"
+        });
+      }
+  
+      if (stale_fields.includes("member_permissions")) {
+        hubChannel.fetchPermissions();
+      }
+  
+      if (stale_fields.includes("name")) {
+        const titleParts = document.title.split(" | "); // Assumes title has | trailing site name
+        titleParts[0] = hub.name;
+        document.title = titleParts.join(" | ");
+  
+        // Re-write the slug in the browser history
+        const pathParts = history.location.pathname.split("/");
+        const oldSlug = pathParts[1];
+        const { search, state } = history.location;
+        const pathname = history.location.pathname.replace(`/${oldSlug}`, `/${hub.slug}`);
+  
+        history.replace({ pathname, search, state });
+  
+        messageDispatch.receive({
+          type: "hub_name_changed",
+          name: displayName,
+          hubName: hub.name
+        });
+      }
+  
+      if (hub.entry_mode === "deny") {
+        scene.emit("hub_closed");
+      }
+  
+      scene.emit("hub_updated", { hub });
+    });
+  
+    hubPhxChannel.on("permissions_updated", () => hubChannel.fetchPermissions());
+  
+    hubPhxChannel.on("mute", ({ session_id }) => {
+      if (session_id === NAF.clientId) {
+        APP.dialog.enableMicrophone(false);
+      }
+    });
+  
+    authChannel.setSocket(socket);
+    linkChannel.setSocket(socket);
+  
+    // show full-room modal
+    if (isShowFullRoomModal) {
+      remountUI({ showFullRoomModal: true });        
     }
-
-    if (hub.entry_mode === "deny") {
-      scene.emit("hub_closed");
-    }
-
-    scene.emit("hub_updated", { hub });
-  });
-
-  hubPhxChannel.on("permissions_updated", () => hubChannel.fetchPermissions());
-
-  hubPhxChannel.on("mute", ({ session_id }) => {
-    if (session_id === NAF.clientId) {
-      APP.dialog.enableMicrophone(false);
-    }
-  });
-
-  authChannel.setSocket(socket);
-  linkChannel.setSocket(socket);
-
-  // show full-room modal
-  if (isShowFullRoomModal) {
-    remountUI({ showFullRoomModal: true });        
-  }
+  });  
 });

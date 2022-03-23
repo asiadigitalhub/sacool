@@ -7,10 +7,11 @@ import "./assets/stylesheets/globals.scss";
 import { Center } from "./react-components/layout/Center";
 import { Modal } from "./react-components/modal/Modal";
 import { Column } from "./react-components/layout/Column";
+import { Button } from "./react-components/input/Button";
 
 import { FormattedMessage } from "react-intl";
 import {getRoomsInFirebase, openMetabarWithRoomId, firebaseDatabase, LimitUserNumberInRoom, FirebaseDatabaseKeys,
-  convertRoomMapToRoomInfoAndSort} from "./utils/firebase-util";
+  convertRoomMapToRoomInfoAndSort, isSignedInFirebase, FirebaseError} from "./utils/firebase-util";
 import { ref, onValue } from "firebase/database";
 
 registerTelemetry("/rooms", "Rooms Page");
@@ -21,7 +22,8 @@ window.APP = { store };
 export class Rooms extends Component {
   state = {
     roomInfos: null,
-    showNoRoomModal: false
+    showNoRoomModal: false,
+    showRefreshModal: false
   };
 
   componentDidMount() {    
@@ -29,10 +31,15 @@ export class Rooms extends Component {
     this.listenFirebaseUpdateUserNumberEvent();
   }
   
-  // generate ui for no-room status
+  // when the reload button in Firebase Error modal clicked
+  onContinueFirebaseErrorModal() {
+    location.reload(); // refresh the current page
+  }
+
+  // generate ui for no-room alert
   noRoomModal() {
     return (
-      <Modal title={<FormattedMessage id="rooms.no-room" defaultMessage="There is not any room" />}>
+      <Modal>
         <Column padding center>
           <b>
             <FormattedMessage
@@ -44,27 +51,61 @@ export class Rooms extends Component {
       </Modal>
     );
   }
+  // generate ui for refresh-page alert
+  refreshModal() {
+    return (
+      <Modal>
+        <Column padding center centerMd="both" grow>          
+          <p>
+            <FormattedMessage
+              id="metabar.connection-error-message"
+              defaultMessage="Network connection error! Please refresh the page.!"
+              values={{ linebreak: <br /> }}
+            />
+          </p>          
+          <Button preset="accept" onClick={this.onContinueFirebaseErrorModal}>
+            <FormattedMessage id="metabar.refresh" defaultMessage="Refresh"/>
+          </Button>           
+          
+        </Column>
+      </Modal> 
+    );
+  }
   // when number of user changes in firebase, we refresh the ui
   listenFirebaseUpdateUserNumberEvent() {
     const roomsUserListRef = ref(firebaseDatabase, FirebaseDatabaseKeys.RoomsUser);   
     // this method is fired if the number of user changes
     onValue(roomsUserListRef, (snapshot) => {
-      const roomInfos = convertRoomMapToRoomInfoAndSort(snapshot.toJSON());
-      // call this to update the ui
-      this.setState({roomInfos: roomInfos});      
+      const roomInfos = convertRoomMapToRoomInfoAndSort(snapshot.toJSON());      
+      // call this to update the ui      
+      this.setState({roomInfos: roomInfos}); 
+      // hide Refresh Modal
+      this.setState({showRefreshModal: false});
+      // hide No Room Modal
+      this.setState({showNoRoomModal: false});     
     });
   }
   // load available room in firebase db
-  loadRoomsFromFirebase() {        
-    // get rooms from firebase
-    getRoomsInFirebase((roomInfos) => {      
-      if (roomInfos) { // if we have rooms map        
-        this.setState({roomInfos: roomInfos}); // show rooms list
-      } else { // if there is no rooms
-        // show NoRoomModal
-        this.setState({showNoRoomModal: true});
+  loadRoomsFromFirebase() {       
+    // wait until sign in completes
+    isSignedInFirebase(async (signInStatus) => { // when user signed in as anonymous     
+      if (signInStatus instanceof FirebaseError) { // if user can not sign in, show Refresh alert
+        // show Refresh Modal
+        this.setState({showRefreshModal: true});
+        return;
       }
-    });
+      // get rooms from firebase
+      getRoomsInFirebase((roomInfos) => {      
+        if (roomInfos instanceof FirebaseError) { // if error
+          this.setState({showRefreshModal: true});
+        } else if (roomInfos) { // if we have rooms map        
+          this.setState({roomInfos: roomInfos}); // show rooms list
+        } else { // if there is no rooms
+          // show NoRoomModal
+          this.setState({showNoRoomModal: true});
+        }
+      });
+    });      
   }
   // if user select a room, then open this room
   selectARoom(roomId, userNumber) {
@@ -123,6 +164,7 @@ export class Rooms extends Component {
       <Center>        
         {this.createRoomList() }
         {this.state.showNoRoomModal && this.noRoomModal() }
+        {this.state.showRefreshModal && this.refreshModal() }
       </Center>      
     );
   }

@@ -2,9 +2,17 @@
 ///Firebase import
 import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
-import { getDatabase, ref, get, child, update, increment, runTransaction} from "firebase/database";
+import { getDatabase, ref, get, child, update, increment, runTransaction } from "firebase/database";
+import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 
 const isDeploy = true;
+
+export const LimitUserNumberInRoom = 18; // the maximum number of user in a room
+export const LimitUserNumberInRoomForWeakDevice = 10; // the maximum number of user in a room for "weak" device
+
+const MaxRetrySignInCount = 3;
+var isSignedIn;
+var retrySigninFirebaseCount = 0;
 
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
@@ -22,9 +30,62 @@ const app = initializeApp(firebaseConfig);
 // Get a reference to the database service
 export const firebaseDatabase = getDatabase(app);
 
+const auth = getAuth();
+
+export class FirebaseError {
+
+}
+
+function signInFirebase() {
+  // sign in firebase as anonymous
+  signInAnonymously(auth)
+    .then(() => {
+      // Signed in    
+      isSignedIn = true;
+      retrySigninFirebaseCount = 0;
+    })
+    .catch((error) => {
+      // Signed in error..
+      console.error(error);  
+      if (retrySigninFirebaseCount < MaxRetrySignInCount) {
+        retrySigninFirebaseCount += 1;
+        doSignInFirebase();
+      }  
+    });  
+}
+
+// sign in firebase
+signInFirebase();
+
+// if there is an authentication change
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    // User is signed in => update signed in status 
+    isSignedIn = true;
+    retrySigninFirebaseCount = 0;    
+  } else {
+    // User is signed out      
+    isSignedIn = false;      
+    retrySigninFirebaseCount = 0;
+  }
+});
+
 const analytics = getAnalytics();
-export const LimitUserNumberInRoom = 18; // the maximum number of user in a room
-export const LimitUserNumberInRoomForWeakDevice = 10; // the maximum number of user in a room for "weak" device
+
+export function isSignedInFirebase(callBack) {
+  if (isSignedIn != true) {
+    if (retrySigninFirebaseCount >= MaxRetrySignInCount) { // the retry process is over
+      callBack(new FirebaseError());
+      return;
+    }
+    setTimeout(() => {
+      isSignedInFirebase(callBack);
+    }, 500);
+    return;
+  }
+  // if signed in
+  callBack();
+}
 
 /**
  * 
@@ -74,10 +135,6 @@ export class RoomUserStatus {
   static AllRoomsAreFull = 1;
   static CheckingRoomIdAvailable = 2;  
   static CheckingRoomIdNotInFirebase = 3;
-}
-
-class FirebaseError {
-
 }
 
 export class RoomInfo {
@@ -152,9 +209,10 @@ export function decreaseUserNumberIfWindowUnload (roomId) {
 }
 
 // increase the number of user in a room by 1
-export async function increaseUserNumberInRoom(roomId) {       
-    return await updateNumberOfUserInRoom(roomId, true);
+export async function increaseUserNumberInRoom(roomId) {   
+  return await updateNumberOfUserInRoom(roomId, true);
 }
+
 // decrease the number of user in a room by 1
 export function descreaseUserNumberInRoom(roomId) {
   const decrementFieldValue = increment(-1);
@@ -215,12 +273,13 @@ export function getRoomsInFirebase(callBack) {
     
   get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
       if (snapshot.exists()) { // if rooms existed        
-        callBack(convertRoomMapToRoomInfoAndSort(snapshot.val()));
+        callBack(convertRoomMapToRoomInfoAndSort(snapshot.val()));        
       } else { // if rooms did not existed
         callBack(null);
       }
   }).catch((error) => {
       console.error(error);
+      callBack(new FirebaseError());
   });    
 }
 // async get list of rooms in firebase db
@@ -242,7 +301,7 @@ async function getRoomsInFirebaseSync() {
 }
 
 // get a room id & number of user in room that is available(the current number of user in room is not limitted)
-export async function getAvailableRoomForJoining(roomIdNeedCheck, isForWeakDevice) {
+export async function getAvailableRoomForJoining(roomIdNeedCheck, isForWeakDevice) {  
   var roomMap = await getRoomsInFirebaseSync();  // get map of rooms from firebase
   var maximumNumber = -1;
   var maximumNumberRoomId = null;         
