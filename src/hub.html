@@ -65,13 +65,13 @@
     <a-scene disable-resize embedded vr-mode-ui="enabled: false" loading-screen="enabled: false" hubs-systems
         capture-system listed-media local-audio-analyser class="grab-cursor" renderer="
             antialias: auto;
-            colorManagement: false;
+            colorManagement: true;
             sortObjects: false;
-            physicallyCorrectLights: false;
+            physicallyCorrectLights: true;
             alpha: false;
             webgl2: true;
-            precision: low;
-            multiview: false;"
+            precision: medium;
+            multiview: false;" shadow="type: pcfsoft;autoUpdate: false"
         networked-scene="audio: true; debug: true; connectOnLoad: false;"
         mute-mic="eventSrc: a-scene; toggleEvents: action_mute"
         action-to-event__mute="path: /actions/muteMic; event: action_mute;" freeze-controller
