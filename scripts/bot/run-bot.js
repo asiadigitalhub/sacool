@@ -13,6 +13,8 @@ Options:
     -s --spawn=<string>  Spawn point
 `;
 
+// node ./run-bot.js -u https://metaverse.asiadigitalhub.net/CvXKzCw?allow_multi=true&bot=true -d bot-recording.json
+
 const docopt = require("docopt").docopt;
 const options = docopt(doc);
 
@@ -110,6 +112,46 @@ function log(...objs) {
           process.exit(1);
         }
       }, 60 * 1000);
+
+      // Do some movement
+      setInterval(async () => {
+        try {
+          // move
+          const options = ["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"];
+          const choose = options[~~(Math.random()*options.length)];
+          log("pressing ", choose);
+          await page.keyboard.down(choose);
+          setTimeout(() => {
+            page.keyboard.up(choose);
+          }, 3000);
+          // chat chit
+          if (Math.random() > 0.8) {
+            const msg = await page.evaluate(() => {
+              return (function(){
+                const msgs = [
+                  "Gia tánh kỳ",
+                  "Gia test đi gia",
+                  "Gia xăm mình",
+                  "chán Gia thật sự",
+                  "Gia là thằng nào vậy các bạn?",
+                  "Tui không biết gì hết",
+                  "Ahihi",
+                  "ủa vậy hả",
+                  "Thật sự",
+                  "Thôi mà bạn ơi",
+                  "đây là ai? tui là đâu?"
+                ];
+                const msg = msgs[~~(Math.random()*msgs.length)];
+                APP.messageDispatch.dispatch(msg);
+                return msg;
+              })()
+            });
+            log("Chat: ", msg);
+          }
+        } catch (e) {
+          console.log(e)
+        }
+      }, 5 * 1000);
     } catch (e) {
       log("Navigation error", e.message);
       setTimeout(navigate, 1000);
@@ -117,4 +159,16 @@ function log(...objs) {
   };
 
   navigate();
+
+  //
+  process.on("beforeExit", () => {
+    log("beforeExit bot process. Closing the page and browser");
+    // page.close();
+    // browser.close();
+  });
+  process.on("disconnect", () => {
+    log("disconnect bot process. Closing the page and browser");
+    // page.close();
+    // browser.close();
+  });
 })();
