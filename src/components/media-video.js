@@ -105,26 +105,25 @@ AFRAME.registerComponent("media-video", {
     this.videoIsLive = null; // value null until we've determined if the video is live or not.
     this.onSnapImageLoaded = () => (this.isSnapping = false);
     this.hasAudioTracks = false;
-
     this.isModerator = window.APP.hubChannel && window.APP.hubChannel.canOrWillIfCreator("kick_users");
+
     if(this.isModerator){
-      this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
-      this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
+        this.el.setAttribute("hover-menu__video", { template: "#video-hover-menu", isFlat: true });
+        this.el.components["hover-menu__video"].getHoverMenu().then(menu => {
         // If we got removed while waiting, do nothing.
         if (!this.el.parentNode) return;
-
-        this.hoverMenu = menu;
 
         this.playbackControls = this.el.querySelector(".video-playback");
         this.playPauseButton = this.el.querySelector(".video-playpause-button");
         this.volumeUpButton = this.el.querySelector(".video-volume-up-button");
         this.volumeDownButton = this.el.querySelector(".video-volume-down-button");
+        this.snapButton = this.el.querySelector(".video-snap-button");
         this.seekForwardButton = this.el.querySelector(".video-seek-forward-button");
         this.seekBackButton = this.el.querySelector(".video-seek-back-button");
-        this.snapButton = this.el.querySelector(".video-snap-button");
         this.timeLabel = this.el.querySelector(".video-time-label");
         this.volumeLabel = this.el.querySelector(".video-volume-label");
         this.linkButton = this.el.querySelector(".video-link-button");
+
 
         this.playPauseButton.object3D.addEventListener("interact", this.togglePlaying);
         this.seekForwardButton.object3D.addEventListener("interact", this.seekForward);
@@ -133,11 +132,15 @@ AFRAME.registerComponent("media-video", {
         this.volumeDownButton.object3D.addEventListener("interact", this.volumeDown);
         this.snapButton.object3D.addEventListener("interact", this.snap);
 
-        this.updateVolumeLabel();
-        this.updateHoverMenu();
-        this.updatePlaybackState();
+     
+          this.hoverMenu = menu;
+          this.updateVolumeLabel();
+          this.updateHoverMenu();
+          this.updatePlaybackState();
+        
       });
     }
+    
 
        /**
    * Auth: Duy 
@@ -810,6 +813,7 @@ AFRAME.registerComponent("media-video", {
   },
 
   updateVolumeLabel() {
+    if(!this.hoverMenu) return;
     const gainMultiplier = APP.gainMultipliers.get(this.el);
     this.volumeLabel.setAttribute(
       "text",

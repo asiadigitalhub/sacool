@@ -45,7 +45,7 @@ export function UserVoiceButtonContainer({ scene }) {
   return (
     <ToolbarButton
       ref={buttonRef}
-      icon={preferences.globalMediaVolume>0 ? <VolumeHigh /> : <VolumeMuted />}
+      icon={preferences.globalVoiceVolume>0 ? <VolumeHigh /> : <VolumeMuted />}
       label={<FormattedMessage id="user-volume-voice-button-container.label" defaultMessage="Volume Voice" />}
       preset="basic"
       onClick={()=>{
