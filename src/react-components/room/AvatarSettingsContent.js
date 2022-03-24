@@ -16,6 +16,8 @@ export function AvatarSettingsContent({
   onChangeAvatar,
   ...rest
 }) {
+  const sceneEl = document.querySelector("a-scene");
+
   return (
     <Column as="form" className={styles.content} {...rest}>
       <TextInputField
@@ -36,9 +38,9 @@ export function AvatarSettingsContent({
       />
       <div className={styles.avatarPreviewContainer}>
         {avatarPreview || <div />}
-        {/* <Button type="button" preset="basic" onClick={onChangeAvatar}>
+        {!sceneEl.is("entered") &&  <Button type="button" preset="basic" onClick={onChangeAvatar}>
           <FormattedMessage id="avatar-settings-content.change-avatar-button" defaultMessage="Change Avatar" />
-        </Button> */}
+        </Button> }
       </div>
       <AcceptButton preset="accept" type="submit" />
     </Column>

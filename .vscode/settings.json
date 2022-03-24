@@ -1,6 +1,6 @@
 {
   // Format on save for Prettier
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   // Disable html formatting for now
   "html.format.enable": false,
   // Disable the default javascript formatter

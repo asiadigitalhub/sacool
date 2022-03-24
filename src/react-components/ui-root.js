@@ -78,6 +78,7 @@ import { useCssBreakpoints } from "react-use-css-breakpoints";
 import { PlacePopoverContainer } from "./room/PlacePopoverContainer";
 import { SharePopoverContainer } from "./room/SharePopoverContainer";
 import { VoiceButtonContainer } from "./room/VoiceButtonContainer";
+import { UserVoiceButtonContainer } from "./room/UserVoiceButtonContainer";
 import { ReactionPopoverContainer } from "./room/ReactionPopoverContainer";
 import { SafariMicModal } from "./room/SafariMicModal";
 import { RoomSignInModalContainer } from "./auth/RoomSignInModalContainer";
@@ -1159,7 +1160,7 @@ class UIRoot extends Component {
           //       SignInMessages.favoriteRooms
           //     )
           // },
-          {
+          isModerator &&  {
             id: "preferences",
             label: <FormattedMessage id="more-menu.preferences" defaultMessage="Preferences" />,
             icon: SettingsIcon,
@@ -1598,12 +1599,14 @@ class UIRoot extends Component {
                 toolbarRight={
                   <>
                   {/* add Vietnamese flag */}
+                    <UserVoiceButtonContainer scene={this.props.scene} />
                     <ToolbarButton
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
                       }}
                     />
+                   
                     {/* add USA flag */}
                     <ToolbarButton
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      

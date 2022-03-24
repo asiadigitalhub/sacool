@@ -1,6 +1,9 @@
 // On high-DPI displays, measures the median FPS over time and reduces the
 // pixelRatio if the FPS drops below a threshold.
 
+import getMobileOSVersion from "../utils/mobile-os-version";
+import qsTruthy, { qsGet } from "../utils/qs_truthy";
+
 const LOW_FPS_THRESHOLD = 30;
 const HIGH_FPS_THRESHOLD = 48;
 const SKIP_SECONDS_AFTER_SCENE_VISIBLE = 30;
@@ -14,6 +17,18 @@ AFRAME.registerSystem("auto-pixel-ratio", {
     // For now let's only enabled this on macs, since they tend to have retina displays.
     // Note this test will also include iPads running iPadOS.
     this.enabled = window.devicePixelRatio > 1 && /macintosh/i.test(navigator.userAgent);
+    // Due to bad performance on low devices but we must to support it, so trying to optimize for low-end devices
+    const mobileInfo = getMobileOSVersion();
+    if (mobileInfo.os === "iOS" || mobileInfo.os === "Android" || qsTruthy("lowres")) {
+      if (mobileInfo.isLowDisplay || qsTruthy("lowres")) {
+        this.enabled = false;
+        const ratio = qsGet("pixel_ratio");
+        const renderer = this.el.renderer || document.querySelector('a-scene').renderer;
+        renderer.setPixelRatio(ratio || 0.75);
+        // this maybe more optimization
+        return;
+      }
+    }
     this.deltas = [];
     this.secondsSinceMeasurementStart = 0;
     this.secondsSinceSceneVisible = 0;
