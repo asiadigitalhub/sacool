@@ -14,6 +14,9 @@ const MaxRetrySignInCount = 3;
 var isSignedIn;
 var retrySigninFirebaseCount = 0;
 
+const MaxRetryCallFirebaseCount = 8;
+var retryCallFirebaseCount = 0;
+
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
   authDomain: "fir-virtual-meeting.firebaseapp.com",
@@ -308,9 +311,15 @@ export async function getAvailableRoomForJoining(roomIdNeedCheck, isForWeakDevic
   var maximumNumberForWeakDevice = -1;
   var maximumNumberRoomIdForWeakDevice = null;         
   if (roomMap) { // if we have rooms
-    if (roomMap instanceof FirebaseError) { // if error
+    if (roomMap instanceof FirebaseError) { // if error    
+      if (retryCallFirebaseCount < MaxRetryCallFirebaseCount) { // retry
+        ++retryCallFirebaseCount; // increase retry time by 1;        
+        return getAvailableRoomForJoining(roomIdNeedCheck, isForWeakDevice); // recursive
+      }
+      retryCallFirebaseCount = 0; // reset
       return {error: roomMap};
     }
+    // continue without error
     if (roomIdNeedCheck) { // if we need to check roomIdNeedCheck
       if (roomMap[roomIdNeedCheck]) {
         var userNumber = roomMap[roomIdNeedCheck][FirebaseDatabaseKeys.UserNumber];
