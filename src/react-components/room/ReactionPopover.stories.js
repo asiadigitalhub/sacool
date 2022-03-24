@@ -1,5 +1,6 @@
 import React from "react";
 import { RoomLayout } from "../layout/RoomLayout";
+import avocaParticle from "../../assets/images/emojis/avoca.png";
 import emoji0Particle from "../../assets/images/emojis/emoji_0.png";
 import emoji1Particle from "../../assets/images/emojis/emoji_1.png";
 import emoji2Particle from "../../assets/images/emojis/emoji_2.png";
@@ -17,6 +18,7 @@ export default {
 };
 
 const items = [
+  { id: "avoca", label: "Avocado", src: avocaParticle },
   { id: "smile", label: "Smile", src: emoji0Particle },
   { id: "laugh", label: "Laugh", src: emoji1Particle },
   { id: "clap", label: "Clap", src: emoji2Particle },
