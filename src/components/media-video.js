@@ -28,7 +28,8 @@ import { scaleToAspectRatio } from "../utils/scale-to-aspect-ratio";
 import { isSafari } from "../utils/detect-safari";
 import { isIOS as detectIOS } from "../utils/is-mobile";
 
-import qsTruthy from "../utils/qs_truthy";
+import qsTruthy, { qsGet } from "../utils/qs_truthy";
+import BetterVideoTexture from "../utils/better-video-texture";
 
 const ONCE_TRUE = { once: true };
 const TYPE_IMG_PNG = { type: "image/png" };
@@ -578,7 +579,12 @@ AFRAME.registerComponent("media-video", {
         texture.image = videoEl;
         isReady = () => videoEl.readyState > 0;
       } else {
-        texture = new THREE.VideoTexture(videoEl);
+        texture = new BetterVideoTexture(videoEl);
+        // hook during the render progress of video, trying to control the frame rate to optimize the performance
+        if (qsTruthy("video_optimize")) {
+          texture.debug = true;
+          texture.registerOptimization(~~qsGet("video_frame") === 0 ? "AUTO" : (1000 / ~~qsGet("video_frame")));
+        }
         // texture.minFilter = THREE.LinearFilter;
         // texture.encoding = THREE.sRGBEncoding;
 
