@@ -778,6 +778,11 @@ class UIRoot extends Component {
         selectedUserId: null,
         ...otherState
       };
+    }, () => {
+      if (this.state.sidebarId) {
+        ZaloSocialSDK?.reload()
+        FB?.XFBML?.parse()
+      }
     });
   }
 
