@@ -1,6 +1,7 @@
 /* global performance */
 import { addMedia } from "../utils/media-utils";
 import { SOUND_SPAWN_EMOJI } from "../systems/sound-effects-system";
+import avocaParticle from "../assets/images/emojis/avoca.png";
 import emoji0Particle from "../assets/images/emojis/emoji_0.png";
 import emoji1Particle from "../assets/images/emojis/emoji_1.png";
 import emoji2Particle from "../assets/images/emojis/emoji_2.png";
@@ -8,6 +9,7 @@ import emoji3Particle from "../assets/images/emojis/emoji_3.png";
 import emoji4Particle from "../assets/images/emojis/emoji_4.png";
 import emoji5Particle from "../assets/images/emojis/emoji_5.png";
 import emoji6Particle from "../assets/images/emojis/emoji_6.png";
+import avocaModel from "../assets/models/emojis/avoca.glb";
 import emoji0Model from "../assets/models/emojis/emoji_0.glb";
 import emoji1Model from "../assets/models/emojis/emoji_1.glb";
 import emoji2Model from "../assets/models/emojis/emoji_2.glb";
@@ -17,7 +19,8 @@ import emoji5Model from "../assets/models/emojis/emoji_5.glb";
 import emoji6Model from "../assets/models/emojis/emoji_6.glb";
 
 export const emojis = [
-  { id: "smile", model: emoji0Model, particle: emoji0Particle },
+  { id: "avoca", model: avocaModel, particle: avocaParticle }, 
+  { id: "smile", model: emoji0Model, particle: emoji0Particle }, 
   { id: "laugh", model: emoji1Model, particle: emoji1Particle },
   { id: "clap", model: emoji2Model, particle: emoji2Particle },
   { id: "heart", model: emoji3Model, particle: emoji3Particle },

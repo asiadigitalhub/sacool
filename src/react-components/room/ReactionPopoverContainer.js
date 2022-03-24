@@ -4,6 +4,7 @@ import { spawnEmojiInFrontOfUser, emojis } from "../../components/emoji";
 import { defineMessages, useIntl } from "react-intl";
 
 const emojiLabels = defineMessages({
+  avoca: { id: "reaction-popover.emoji-label.avoca", defaultMessage: "Avocado" },
   smile: { id: "reaction-popover.emoji-label.smile", defaultMessage: "Smile" },
   laugh: { id: "reaction-popover.emoji-label.laugh", defaultMessage: "Laugh" },
   clap: { id: "reaction-popover.emoji-label.clap", defaultMessage: "Clap" },
