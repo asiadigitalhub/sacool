@@ -33,6 +33,8 @@
             })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
         }
     </script>
+    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v13.0&appId=336000031897269&autoLogAppEvents=1" nonce="Ju3o55bQ"></script>
+    <script src="https://sp.zalo.me/plugins/sdk.js"></script>
     <style>
         /* Ease the transition to the load screen by displaying a default overlay */
         #preload-overlay {
@@ -61,10 +63,19 @@
 
 <body>
     <div id="support-root"></div>
-
-    <a-scene disable-resize embedded vr-mode-ui="enabled: false" loading-screen="enabled: false" hubs-systems
-        capture-system listed-media local-audio-analyser class="grab-cursor" renderer="
-            antialias: auto;
+    <div id="fb-root"></div>
+    <a-scene
+        disable-resize
+        embedded
+        vr-mode-ui="enabled: false"
+        loading-screen="enabled: false"
+        hubs-systems
+        capture-system
+        listed-media
+        local-audio-analyser
+        class="grab-cursor"
+        renderer="
+            antialias: true;
             colorManagement: true;
             sortObjects: false;
             physicallyCorrectLights: true;

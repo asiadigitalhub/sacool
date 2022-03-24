@@ -346,18 +346,32 @@ function getMessageComponent(message) {
       return (
         <MessageBubble key={message.id} media>
           <video controls src={message.body.src} />
+          <div className={styles.socialShareContainer}>
+            <div class="fb-share-button" data-href={message.body.src} data-layout="button" data-size="small"><a target="_blank" href={message.body.src} class="fb-xfbml-parse-ignore">Chia sẻ</a></div>
+            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
+          </div>
         </MessageBubble>
       );
     case "image":
-    case "photo":
       return (
         <MessageBubble key={message.id} media>
           <img src={message.body.src} />
         </MessageBubble>
       );
+    case "photo":
+      return (
+        <MessageBubble key={message.id} media>
+          <img src={message.body.src} />
+          <div className={styles.socialShareContainer}>
+            <div class="fb-share-button" data-href={message.body.src} data-layout="button" data-size="small"><a target="_blank" href={message.body.src} class="fb-xfbml-parse-ignore">Chia sẻ</a></div>
+            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
+          </div>
+        </MessageBubble>
+      );
     default:
       return null;
   }
+  
 }
 
 export function ChatMessageGroup({ sent, sender, timestamp, messages }) {
