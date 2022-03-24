@@ -14,6 +14,7 @@ Options:
 `;
 
 // node ./run-bot.js -u https://metaverse.asiadigitalhub.net/CvXKzCw?allow_multi=true&bot=true -d bot-recording.json
+// node ./run-bot.js -r roomID -d bot-recording.json
 
 const docopt = require("docopt").docopt;
 const options = docopt(doc);
