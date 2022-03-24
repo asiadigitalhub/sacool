@@ -47,8 +47,8 @@ export default class MessageDispatch extends EventTarget {
     this.dispatchEvent(new CustomEvent("message", { detail: message }));
     console.log(message)
     if  (message.type === "image" || message.type === "photo" || message.type === "video") {
-      ZaloSocialSDK && ZaloSocialSDK?.reload()
-      FB && FB?.XFBML && FB?.XFBML?.parse()
+      // ZaloSocialSDK && ZaloSocialSDK?.reload()
+      // FB && FB?.XFBML && FB?.XFBML?.parse()
     }
   }
 

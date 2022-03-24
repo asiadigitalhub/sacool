@@ -780,8 +780,8 @@ class UIRoot extends Component {
       };
     }, () => {
       if (this.state.sidebarId) {
-        ZaloSocialSDK && ZaloSocialSDK?.reload()
-        FB && FB?.XFBML && FB?.XFBML?.parse()
+        // ZaloSocialSDK && ZaloSocialSDK?.reload()
+        // FB && FB?.XFBML && FB?.XFBML?.parse()
       }
     });
   }
