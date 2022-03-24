@@ -45,6 +45,11 @@ export default class MessageDispatch extends EventTarget {
   receive(message) {
     this.addToPresenceLog(message);
     this.dispatchEvent(new CustomEvent("message", { detail: message }));
+    console.log(message)
+    if  (message.type === "image" || message.type === "photo" || message.type === "video") {
+      ZaloSocialSDK?.reload()
+      FB?.XFBML?.parse()
+    }
   }
 
   log = (messageType, props) => {
