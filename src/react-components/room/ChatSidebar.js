@@ -333,7 +333,6 @@ MessageBubble.propTypes = {
 };
 
 function getMessageComponent(message, sent) {
-  console.log(sent, message)
   switch (message.type) {
     case "chat": {
       const { formattedBody, monospace, emoji } = formatMessageBody(message.body);
@@ -344,7 +343,7 @@ function getMessageComponent(message, sent) {
       );
     }
     case "video":
-      return sent ? (
+      return (
         <MessageBubble key={message.id} media>
           <video controls src={message.body.src} />
           <div className={styles.socialShareContainer}>
@@ -352,7 +351,7 @@ function getMessageComponent(message, sent) {
             <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
           </div>
         </MessageBubble>
-      ) : null
+      )
     case "image":
       return (
         <MessageBubble key={message.id} media>
@@ -360,7 +359,7 @@ function getMessageComponent(message, sent) {
         </MessageBubble>
       );
     case "photo":
-      return sent ? (
+      return (
         <MessageBubble key={message.id} media>
           <img src={message.body.src} />
           <div className={styles.socialShareContainer}>
@@ -368,7 +367,7 @@ function getMessageComponent(message, sent) {
             <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
           </div>
         </MessageBubble>
-      ) : null
+      )
     default:
       return null;
   }
@@ -377,14 +376,14 @@ function getMessageComponent(message, sent) {
 
 export function ChatMessageGroup({ sent, sender, timestamp, messages }) {
   console.log(sent, sender)
-  return (
+  return sent ? (
     <li className={classNames(styles.messageGroup, { [styles.sent]: sent })}>
       <p className={styles.messageGroupLabel}>
         {sender} | <FormattedRelativeTime updateIntervalInSeconds={10} value={(timestamp - Date.now()) / 1000} />
       </p>
       <ul className={styles.messageGroupMessages}>{messages.map(message => getMessageComponent(message, sent))}</ul>
     </li>
-  );
+  ) : null
 }
 
 ChatMessageGroup.propTypes = {
