@@ -5,7 +5,7 @@ import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 
-const isDeploy = true;
+const isDeploy = false;
 
 export const LimitUserNumberInRoom = 18; // the maximum number of user in a room
 export const LimitUserNumberInRoomForWeakDevice = 10; // the maximum number of user in a room for "weak" device
@@ -148,7 +148,6 @@ export class RoomInfo {
   constructor(roomId, roomName, userNumber) {
     this.roomId = roomId; this.roomName = roomName; this.userNumber = userNumber;
   }
-
 }
 
 // assign/set the number of user in room with id(roomid) by number
@@ -275,14 +274,20 @@ export function getRoomsInFirebase(callBack) {
   const dbRef = ref(firebaseDatabase);
     
   get(child(dbRef, FirebaseDatabaseKeys.RoomsUser)).then((snapshot) => {
-      if (snapshot.exists()) { // if rooms existed        
-        callBack(convertRoomMapToRoomInfoAndSort(snapshot.val()));        
-      } else { // if rooms did not existed
-        callBack(null);
-      }
+    retryCallFirebaseCount = 0;
+    if (snapshot.exists()) { // if rooms existed        
+      callBack(convertRoomMapToRoomInfoAndSort(snapshot.val()));        
+    } else { // if rooms did not existed
+      callBack(null);
+    }
   }).catch((error) => {
-      console.error(error);
+    console.error(error);
+    if (retryCallFirebaseCount < MaxRetryCallFirebaseCount) {
+      ++retryCallFirebaseCount;
+      getRoomsInFirebase(callBack);
+    } else {
       callBack(new FirebaseError());
+    }      
   });    
 }
 // async get list of rooms in firebase db
@@ -297,7 +302,7 @@ async function getRoomsInFirebaseSync() {
       return null;            
     }
   }).catch((error) => { // if error
-    console.error(error);
+    console.error(error);    
     return new FirebaseError();
   });        
   return roomMap;
