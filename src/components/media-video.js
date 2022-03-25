@@ -493,14 +493,14 @@ AFRAME.registerComponent("media-video", {
         this.updateHoverMenu();
       }
 
-      if (isIOS) {
-        const template = document.getElementById("video-unmute");
-        this.el.appendChild(document.importNode(template.content, true));
-        this.el.setAttribute("position-at-border__unmute-ui", {
-          target: ".unmute-ui",
-          isFlat: true
-        });
-      }
+      // if (isIOS) {
+      //   const template = document.getElementById("video-unmute");
+      //   this.el.appendChild(document.importNode(template.content, true));
+      //   this.el.setAttribute("position-at-border__unmute-ui", {
+      //     target: ".unmute-ui",
+      //     isFlat: true
+      //   });
+      // }
 
       this.videoTexture = texture;
       this.audioSource = audioSourceEl;
