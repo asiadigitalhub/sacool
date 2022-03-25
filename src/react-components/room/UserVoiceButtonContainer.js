@@ -9,6 +9,7 @@ import { FormattedMessage } from "react-intl";
 import {
   GLOBAL_VOLUME_DEFAULT
 } from "../../react-components/preferences-screen";
+import isMobile from "../../utils/is-mobile";
 
 
 function getPrefs() {
@@ -22,7 +23,7 @@ function getPrefs() {
 }
 
 
-export function UserVoiceButtonContainer({ scene }) {
+export function UserVoiceButtonContainer() {
   const buttonRef = useRef();
   const [preferences, setPreferences] = useState(getPrefs());
   
@@ -46,7 +47,7 @@ export function UserVoiceButtonContainer({ scene }) {
     <ToolbarButton
       ref={buttonRef}
       icon={preferences.globalVoiceVolume>0 ? <VolumeHigh /> : <VolumeMuted />}
-      label={<FormattedMessage id="user-volume-voice-button-container.label" defaultMessage="Volume Voice" />}
+      columnMode={false}
       preset="basic"
       onClick={()=>{
         APP.store.update({
@@ -61,5 +62,4 @@ export function UserVoiceButtonContainer({ scene }) {
 }
 
 UserVoiceButtonContainer.propTypes = {
-  scene: PropTypes.object.isRequired,
 };

@@ -15,7 +15,22 @@
     margin-bottom: 3px;
   }
 }
+:local(.toolbar-button-row) {
+  border: none;
+  background-color: transparent;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  height: 48px;
 
+  label {
+    cursor: pointer;
+    color: theme.$text1-color;
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-bottom: 5px;
+  }
+}
 :local(.icon-container) {
   position: relative;
   border-radius: 9999px;

@@ -1379,19 +1379,21 @@ class UIRoot extends Component {
                     {!this.props.selectedObject && <CompactMoreMenuButton />}
                     {(!this.props.selectedObject ||
                       (this.props.breakpoint !== "sm" && this.props.breakpoint !== "md")) && (
-                      <ContentMenu>
-                        {showObjectList && (
-                          <ObjectsMenuButton
-                            active={this.state.sidebarId === "objects"}
-                            onClick={() => this.toggleSidebar("objects")}
-                          />
-                        )}
-                        <PeopleMenuButton
-                          active={this.state.sidebarId === "people"}
-                          onClick={() => this.toggleSidebar("people")}
-                          presencecount={this.state.presenceCount}
-                        />
-                      </ContentMenu>
+                       <ContentMenu>
+                       <UserVoiceButtonContainer  />
+                       {showObjectList && (
+                         <ObjectsMenuButton
+                           active={this.state.sidebarId === "objects"}
+                           onClick={() => this.toggleSidebar("objects")}
+                         />
+                       )}
+                       <PeopleMenuButton
+                         active={this.state.sidebarId === "people"}
+                         onClick={() => this.toggleSidebar("people")}
+                         presencecount={this.state.presenceCount}
+                       />
+                     </ContentMenu>
+                  
                     )}
                     {!entered && !streaming && !isMobile && streamerName && <SpectatingLabel name={streamerName} />}
                     {this.props.activeObject && (
@@ -1604,7 +1606,6 @@ class UIRoot extends Component {
                 toolbarRight={
                   <>
                   {/* add Vietnamese flag */}
-                    <UserVoiceButtonContainer scene={this.props.scene} />
                     <ToolbarButton
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
