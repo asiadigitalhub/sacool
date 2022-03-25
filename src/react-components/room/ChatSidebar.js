@@ -332,7 +332,8 @@ MessageBubble.propTypes = {
   children: PropTypes.node
 };
 
-function getMessageComponent(message) {
+function getMessageComponent(message, sent) {
+  console.log(sent, message)
   switch (message.type) {
     case "chat": {
       const { formattedBody, monospace, emoji } = formatMessageBody(message.body);
@@ -343,7 +344,7 @@ function getMessageComponent(message) {
       );
     }
     case "video":
-      return (
+      return sent ? (
         <MessageBubble key={message.id} media>
           <video controls src={message.body.src} />
           <div className={styles.socialShareContainer}>
@@ -351,7 +352,7 @@ function getMessageComponent(message) {
             <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
           </div>
         </MessageBubble>
-      );
+      ) : null
     case "image":
       return (
         <MessageBubble key={message.id} media>
@@ -359,7 +360,7 @@ function getMessageComponent(message) {
         </MessageBubble>
       );
     case "photo":
-      return (
+      return sent ? (
         <MessageBubble key={message.id} media>
           <img src={message.body.src} />
           <div className={styles.socialShareContainer}>
@@ -367,7 +368,7 @@ function getMessageComponent(message) {
             <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
           </div>
         </MessageBubble>
-      );
+      ) : null
     default:
       return null;
   }
@@ -375,12 +376,13 @@ function getMessageComponent(message) {
 }
 
 export function ChatMessageGroup({ sent, sender, timestamp, messages }) {
+  console.log(sent, sender)
   return (
     <li className={classNames(styles.messageGroup, { [styles.sent]: sent })}>
       <p className={styles.messageGroupLabel}>
         {sender} | <FormattedRelativeTime updateIntervalInSeconds={10} value={(timestamp - Date.now()) / 1000} />
       </p>
-      <ul className={styles.messageGroupMessages}>{messages.map(message => getMessageComponent(message))}</ul>
+      <ul className={styles.messageGroupMessages}>{messages.map(message => getMessageComponent(message, sent))}</ul>
     </li>
   );
 }
