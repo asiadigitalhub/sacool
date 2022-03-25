@@ -19,14 +19,14 @@ export const statusColors = ["recording", "unread", "enabled", "disabled"];
 
 export const ToolbarButton = forwardRef(
   (
-    { preset, className, iconContainerClassName, children, icon, label, selected, large, statusColor, ...rest },
+    { preset, className, iconContainerClassName, children, icon, label, selected,columnMode, large, statusColor, ...rest },
     ref
   ) => {
     return (
       <button
         ref={ref}
         className={classNames(
-          styles.toolbarButton,
+          columnMode? styles.toolbarButton:styles.toolbarButtonRow,
           styles[preset],
           { [styles.selected]: selected, [styles.large]: large },
           className
@@ -48,6 +48,7 @@ ToolbarButton.propTypes = {
   icon: PropTypes.node,
   label: PropTypes.node,
   selected: PropTypes.bool,
+  columnMode: PropTypes.bool,
   preset: PropTypes.oneOf(presets),
   statusColor: PropTypes.oneOf(statusColors),
   large: PropTypes.bool,
@@ -57,5 +58,6 @@ ToolbarButton.propTypes = {
 };
 
 ToolbarButton.defaultProps = {
-  preset: "basic"
+  preset: "basic",
+  columnMode:true,
 };
