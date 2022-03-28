@@ -5,7 +5,7 @@ import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 
-const isDeploy = false;
+const isDeploy = (location.hostname !== "localhost");
 
 export const LimitUserNumberInRoom = 18; // the maximum number of user in a room
 export const LimitUserNumberInRoomForWeakDevice = 10; // the maximum number of user in a room for "weak" device
