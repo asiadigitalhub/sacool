@@ -9,6 +9,16 @@
   }
 }
 
+:local(.group-flag) {
+  display: flex;
+  margin-left: 16px;
+  flex-direction: row;
+  :local(.padding-div) {
+    width: 16px;
+  }
+}
+
+
 :local(.more-menu-group-label) {
   margin-left: 16px;
   font-size: theme.$font-size-xs;

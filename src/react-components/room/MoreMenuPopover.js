@@ -6,6 +6,12 @@ import { Popover } from "../popover/Popover";
 import { ToolbarButton } from "../input/ToolbarButton";
 import { ReactComponent as MoreIcon } from "../icons/More.svg";
 import { useIntl, defineMessage } from "react-intl";
+import { ToolbarButtonLanguage } from "../input/ToolbarButtonLanguage";
+
+
+import { setLocale ,getLocale} from "../../utils/i18n";
+
+const isMobile = AFRAME.utils.device.isMobile();
 
 function MoreMenuItem({ item, closePopover }) {
   const Icon = item.icon;
@@ -60,9 +66,31 @@ MoreMenuGroup.propTypes = {
 };
 
 function MoreMenuPopoverContent({ menu, closePopover }) {
+
   return (
     <div className={styles.moreMenuPopover}>
       <ul>{menu.map(group => <MoreMenuGroup key={group.id} group={group} closePopover={closePopover} />)}</ul>
+   
+      {isMobile && <div className={styles.groupFlag} >
+        <ToolbarButtonLanguage
+          selected={getLocale()==='vi'}
+          icon={<img src="../../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
+          onClick={() => {
+            setLocale('vi');
+          }}
+            />
+                  
+          <div className={styles.paddingDiv}/>
+          {/* add USA flag */}
+          <ToolbarButtonLanguage
+          selected={getLocale()==='en'}
+            icon={<img src="../../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
+            onClick={() => {
+              setLocale('en');
+            }}
+          />     
+      </div>}
+             
     </div>
   );
 }

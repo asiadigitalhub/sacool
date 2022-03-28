@@ -44,6 +44,7 @@ import { RoomLayoutContainer } from "./room/RoomLayoutContainer";
 import roomLayoutStyles from "./layout/RoomLayout.scss";
 import { useAccessibleOutlineStyle } from "./input/useAccessibleOutlineStyle";
 import { ToolbarButton } from "./input/ToolbarButton";
+import { ToolbarButtonLanguage } from "./input/ToolbarButtonLanguage";
 import { RoomEntryModal } from "./room/RoomEntryModal";
 import { EnterOnDeviceModal } from "./room/EnterOnDeviceModal";
 import { MicPermissionsModal } from "./room/MicPermissionsModal";
@@ -96,7 +97,7 @@ import { TipContainer, FullscreenTip } from "./room/TipContainer";
 import { SpectatingLabel } from "./room/SpectatingLabel";
 import { SignInMessages } from "./auth/SignInModal";
 
-import { setLocale } from "../utils/i18n";
+import { setLocale ,getLocale} from "../utils/i18n";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -1606,8 +1607,8 @@ class UIRoot extends Component {
                 toolbarRight={
                   <>
                   {/* add Vietnamese flag */}
-                    <ToolbarButton
-                      selected={true}
+                    <ToolbarButtonLanguage
+                      selected={getLocale()==='vi'}
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
@@ -1615,7 +1616,8 @@ class UIRoot extends Component {
                     />
                    
                     {/* add USA flag */}
-                    <ToolbarButton
+                    <ToolbarButtonLanguage
+                    selected={getLocale()==='en'}
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');

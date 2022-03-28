@@ -57,6 +57,32 @@
   }
 }
 
+:local(.icon-container-selected) {
+  position: relative;
+  border-radius: 9999px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid theme.$transparent;
+  background-color: #ffe49c4b;
+
+  transition: background-color 0.1s ease-in-out, border-color 0.1s ease-in-out;
+
+  svg {
+    *[stroke=\#000] {
+      stroke: theme.$toolbar-icon-color;
+      transition: stroke 0.1s ease-in-out;
+    }
+
+    *[fill=\#000] {
+      fill: theme.$toolbar-icon-color;
+      transition: fill 0.1s ease-in-out;
+    }
+  }
+}
+
 :local(.large) :local(.icon-container) {
   width: 96px;
   height: 96px;

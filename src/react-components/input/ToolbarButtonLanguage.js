@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 import styles from "./ToolbarButton.scss";
 
+ 
+
 export const presets = [
   "basic",
   "transparent",
@@ -21,7 +23,7 @@ export const ToolbarButtonLanguage = forwardRef(
   (
     { preset, className, iconContainerClassName, children, icon, label, selected,columnMode, large, statusColor, ...rest },
     ref
-  ) => {
+  ) => { 
     return (
       <button
         ref={ref}
@@ -33,7 +35,7 @@ export const ToolbarButtonLanguage = forwardRef(
         )}
         {...rest}
       >
-        <div className={classNames(styles.iconContainer, iconContainerClassName)} aria-hidden="true">
+        <div className={classNames(selected?styles.iconContainerSelected:styles.iconContainer, iconContainerClassName)} aria-hidden="true">
           {icon}
           {statusColor && <div className={classNames(styles.statusIndicator, styles["status-" + statusColor])} />}
           {children}
