@@ -1607,6 +1607,7 @@ class UIRoot extends Component {
                   <>
                   {/* add Vietnamese flag */}
                     <ToolbarButton
+                      selected={true}
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
