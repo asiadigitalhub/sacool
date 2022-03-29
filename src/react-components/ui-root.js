@@ -1137,6 +1137,10 @@ class UIRoot extends Component {
                 onClick: async () => {
                   await this.props.authChannel.signOut(this.props.hubChannel);
                   this.setState({ signedIn: false });
+                  pushDataLayer({
+                    event: "react-utilization",
+                    id: "more-menu.sign-out"
+                  })
                 }
               }
             : 
@@ -1160,7 +1164,13 @@ class UIRoot extends Component {
             id: "user-profile",
             label: <FormattedMessage id="more-menu.profile" defaultMessage="Change Name & Avatar" />,
             icon: AvatarIcon,
-            onClick: () => this.setSidebar("profile")
+            onClick: () => {
+              this.setSidebar("profile")
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.profile"
+              })
+            }
           },
           // {
           //   id: "favorite-rooms",
@@ -1180,7 +1190,13 @@ class UIRoot extends Component {
             id: "preferences",
             label: <FormattedMessage id="more-menu.preferences" defaultMessage="Preferences" />,
             icon: SettingsIcon,
-            onClick: () => this.setState({ showPrefs: true })
+            onClick: () => {
+              this.setState({ showPrefs: true })
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.preferences"
+              })
+            }
           }
         ].filter(item => item)
       },
@@ -1192,14 +1208,26 @@ class UIRoot extends Component {
             id: "room-info",
             label: <FormattedMessage id="more-menu.room-info" defaultMessage="Room Info and Settings" />,
             icon: HomeIcon,
-            onClick: () => this.setSidebar("room-info")
+            onClick: () => {
+              this.setSidebar("room-info")
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.room-info"
+              })
+            }
           },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
             (this.props.hub.entry_mode !== "invite" || this.props.hubChannel.can("update_hub")) && {
               id: "invite",
               label: <FormattedMessage id="more-menu.invite" defaultMessage="Invite" />,
               icon: InviteIcon,
-              onClick: () => this.props.scene.emit("action_invite")
+              onClick: () => {
+                this.props.scene.emit("action_invite")
+                pushDataLayer({
+                  event: "react-utilization",
+                  id: "more-menu.invite"
+                })
+              }
             },
           // this.isFavorited()
           //   ? {
@@ -1223,7 +1251,13 @@ class UIRoot extends Component {
                 <FormattedMessage id="more-menu.enter-streamer-mode" defaultMessage="Enter Streamer Mode" />
               ),
               icon: CameraIcon,
-              onClick: () => this.toggleStreamerMode()
+              onClick: () => {
+                this.toggleStreamerMode()
+                pushDataLayer({
+                  event: "react-utilization",
+                  id: "more-menu.enter-streamer-mode"
+                })
+              }
             },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
             entered && {
@@ -1231,6 +1265,10 @@ class UIRoot extends Component {
               label: <FormattedMessage id="more-menu.enter-leave-room" defaultMessage="Leave Room" />,
               icon: LeaveIcon,
               onClick: () => {
+                pushDataLayer({
+                  event: "react-utilization",
+                  id: "more-menu.enter-leave-room"
+                })
                 this.showNonHistoriedDialog(LeaveRoomModal, {
                   destinationUrl: "/",
                   reason: LeaveReason.leaveRoom
@@ -1241,7 +1279,11 @@ class UIRoot extends Component {
             id: "close-room",
             label: <FormattedMessage id="more-menu.close-room" defaultMessage="Close Room" />,
             icon: DeleteIcon,
-            onClick: () =>
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.close-room"
+              })
               this.props.performConditionalSignIn(
                 () => this.props.hubChannel.can("update_hub"),
                 () => {
@@ -1254,6 +1296,7 @@ class UIRoot extends Component {
                 },
                 SignInMessages.closeRoom
               )
+            }
           }
         ].filter(item => item)
       },
@@ -1265,49 +1308,97 @@ class UIRoot extends Component {
             id: "community",
             label: <FormattedMessage id="more-menu.community" defaultMessage="Community" />,
             icon: DiscordIcon,
-            href: configs.link("community", "https://discord.gg/dFJncWwHun")
+            href: configs.link("community", "https://discord.gg/dFJncWwHun"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "community"
+              })
+            }
           },
           configs.feature("show_issue_report_link") && {
             id: "report-issue",
             label: <FormattedMessage id="more-menu.report-issue" defaultMessage="Report Issue" />,
             icon: WarningCircleIcon,
-            href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html")
+            href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "report-issue"
+              })
+            }
           },
           entered && {
             id: "start-tour",
             label: <FormattedMessage id="more-menu.start-tour" defaultMessage="Start Tour" />,
             icon: SupportIcon,
-            onClick: () => this.props.scene.systems.tips.resetTips()
+            onClick: () => {
+              this.props.scene.systems.tips.resetTips()
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.start-tour"
+              })
+            }
           },
           configs.feature("show_docs_link") && {
             id: "help",
             label: <FormattedMessage id="more-menu.help" defaultMessage="Help" />,
             icon: SupportIcon,
-            href: configs.link("docs", "https://hubs.mozilla.com/docs")
+            href: configs.link("docs", "https://hubs.mozilla.com/docs"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "help"
+              })
+            }
           },
           configs.feature("show_controls_link") && {
             id: "controls",
             label: <FormattedMessage id="more-menu.controls" defaultMessage="Controls" />,
             icon: SupportIcon,
-            href: configs.link("controls", "https://hubs.mozilla.com/docs/hubs-controls.html")
+            href: configs.link("controls", "https://hubs.mozilla.com/docs/hubs-controls.html"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "controls"
+              })
+            }
           },
           configs.feature("show_whats_new_link") && {
             id: "whats-new",
             label: <FormattedMessage id="more-menu.whats-new" defaultMessage="What's New" />,
             icon: SupportIcon,
-            href: "/whats-new"
+            href: "/whats-new",
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "whats-new"
+              })
+            }
           },
           configs.feature("show_terms") && {
             id: "tos",
             label: <FormattedMessage id="more-menu.tos" defaultMessage="Terms of Service" />,
             icon: TextDocumentIcon,
-            href: configs.link("terms_of_use", "https://github.com/mozilla/hubs/blob/master/TERMS.md")
+            href: configs.link("terms_of_use", "https://github.com/mozilla/hubs/blob/master/TERMS.md"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "tos"
+              })
+            }
           },
           configs.feature("show_privacy") && {
             id: "privacy",
             label: <FormattedMessage id="more-menu.privacy" defaultMessage="Privacy Notice" />,
             icon: ShieldIcon,
-            href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md")
+            href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
+            onClick: () => {
+              pushDataLayer({
+                event: "react-utilization",
+                id: "privacy"
+              })
+            }
           }
         ].filter(item => item)
       }
