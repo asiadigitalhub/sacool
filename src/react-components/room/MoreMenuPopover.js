@@ -15,8 +15,6 @@ const isMobile = AFRAME.utils.device.isMobile();
 
 function MoreMenuItem({ item, closePopover }) {
   const Icon = item.icon;
-  console.log('--------------------------------')
-  console.log(item)
 
   return (
     <li onClick={closePopover}>
