@@ -196,6 +196,7 @@ import MediaDevicesManager from "./utils/media-devices-manager";
 import PinningHelper from "./utils/pinning-helper";
 import { sleep } from "./utils/async-utils";
 import { platformUnsupported } from "./support";
+import { pushDataLayer } from "./utils/gtm"
 
 window.APP = new App();
 window.APP.dialog = new DialogAdapter();
@@ -1324,6 +1325,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     ) {
       return;
     }
+    pushDataLayer({
+      event: "hub_joined"
+    })
     messageDispatch.receive({
       type: "join",
       presence: meta.presence,
@@ -1344,6 +1348,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Issue IOS not autoplay video: cheat trigger play video after enter room
   events.on(`hub:change`, ({ current }) => {
     if (scene.is("entered") && current.presence === 'room') {
+      pushDataLayer({
+        event: "room_entered"
+      })
       const videos = document.querySelectorAll("[media-video]")
       videos.forEach(m => {
         const videoComponent = m.components["media-video"];
@@ -1995,6 +2002,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
         return;
       }
+      pushDataLayer({
+        event: "room_leave"
+      })
       messageDispatch.receive({
         type: "leave",
         name: meta.profile.displayName

@@ -98,6 +98,7 @@ import { SpectatingLabel } from "./room/SpectatingLabel";
 import { SignInMessages } from "./auth/SignInModal";
 
 import { setLocale ,getLocale} from "../utils/i18n";
+import { pushDataLayer } from "../utils/gtm";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -780,7 +781,11 @@ class UIRoot extends Component {
         ...otherState
       };
     }, () => {
-      if (this.state.sidebarId) {
+      console.log(this.state.sidebarId)
+      if (this.state.sidebarId === "chat") {
+        pushDataLayer({
+          event: "open_chat"
+        })
         ZaloSocialSDK && ZaloSocialSDK?.reload()
         FB && FB?.XFBML && FB?.XFBML?.parse()
       }
@@ -842,7 +847,12 @@ class UIRoot extends Component {
           showEnterOnDevice={!this.state.waitingOnAudio && !this.props.entryDisallowed && !isMobileVR}
           onEnterOnDevice={() => this.attemptLink()}
           showSpectate={!this.state.waitingOnAudio}
-          onSpectate={() => this.setState({ watching: true })}
+          onSpectate={() => {
+            this.setState({ watching: true })
+            pushDataLayer({
+              event: "spectator_button"
+            })
+          }}
           showOptions={this.props.hubChannel.canOrWillIfCreator("update_hub")}
           onOptions={() => {
             this.props.performConditionalSignIn(
@@ -1612,6 +1622,10 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
+                        pushDataLayer({
+                          event: "set_locale",
+                          value: "vi"
+                        })
                       }}
                     />
                    
@@ -1621,6 +1635,10 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');
+                        pushDataLayer({
+                          event: "set_locale",
+                          value: "en"
+                        })
                       }}
                     />                    
                     {entered &&

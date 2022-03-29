@@ -16,6 +16,7 @@ import { EmojiPicker } from "./EmojiPicker";
 import styles from "./ChatSidebar.scss";
 import { formatMessageBody } from "../../utils/chat-message";
 import { FormattedMessage, useIntl, defineMessages, FormattedRelativeTime } from "react-intl";
+import { pushDataLayer } from "../../utils/gtm";
 
 export function SpawnMessageButton(props) {
   return (
@@ -363,8 +364,8 @@ function getMessageComponent(message, sent) {
         <MessageBubble key={message.id} media>
           <img src={message.body.src} />
           <div className={styles.socialShareContainer}>
-            <div class="fb-share-button" data-href={message.body.src} data-layout="button" data-size="small"><a target="_blank" href={message.body.src} class="fb-xfbml-parse-ignore">Chia sẻ</a></div>
-            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
+            <div class="facebook-share-button">Chia sẻ</div>
+            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"  data-callback="onZaloShared"></div>
           </div>
         </MessageBubble>
       )
@@ -372,6 +373,16 @@ function getMessageComponent(message, sent) {
       return null;
   }
   
+}
+
+window.onZaloShared = () => {
+  pushDataLayer({
+    event: "social_shared",
+    type: "zalo"
+  })
+}
+window.onClickFB = () => {
+  console.log('facebook')
 }
 
 export function ChatMessageGroup({ sent, sender, timestamp, messages }) {

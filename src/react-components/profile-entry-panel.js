@@ -6,6 +6,7 @@ import { replaceHistoryState } from "../utils/history";
 import { AvatarSettingsSidebar } from "./room/AvatarSettingsSidebar";
 import { AvatarSetupModal } from "./room/AvatarSetupModal";
 import AvatarPreview from "./avatar-preview";
+import { pushDataLayer } from "../utils/gtm";
 
 export default class ProfileEntryPanel extends Component {
   static propTypes = {
@@ -67,6 +68,10 @@ export default class ProfileEntryPanel extends Component {
       }
     });
     this.props.finished();
+    pushDataLayer({
+      event: "accept_avatar",
+      avatarId: this.state.avatarId
+    })
     this.scene.emit("avatar_updated");
   };
 
