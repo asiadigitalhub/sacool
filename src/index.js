@@ -7,7 +7,7 @@ import "./utils/theme";
 import { AuthContextProvider } from "./react-components/auth/AuthContext";
 import "./react-components/styles/global.scss";
 import { ThemeProvider } from "./react-components/styles/theme";
-import { SelectRoom } from "./SelectRoom";
+import { HomePage } from "./react-components/home/HomePage";
 
 registerTelemetry("/home", "Hubs Home Page");
 
@@ -19,7 +19,7 @@ function Root() {
     <WrappedIntlProvider>
       <ThemeProvider store={store}>
         <AuthContextProvider store={store}>
-          <SelectRoom />
+          <HomePage />
         </AuthContextProvider>
       </ThemeProvider>
     </WrappedIntlProvider>
