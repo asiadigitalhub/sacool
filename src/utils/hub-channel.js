@@ -4,6 +4,7 @@ import { Presence } from "phoenix";
 import { migrateChannelToSocket, discordBridgesForPresences, migrateToChannel } from "./phoenix-utils";
 import configs from "./configs";
 import { pushDataLayer } from "./gtm";
+import { logAction } from "./firebase-util";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
@@ -293,7 +294,7 @@ export default class HubChannel extends EventTarget {
   sendMessage = (body, type = "chat") => {
     if (!body) return;
     this.channel.push("message", { body, type });
-    pushDataLayer({
+    logAction({
       event: "send_chat_message",
       type: type
     })

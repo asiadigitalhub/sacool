@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 import styles from "./ImageGridPopover.scss";
 import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 export function ImageGridPopover({ fullscreen, items, closePopover }) {
   return (
@@ -17,7 +18,7 @@ export function ImageGridPopover({ fullscreen, items, closePopover }) {
               if (item.onSelect) {
                 item.onSelect(item);
               }
-              pushDataLayer({
+              logAction({
                 event: "react_utilization",
                 id: item.id
               })

@@ -99,6 +99,7 @@ import { SignInMessages } from "./auth/SignInModal";
 
 import { setLocale ,getLocale} from "../utils/i18n";
 import { pushDataLayer } from "../utils/gtm";
+import { logAction } from "../utils/firebase-util";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -783,7 +784,7 @@ class UIRoot extends Component {
     }, () => {
       console.log(this.state.sidebarId)
       if (this.state.sidebarId === "chat") {
-        pushDataLayer({
+        logAction({
           event: "open_chat"
         })
         ZaloSocialSDK && ZaloSocialSDK?.reload()
@@ -849,7 +850,7 @@ class UIRoot extends Component {
           showSpectate={!this.state.waitingOnAudio}
           onSpectate={() => {
             this.setState({ watching: true })
-            pushDataLayer({
+            logAction({
               event: "spectator_button"
             })
           }}
@@ -1162,7 +1163,7 @@ class UIRoot extends Component {
             icon: AvatarIcon,
             onClick: () => {
               this.setSidebar("profile")
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "more-menu.profile"
               })
@@ -1202,7 +1203,7 @@ class UIRoot extends Component {
             icon: HomeIcon,
             onClick: () => {
               this.setSidebar("room-info")
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "more-menu.room-info"
               })
@@ -1241,7 +1242,7 @@ class UIRoot extends Component {
               icon: CameraIcon,
               onClick: () => {
                 this.toggleStreamerMode()
-                pushDataLayer({
+                logAction({
                   event: "react-utilization",
                   id: "more-menu.enter-streamer-mode"
                 })
@@ -1264,7 +1265,7 @@ class UIRoot extends Component {
             label: <FormattedMessage id="more-menu.close-room" defaultMessage="Close Room" />,
             icon: DeleteIcon,
             onClick: () => {
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "more-menu.close-room"
               })
@@ -1300,7 +1301,7 @@ class UIRoot extends Component {
             icon: WarningCircleIcon,
             href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html"),
             onClick: () => {
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "report-issue"
               })
@@ -1320,7 +1321,7 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: configs.link("docs", "https://hubs.mozilla.com/docs"),
             onClick: () => {
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "help"
               })
@@ -1338,7 +1339,7 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: "/whats-new",
             onClick: () => {
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "whats-new"
               })
@@ -1356,7 +1357,7 @@ class UIRoot extends Component {
             icon: ShieldIcon,
             href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
             onClick: () => {
-              pushDataLayer({
+              logAction({
                 event: "react-utilization",
                 id: "privacy"
               })
@@ -1675,7 +1676,7 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
-                        pushDataLayer({
+                        logAction({
                           event: "set_locale",
                           value: "vi"
                         })
@@ -1688,7 +1689,7 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');
-                        pushDataLayer({
+                        logAction({
                           event: "set_locale",
                           value: "en"
                         })

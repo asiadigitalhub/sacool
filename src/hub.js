@@ -197,7 +197,7 @@ import PinningHelper from "./utils/pinning-helper";
 import { sleep } from "./utils/async-utils";
 import { platformUnsupported } from "./support";
 import { pushDataLayer } from "./utils/gtm"
-import { logAction } from "./utils/firebase-util"
+import { logAction, logActionClick } from "./utils/firebase-util"
 
 window.APP = new App();
 window.APP.dialog = new DialogAdapter();
@@ -1329,6 +1329,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     logAction({
       event: "hub_joined"
     })
+    logActionClick('test_action')
     messageDispatch.receive({
       type: "join",
       presence: meta.presence,
@@ -1349,7 +1350,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Issue IOS not autoplay video: cheat trigger play video after enter room
   events.on(`hub:change`, ({ current }) => {
     if (scene.is("entered") && current.presence === 'room') {
-      LogEvent({
+      logAction({
         event: "room_entered"
       })
       const videos = document.querySelectorAll("[media-video]")

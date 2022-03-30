@@ -17,6 +17,7 @@ import styles from "./ChatSidebar.scss";
 import { formatMessageBody } from "../../utils/chat-message";
 import { FormattedMessage, useIntl, defineMessages, FormattedRelativeTime } from "react-intl";
 import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 export function SpawnMessageButton(props) {
   return (
@@ -376,7 +377,7 @@ function getMessageComponent(message, sent) {
 }
 
 window.onZaloShared = () => {
-  pushDataLayer({
+  logAction({
     event: "social_shared",
     type: "zalo"
   })
@@ -388,7 +389,7 @@ const fbShare = (url) => {
     href: url,
   }, function(response){
     if (response && !response.error_message) {
-      pushDataLayer({
+      logAction({
         event: "social_shared",
         type: "facebook"
       })

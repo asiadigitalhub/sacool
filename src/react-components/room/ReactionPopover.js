@@ -6,6 +6,7 @@ import { ToolbarButton } from "../input/ToolbarButton";
 import { ReactComponent as ReactionIcon } from "../icons/Reaction.svg";
 import { defineMessage, useIntl } from "react-intl";
 import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 const reactionPopoverTitle = defineMessage({
   id: "reaction-popover.title",
@@ -30,7 +31,7 @@ export function ReactionPopoverButton({ items }) {
           selected={popoverVisible}
           onClick={() => {
             togglePopover()
-            !popoverVisible && pushDataLayer({ event: "react_open_menu" })
+            !popoverVisible && logAction({ event: "react_open_menu" })
           }}
           label={title}
           preset="accent2"

@@ -7,6 +7,7 @@ import { AvatarSettingsSidebar } from "./room/AvatarSettingsSidebar";
 import { AvatarSetupModal } from "./room/AvatarSetupModal";
 import AvatarPreview from "./avatar-preview";
 import { pushDataLayer } from "../utils/gtm";
+import { logAction } from "../utils/firebase-util";
 
 export default class ProfileEntryPanel extends Component {
   static propTypes = {
@@ -68,7 +69,7 @@ export default class ProfileEntryPanel extends Component {
       }
     });
     this.props.finished();
-    pushDataLayer({
+    logAction({
       event: "accept_avatar",
       avatarId: this.state.avatarId
     })
