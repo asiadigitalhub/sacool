@@ -15,6 +15,12 @@
     "metabar.connection-error-title": "Lỗi kết nối",
     "metabar.connection-error-message": "Lỗi kết nối! Xin vui lòng mở lại trang!",
     "metabar.refresh": "Mở lại trang",
+
+    "select-room.choose-party": "Xin hãy chọn phòng tiệc của bạn",
+    "select-room.join-party": "VÀO PHÒNG TIỆC",
+    "select-room.full": "đầy",
+    "select-room.loading": "Đang tải dữ liệu...",
+
     "audio-debug-panel.audio-debug-avatar-title": "Avatar",
     "audio-debug-panel.audio-debug-global-title": "Globals",
     "audio-debug-panel.audio-debug-media-title": "Media",
@@ -556,7 +562,7 @@
     "scene-url-modal.new-spoke-project-button": "Launch {editorName}",
     "scene-url-modal.title": "Custom Scene URL",
     "scene-url-modal.url-input": "Scene URL",
-    "select-input-field.placeholder": "Select...",
+    "select-input-field.placeholder": "Chọn...",
     "share-popover.source.avatar-camera": "Avatar Camera",
     "share-popover.source.camera": "Camera",
     "share-popover.source.screen": "Screen",
