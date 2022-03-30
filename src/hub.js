@@ -197,7 +197,7 @@ import PinningHelper from "./utils/pinning-helper";
 import { sleep } from "./utils/async-utils";
 import { platformUnsupported } from "./support";
 import { pushDataLayer } from "./utils/gtm"
-import { LogEvent } from "./utils/firebase-util"
+import { logAction } from "./utils/firebase-util"
 
 window.APP = new App();
 window.APP.dialog = new DialogAdapter();
@@ -1326,7 +1326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     ) {
       return;
     }
-    LogEvent({
+    logAction({
       event: "hub_joined"
     })
     messageDispatch.receive({
@@ -2003,7 +2003,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
         return;
       }
-      LogEvent({
+      logAction({
         event: "room_leave"
       })
       messageDispatch.receive({
