@@ -177,7 +177,7 @@ export class SelectRoom extends Component {
                 
             </Center>                                  
           </div>
-          {this.state.showFullRoomModal && <FullRoomModal onClose={() => this.onCloseFullRoomModal()} onAccept={() => this.onContinueFullRoomModal()} ></FullRoomModal> }
+          {this.state.showFullRoomModal && <FullRoomModal onClose={() => this.onCloseFullRoomModal()} onAccept={() => this.onContinueFullRoomModal()} isShowBackButton={true} ></FullRoomModal> }
           {this.state.showNoRoomModal && <NoRoomModal onClose={() => this.onCloseNoRoomModal()} onAccept={() => this.onContinueFirebaseErrorModal()} ></NoRoomModal> }
           {this.state.showRefreshModal && <FirebaseErrorModal onClose={() => this.onCloseFirebaseErrorModal()} onAccept={() => this.onContinueFirebaseErrorModal()} ></FirebaseErrorModal> }
         </div>        
