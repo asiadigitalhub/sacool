@@ -55,6 +55,7 @@ import { ChatSidebarContainer, ChatContextProvider, ChatToolbarButtonContainer }
 import { ContentMenu, PeopleMenuButton, ObjectsMenuButton } from "./room/ContentMenu";
 import { ReactComponent as CameraIcon } from "./icons/Camera.svg";
 import { ReactComponent as AvatarIcon } from "./icons/Avatar.svg";
+import { ReactComponent as ShareIcon } from "./icons/Share.svg";
 import { ReactComponent as AddIcon } from "./icons/Add.svg";
 import { ReactComponent as DeleteIcon } from "./icons/Delete.svg";
 import { ReactComponent as FavoritesIcon } from "./icons/Favorites.svg";
@@ -1656,6 +1657,14 @@ class UIRoot extends Component {
                       </>
                     )}
                     <ChatToolbarButtonContainer onClick={() => this.toggleSidebar("chat")} />
+                    <ToolbarButton
+                      icon={<ShareIcon />}
+                      preset="accent5"
+                      label={
+                        <FormattedMessage id="share-social-toolbar-button" defaultMessage="Share" />
+                      }
+                      onClick={() => this.props.scene.emit("action_toggle_camera")}
+                    />
                     {entered &&
                       isMobileVR && (
                         <ToolbarButton
