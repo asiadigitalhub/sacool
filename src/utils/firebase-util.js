@@ -104,6 +104,10 @@ export function getVideoControlRef() {
   return ref(firebaseDatabase,"/videos_control");
 }
 
+export function logAction(data) {
+  logEvent(analytics, "action", data);
+}
+
 
 export function logActionClick(actionName) {
   logEvent(analytics, "action", {

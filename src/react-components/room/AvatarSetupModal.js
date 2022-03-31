@@ -6,6 +6,8 @@ import { AvatarSettingsContent } from "./AvatarSettingsContent";
 import { FormattedMessage } from "react-intl";
 
 export function AvatarSetupModal({ className, onBack, ...rest }) {
+  console.log('props')
+  console.log(rest)
   return (
     <Modal
       title={<FormattedMessage id="avatar-setup-sidebar.title" defaultMessage="Avatar Setup" />}

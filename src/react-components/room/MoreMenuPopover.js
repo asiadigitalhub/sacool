@@ -7,7 +7,8 @@ import { ToolbarButton } from "../input/ToolbarButton";
 import { ReactComponent as MoreIcon } from "../icons/More.svg";
 import { useIntl, defineMessage } from "react-intl";
 import { ToolbarButtonLanguage } from "../input/ToolbarButtonLanguage";
-
+import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 import { setLocale ,getLocale} from "../../utils/i18n";
 
@@ -29,7 +30,12 @@ function MoreMenuItem({ item, closePopover }) {
           <span>{item.label}</span>
         </a>
       ) : (
-        <button className={styles.moreMenuItemTarget} onClick={event => item.onClick(item, event)}>
+        <button className={styles.moreMenuItemTarget} onClick={event => {
+          item.onClick(item, event)
+          logAction({
+            event: "react-open-menu"
+          })
+        }}>
           <Icon />
           <span>{item.label}</span>
         </button>

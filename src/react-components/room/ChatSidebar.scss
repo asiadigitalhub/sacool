@@ -152,3 +152,27 @@
     margin-left: 5px;
   }
 }
+.facebook-share-button {
+  border-radius: 3px;
+  font-size: 11px;
+  height: 20px;
+  padding: 0 6px 0 0;
+  background: #1877f2;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  font-family: Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  position: relative;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  zoom: 1;
+
+  svg {
+    // margin-right: 6px;
+  }
+}

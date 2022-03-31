@@ -33,8 +33,18 @@
             })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
         }
     </script>
-    <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v13.0&autoLogAppEvents=1" nonce="Ju3o55bQ"></script>
     <script src="https://sp.zalo.me/plugins/sdk.js"></script>
+    <script>
+        window.fbAsyncInit = function() {
+          FB.init({
+            appId            : '336000031897269',
+            autoLogAppEvents : true,
+            xfbml            : true,
+            version          : 'v13.0'
+          });
+        };
+      </script>
+      <script async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
     <style>
         /* Ease the transition to the load screen by displaying a default overlay */
         #preload-overlay {

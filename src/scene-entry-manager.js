@@ -22,6 +22,8 @@ import { ObjectContentOrigins } from "./object-types";
 import { getAvatarSrc, getAvatarType } from "./utils/avatar-utils";
 import { SOUND_ENTER_SCENE } from "./systems/sound-effects-system";
 // import { descreaseUserNumberInRoom, FirebaseDatabaseKeys} from "./utils/firebase-util";
+import { pushDataLayer } from "./utils/gtm"
+import { logAction } from "./utils/firebase-util"
 
 const isIOS = detectIOS();
 
@@ -476,8 +478,18 @@ export default class SceneEntryManager {
       }
     });
 
-    this.scene.addEventListener("photo_taken", e => this.hubChannel.sendMessage({ src: e.detail }, "photo"));
-    this.scene.addEventListener("video_taken", e => this.hubChannel.sendMessage({ src: e.detail }, "video"));
+    this.scene.addEventListener("photo_taken", e => {
+      this.hubChannel.sendMessage({ src: e.detail }, "photo")
+      logAction({
+        event: "photo_taken"
+      })
+    });
+    this.scene.addEventListener("video_taken", e => {
+      this.hubChannel.sendMessage({ src: e.detail }, "video")
+      logAction({
+        event: "video_taken"
+      })
+    });
   };
 
   _spawnAvatar = () => {

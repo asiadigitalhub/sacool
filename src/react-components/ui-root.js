@@ -98,6 +98,8 @@ import { SpectatingLabel } from "./room/SpectatingLabel";
 import { SignInMessages } from "./auth/SignInModal";
 
 import { setLocale ,getLocale} from "../utils/i18n";
+import { pushDataLayer } from "../utils/gtm";
+import { logAction } from "../utils/firebase-util";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -780,7 +782,11 @@ class UIRoot extends Component {
         ...otherState
       };
     }, () => {
-      if (this.state.sidebarId) {
+      console.log(this.state.sidebarId)
+      if (this.state.sidebarId === "chat") {
+        logAction({
+          event: "open_chat"
+        })
         ZaloSocialSDK && ZaloSocialSDK?.reload()
         FB && FB?.XFBML && FB?.XFBML?.parse()
       }
@@ -842,7 +848,12 @@ class UIRoot extends Component {
           showEnterOnDevice={!this.state.waitingOnAudio && !this.props.entryDisallowed && !isMobileVR}
           onEnterOnDevice={() => this.attemptLink()}
           showSpectate={!this.state.waitingOnAudio}
-          onSpectate={() => this.setState({ watching: true })}
+          onSpectate={() => {
+            this.setState({ watching: true })
+            logAction({
+              event: "spectator_button"
+            })
+          }}
           showOptions={this.props.hubChannel.canOrWillIfCreator("update_hub")}
           onOptions={() => {
             this.props.performConditionalSignIn(
@@ -1150,7 +1161,13 @@ class UIRoot extends Component {
             id: "user-profile",
             label: <FormattedMessage id="more-menu.profile" defaultMessage="Change Name & Avatar" />,
             icon: AvatarIcon,
-            onClick: () => this.setSidebar("profile")
+            onClick: () => {
+              this.setSidebar("profile")
+              logAction({
+                event: "react-utilization",
+                id: "more-menu.profile"
+              })
+            }
           },
           // {
           //   id: "favorite-rooms",
@@ -1170,7 +1187,9 @@ class UIRoot extends Component {
             id: "preferences",
             label: <FormattedMessage id="more-menu.preferences" defaultMessage="Preferences" />,
             icon: SettingsIcon,
-            onClick: () => this.setState({ showPrefs: true })
+            onClick: () => {
+              this.setState({ showPrefs: true })
+            }
           }
         ].filter(item => item)
       },
@@ -1182,14 +1201,22 @@ class UIRoot extends Component {
             id: "room-info",
             label: <FormattedMessage id="more-menu.room-info" defaultMessage="Room Info and Settings" />,
             icon: HomeIcon,
-            onClick: () => this.setSidebar("room-info")
+            onClick: () => {
+              this.setSidebar("room-info")
+              logAction({
+                event: "react-utilization",
+                id: "more-menu.room-info"
+              })
+            }
           },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
             (this.props.hub.entry_mode !== "invite" || this.props.hubChannel.can("update_hub")) && {
               id: "invite",
               label: <FormattedMessage id="more-menu.invite" defaultMessage="Invite" />,
               icon: InviteIcon,
-              onClick: () => this.props.scene.emit("action_invite")
+              onClick: () => {
+                this.props.scene.emit("action_invite")
+              }
             },
           // this.isFavorited()
           //   ? {
@@ -1213,7 +1240,13 @@ class UIRoot extends Component {
                 <FormattedMessage id="more-menu.enter-streamer-mode" defaultMessage="Enter Streamer Mode" />
               ),
               icon: CameraIcon,
-              onClick: () => this.toggleStreamerMode()
+              onClick: () => {
+                this.toggleStreamerMode()
+                logAction({
+                  event: "react-utilization",
+                  id: "more-menu.enter-streamer-mode"
+                })
+              }
             },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
             entered && {
@@ -1231,7 +1264,11 @@ class UIRoot extends Component {
             id: "close-room",
             label: <FormattedMessage id="more-menu.close-room" defaultMessage="Close Room" />,
             icon: DeleteIcon,
-            onClick: () =>
+            onClick: () => {
+              logAction({
+                event: "react-utilization",
+                id: "more-menu.close-room"
+              })
               this.props.performConditionalSignIn(
                 () => this.props.hubChannel.can("update_hub"),
                 () => {
@@ -1244,6 +1281,7 @@ class UIRoot extends Component {
                 },
                 SignInMessages.closeRoom
               )
+            }
           }
         ].filter(item => item)
       },
@@ -1255,49 +1293,75 @@ class UIRoot extends Component {
             id: "community",
             label: <FormattedMessage id="more-menu.community" defaultMessage="Community" />,
             icon: DiscordIcon,
-            href: configs.link("community", "https://discord.gg/dFJncWwHun")
+            href: configs.link("community", "https://discord.gg/dFJncWwHun"),
           },
           configs.feature("show_issue_report_link") && {
             id: "report-issue",
             label: <FormattedMessage id="more-menu.report-issue" defaultMessage="Report Issue" />,
             icon: WarningCircleIcon,
-            href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html")
+            href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html"),
+            onClick: () => {
+              logAction({
+                event: "react-utilization",
+                id: "report-issue"
+              })
+            }
           },
           entered && {
             id: "start-tour",
             label: <FormattedMessage id="more-menu.start-tour" defaultMessage="Start Tour" />,
             icon: SupportIcon,
-            onClick: () => this.props.scene.systems.tips.resetTips()
+            onClick: () => {
+              this.props.scene.systems.tips.resetTips()
+            }
           },
           configs.feature("show_docs_link") && {
             id: "help",
             label: <FormattedMessage id="more-menu.help" defaultMessage="Help" />,
             icon: SupportIcon,
-            href: configs.link("docs", "https://hubs.mozilla.com/docs")
+            href: configs.link("docs", "https://hubs.mozilla.com/docs"),
+            onClick: () => {
+              logAction({
+                event: "react-utilization",
+                id: "help"
+              })
+            }
           },
           configs.feature("show_controls_link") && {
             id: "controls",
             label: <FormattedMessage id="more-menu.controls" defaultMessage="Controls" />,
             icon: SupportIcon,
-            href: configs.link("controls", "https://hubs.mozilla.com/docs/hubs-controls.html")
+            href: configs.link("controls", "https://hubs.mozilla.com/docs/hubs-controls.html"),
           },
           configs.feature("show_whats_new_link") && {
             id: "whats-new",
             label: <FormattedMessage id="more-menu.whats-new" defaultMessage="What's New" />,
             icon: SupportIcon,
-            href: "/whats-new"
+            href: "/whats-new",
+            onClick: () => {
+              logAction({
+                event: "react-utilization",
+                id: "whats-new"
+              })
+            }
           },
           configs.feature("show_terms") && {
             id: "tos",
             label: <FormattedMessage id="more-menu.tos" defaultMessage="Terms of Service" />,
             icon: TextDocumentIcon,
-            href: configs.link("terms_of_use", "https://github.com/mozilla/hubs/blob/master/TERMS.md")
+            href: configs.link("terms_of_use", "https://github.com/mozilla/hubs/blob/master/TERMS.md"),
           },
           configs.feature("show_privacy") && {
             id: "privacy",
             label: <FormattedMessage id="more-menu.privacy" defaultMessage="Privacy Notice" />,
             icon: ShieldIcon,
-            href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md")
+            href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
+            onClick: () => {
+              logAction({
+                event: "react-utilization",
+                id: "privacy"
+              })
+            }
           }
         ].filter(item => item)
       }
@@ -1612,6 +1676,10 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
+                        logAction({
+                          event: "set_locale",
+                          value: "vi"
+                        })
                       }}
                     />
                    
@@ -1621,6 +1689,10 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');
+                        logAction({
+                          event: "set_locale",
+                          value: "en"
+                        })
                       }}
                     />                    
                     {entered &&

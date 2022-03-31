@@ -2,6 +2,8 @@ import { isLocalHubsUrl, isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUr
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 import { changeHub } from "../change-hub";
+import { pushDataLayer } from "../utils/gtm"
+import { logAction } from "../utils/firebase-util"
 
 AFRAME.registerComponent("open-media-button", {
   schema: {
@@ -42,8 +44,15 @@ AFRAME.registerComponent("open-media-button", {
 
     this.onClick = async () => {
       const mayChangeScene = this.el.sceneEl.systems.permissions.canOrWillIfCreator("update_hub");
-
       const exitImmersive = async () => await handleExitTo2DInterstitial(false, () => {}, true);
+
+      const name = this.targetEl?.object3D?.name
+      const src = this.src
+      logAction({
+        event: "open_link",
+        name: name,
+        src: src
+      })
 
       let hubId;
       if (this.data.onlyOpenLink) {
