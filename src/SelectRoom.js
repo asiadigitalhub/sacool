@@ -164,11 +164,11 @@ export class SelectRoom extends Component {
                     </button> 
                     <div style={flagStyle}>
                         <Row >
-                            <button style={{backgroundColor:"transparent", marginRight: "10px"}} onClick = {()=> setLocale('vi')} >                
+                            <button style={{backgroundColor:"transparent", marginRight: "10px", border: "none"}} onClick = {()=> setLocale('vi')} >                
                                 <img src={vnFlag} style={{height: '20px', width : '30px'}} />                                                                    
                             </button>
 
-                            <button style={{backgroundColor:"transparent"}} onClick = {()=> setLocale('en')}>                
+                            <button style={{backgroundColor:"transparent", border: "none"}} onClick = {()=> setLocale('en')}>                
                                 <img src={usFlag} style={{height: '20px', width : '30px'}} />                                                  
                             </button>
                         </Row>                 

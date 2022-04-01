@@ -46,10 +46,13 @@ export function SelectInputFieldRoom({
         var circleColor = (roomInfo.userNumber <= LimitUserNumberInRoom * 3 / 4) ? "rgb(93, 184, 95)" : (roomInfo.userNumber < LimitUserNumberInRoom ? "rgb(236, 132, 84)" : "rgb(232, 54, 41)");
         var circleDiv = <div style={{width: "16px", height: "16px", backgroundColor: circleColor, borderRadius: "8px"}}></div>;
         
-        var checkIconDiv = <img style={{ width:"18px", height:"18px"}} src={checkIcon}></img>;
         var isShowCheckIcon = (noShowCheck != true && selectedItem == roomInfo);
+        
+        var checkIconDiv = isShowCheckIcon ? <img style={{ width:"18px", height:"18px"}} src={checkIcon}></img> : 
+                <img style={{ width:"18px", height:"18px", visibility: "hidden"} } ></img>;
+
         var roomNameDiv = <div>{roomInfo.roomName}</div>;
-        var paddingRight = noShowCheck ? "30px" : "14px";
+        var paddingRight = "14px";
 
         if (roomInfo.userNumber < LimitUserNumberInRoom) {
             fullRoomStatus = " (" + roomInfo.userNumber.toString() + "/" + LimitUserNumberInRoom.toString();
@@ -70,8 +73,8 @@ export function SelectInputFieldRoom({
                 </div>
             return <div className={styles.itemRow} style={{paddingRight: paddingRight}}>{circleDiv}
             <div className={styles.roomTitleStatus} >                
-                {roomInfoDiv}
-                {isShowCheckIcon && checkIconDiv}
+                { roomInfoDiv }
+                { checkIconDiv }
             </div>
             </div>
         } else {            
@@ -81,10 +84,10 @@ export function SelectInputFieldRoom({
                     &nbsp;(<FormattedMessage id="select-room.full" defaultMessage="full" />)
                 </div>
             </div>;            
-            return <div className={styles.itemRow} style={{ paddingRight: "30px"}}>{circleDiv}
+            return <div className={styles.itemRow} style={{ paddingRight: paddingRight}}>{circleDiv}
                     <div className={styles.roomTitleStatus} >                
-                        {roomInfoDiv}
-                        {isShowCheckIcon && checkIconDiv}
+                        { roomInfoDiv }
+                        { checkIconDiv }
                     </div>
             </div>
         }        
