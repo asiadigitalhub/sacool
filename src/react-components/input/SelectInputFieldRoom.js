@@ -78,7 +78,7 @@ export function SelectInputFieldRoom({
             var roomInfoDiv = <div className={styles.roomInfo}>
                 {roomNameDiv} 
                 <div className={styles.fullRoomStatus} >
-                    (<FormattedMessage id="select-room.full" defaultMessage="full" />)
+                    &nbsp;(<FormattedMessage id="select-room.full" defaultMessage="full" />)
                 </div>
             </div>;            
             return <div className={styles.itemRow} style={{ paddingRight: "30px"}}>{circleDiv}

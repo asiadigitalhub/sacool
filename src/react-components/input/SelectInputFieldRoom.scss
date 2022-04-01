@@ -98,6 +98,11 @@ ul li:first-child {
     display: flex;
     flex-direction: row;
     width: 100%;
+    ::first-letter
+    {
+      text-transform:capitalize;
+    }
+  
 }
 
 :local(.full-room-status) {
