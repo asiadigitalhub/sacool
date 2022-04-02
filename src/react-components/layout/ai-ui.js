@@ -61,6 +61,7 @@ export const AIUI = () => {
         setButtonText(counter + 's');
         await window.AI.startAsk();
         console.log('done API');
+        setCounter(4);
         setButtonText(text);
     }
     return (
