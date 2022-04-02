@@ -15,7 +15,7 @@ exports.helloWorld = functions.https.onRequest(async (request, response) => {
     // const filename = './sample.mp3';
     const encoding = 'MP3';
     // const sampleRateHertz = 16000;
-    const languageCode = 'vi-VN';
+    const languageCode = request.query.languageCode || 'vi-VN';
 
     const config = {
         encoding: encoding,

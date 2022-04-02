@@ -36,6 +36,7 @@ export const start = () => {
     let audio = pool.audio;
     if (!audio) {
         audio = document.createElement('audio');
+        audio.style.display = 'none';
         document.body.appendChild(audio);
         pool.audio = audio;
     }
@@ -125,14 +126,14 @@ export const ask = async () => {
     }
 }
 
-export const textToSpeech = text => {
+export const textToSpeech = (text, languageCode) => {
     const url = 'https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=AIzaSyDdLLiYv-72_ZLHcp7Pk5xZGiGgJDrkhdU'
     const data = {
         'input': {
             'text': text
         },
         'voice': {
-            'languageCode': 'vi-VN',
+            'languageCode': languageCode || 'vi-VN',
             'ssmlGender': 'FEMALE'
         },
         'audioConfig': {
