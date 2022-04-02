@@ -1,0 +1,18 @@
+:local(.button) {
+    position: fixed;
+    right: 10px;
+    bottom: 140px;
+    color: #ffffff;
+    background: var(--accent4-color);
+    border: 1px solid var(--accent4-border-color);
+    border-radius: 8px;
+    padding: 12px 24px;
+    z-index: 99;
+    pointer-events: all;
+}
+
+:local(.disabled) {
+    background: var(--text3-color);
+    border-color: var(--text2-color);
+    pointer-events: none;
+}

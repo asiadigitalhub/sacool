@@ -42,40 +42,42 @@ export const start = () => {
     }
     console.log('request mic permiss');
     let audioChunks = [];
-    navigator.mediaDevices.getUserMedia({
-            audio: true
-        })
-        .then(stream => {
-            console.log('prepare recording');
-            let rec = new MediaRecorder(stream);
-            rec.addEventListener('dataavailable', e => {
-                console.log('rec.ondataavailable');
-                audioChunks.push(e.data);
-                if (rec.state == "inactive") {
-                    let blob = new Blob(audioChunks, {
-                        type: 'audio/mp3'
-                    });
-                    pool.blob = blob;
-                    audio.src = URL.createObjectURL(blob);
-                    audio.controls = true;
-                    audio.autoplay = true;
-                    audio.volume = 0;
-                }
-            });
-            pool.rec = rec;
-            rec.addEventListener('start', e => {
-                console.log('rec.onstart');
-                console.log(e);
+    return new Promise(resolve => {
+        navigator.mediaDevices.getUserMedia({
+                audio: true
             })
-            console.log('start');
-            rec.start();
-            setTimeout(() => {
-                stop();
+            .then(stream => {
+                console.log('prepare recording');
+                let rec = new MediaRecorder(stream);
+                rec.addEventListener('dataavailable', e => {
+                    console.log('rec.ondataavailable');
+                    audioChunks.push(e.data);
+                    if (rec.state == "inactive") {
+                        let blob = new Blob(audioChunks, {
+                            type: 'audio/mp3'
+                        });
+                        pool.blob = blob;
+                        audio.src = URL.createObjectURL(blob);
+                        audio.controls = true;
+                        audio.autoplay = true;
+                        audio.volume = 0;
+                    }
+                });
+                pool.rec = rec;
+                rec.addEventListener('start', e => {
+                    console.log('rec.onstart');
+                    console.log(e);
+                })
+                console.log('start');
+                rec.start();
                 setTimeout(() => {
-                    ask();
-                }, 100);
-            }, 4500);
-        })
+                    stop();
+                    setTimeout(() => {
+                        ask().then(res => resolve(res));
+                    }, 100);
+                }, 4500);
+            });
+    });
 }
 
 export const stop = () => {
@@ -117,17 +119,20 @@ export const ask = async () => {
         console.log(result);
         const url = `gs://${firebaseConfig.storageBucket}/${path}`;
         // call cloud func api to ask bot
-        Axios({
-            url: `https://us-central1-forward-camera-345608.cloudfunctions.net/helloWorld?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
-            method: 'GET'
-        }).then(res => {
-            clearTimeout(timeoutID);
-            console.log(res.data);
-            // return bot response
-            if (res.data.answer) {
-                textToSpeech(res.data.answer, languageCode);
-            }
-        });
+        return new Promise(resolve => {
+            Axios({
+                url: `https://us-central1-forward-camera-345608.cloudfunctions.net/helloWorld?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
+                method: 'GET'
+            }).then(res => {
+                clearTimeout(timeoutID);
+                console.log(res.data);
+                resolve(res.data);
+                // return bot response
+                if (res.data.answer) {
+                    textToSpeech(res.data.answer, languageCode);
+                }
+            });
+        })
     }
 }
 
