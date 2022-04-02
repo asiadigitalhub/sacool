@@ -13,19 +13,20 @@ const sessionClient = new dialogflow.SessionsClient({
 
 exports.helloWorld = functions.https.onRequest(async (request, response) => {
     //
-    const filename = './sample.mp3';
+    // const filename = './sample.mp3';
     const encoding = 'MP3';
-    const sampleRateHertz = 16000;
+    // const sampleRateHertz = 16000;
     const languageCode = 'vi-VN';
 
     const config = {
         encoding: encoding,
-        sampleRateHertz: sampleRateHertz,
+        // sampleRateHertz: sampleRateHertz,
         languageCode: languageCode,
     };
 
     const audio = {
-        content: fs.readFileSync(filename).toString('base64'),
+        // content: fs.readFileSync(filename).toString('base64'),
+        uri: decodeURIComponent(request.query.audio)
     };
 
     const rq = {
@@ -57,14 +58,17 @@ exports.helloWorld = functions.https.onRequest(async (request, response) => {
         const responses = await sessionClient.detectIntent(request);
         if (responses) {
             const text = responses[0].queryResult.fulfillmentText;
-            console.log('[responses]');
-            console.log(responses);
-            console.log(responses[0].outputAudio);
-            response.send(responses[0]);
+            console.log(text);
+            response.send(JSON.stringify({
+                ask: transcription,
+                answer: text
+            }));
         }
-        response.end();
         return;
     }
     //
-    response.send(`Transcription: ${transcription}\n`);
+    response.send(JSON.stringify({
+        ask: transcription,
+        answer: null
+    }));
 });
