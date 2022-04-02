@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 const speech = require('@google-cloud/speech');
 const dialogflow = require('@google-cloud/dialogflow');
-const fs = require('fs');
+// const fs = require('fs');
 
 const client = new speech.SpeechClient({
     keyFilename: "./speech-key.json"
@@ -12,7 +12,6 @@ const sessionClient = new dialogflow.SessionsClient({
 });
 
 exports.helloWorld = functions.https.onRequest(async (request, response) => {
-    //
     // const filename = './sample.mp3';
     const encoding = 'MP3';
     // const sampleRateHertz = 16000;
@@ -59,16 +58,15 @@ exports.helloWorld = functions.https.onRequest(async (request, response) => {
         if (responses) {
             const text = responses[0].queryResult.fulfillmentText;
             console.log(text);
-            response.send(JSON.stringify({
+            return response.send({
                 ask: transcription,
                 answer: text
-            }));
+            });
         }
-        return;
     }
     //
-    response.send(JSON.stringify({
+    return response.send({
         ask: transcription,
         answer: null
-    }));
+    });
 });

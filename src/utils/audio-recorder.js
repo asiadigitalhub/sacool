@@ -6,11 +6,11 @@ import {
     signInAnonymously
 } from "firebase/auth";
 import {
-    getDownloadURL,
     getStorage,
     ref,
     uploadString
 } from "firebase/storage";
+import Axios from "axios";
 
 const pool = {
     audio: null,
@@ -58,6 +58,7 @@ export const start = () => {
                     audio.src = URL.createObjectURL(blob);
                     audio.controls = true;
                     audio.autoplay = true;
+                    audio.volume = 0;
                 }
             });
             pool.rec = rec;
@@ -94,12 +95,15 @@ export const blobToBase64 = async blob => {
 }
 
 export const ask = async () => {
+    // bot first response
+    let timeoutID = setTimeout(() => {
+        textToSpeech('Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.');
+    }, 5000);
     // upload mp3 file to server
     if (!auth.currentUser) {
         await signInAnonymously(auth);
     }
     const base64 = await blobToBase64(pool.blob);
-    pool.audio.src = base64;
     const path = `${auth.currentUser.uid}-${new Date() - 0}.mp3`;
     const storageRef = ref(storage, path);
     const result = await uploadString(storageRef, base64, 'data_url');
@@ -107,15 +111,17 @@ export const ask = async () => {
         console.log(result);
         const url = `gs://${firebaseConfig.storageBucket}/${path}`;
         // call cloud func api to ask bot
-        fetch(`https://us-central1-forward-camera-345608.cloudfunctions.net/helloWorld?audio=${encodeURIComponent(url)}`, {
-                method: 'GET',
-                redirect: 'follow',
-                mode: 'no-cors',
-            }).then(res => res.json())
-            .then(res => {
-                console.log(res);
-            });
-        // return bot response
+        Axios({
+            url: `http://localhost:5001/forward-camera-345608/us-central1/helloWorld?audio=${encodeURIComponent(url)}`,
+            method: 'GET'
+        }).then(res => {
+            clearTimeout(timeoutID);
+            console.log(res.data);
+            // return bot response
+            if (res.data.answer) {
+                textToSpeech(res.data.answer);
+            }
+        });
     }
 }
 
@@ -145,7 +151,6 @@ export const textToSpeech = text => {
             return data.json();
         })
         .then(res => {
-            console.log(res.audioContent);
             const audio = document.createElement('audio');
             audio.src = `data:audio/mpeg;base64,${res.audioContent}`;
             audio.play();
