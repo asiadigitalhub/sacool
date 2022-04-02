@@ -97,8 +97,13 @@ export const blobToBase64 = async blob => {
 
 export const ask = async () => {
     // bot first response
+    const languageCode = APP.store.state.preferences.locale;
+    const preText = {
+        vi: 'Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.',
+        en: 'Let me thing...'
+    }
     let timeoutID = setTimeout(() => {
-        textToSpeech('Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.');
+        textToSpeech(preText[languageCode], languageCode);
     }, 5000);
     // upload mp3 file to server
     if (!auth.currentUser) {
@@ -113,14 +118,14 @@ export const ask = async () => {
         const url = `gs://${firebaseConfig.storageBucket}/${path}`;
         // call cloud func api to ask bot
         Axios({
-            url: `http://localhost:5001/forward-camera-345608/us-central1/helloWorld?audio=${encodeURIComponent(url)}`,
+            url: `https://us-central1-forward-camera-345608.cloudfunctions.net/helloWorld?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
             method: 'GET'
         }).then(res => {
             clearTimeout(timeoutID);
             console.log(res.data);
             // return bot response
             if (res.data.answer) {
-                textToSpeech(res.data.answer);
+                textToSpeech(res.data.answer, languageCode);
             }
         });
     }
