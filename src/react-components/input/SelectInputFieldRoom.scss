@@ -20,7 +20,7 @@ $input-height: 70px;
   background-repeat: no-repeat;
   width: 300px;  
   
-  padding: 0 16px 0 0;
+  padding: 0px;
 
   span {
     overflow: hidden;    
@@ -98,6 +98,11 @@ ul li:first-child {
     display: flex;
     flex-direction: row;
     width: 100%;
+    ::first-letter
+    {
+      text-transform:capitalize;
+    }
+  
 }
 
 :local(.full-room-status) {
@@ -105,6 +110,7 @@ ul li:first-child {
     align-items: center;
     justify-content: center;
     min-width: fit-content;
+    padding-right: 5px;
 }
 
 :local(.item-row) {
