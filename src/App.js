@@ -1,5 +1,6 @@
 import Store from "./storage/store";
 import MediaSearchStore from "./storage/media-search-store";
+import "./utils/audio-recorder";
 
 export class App {
   constructor() {
