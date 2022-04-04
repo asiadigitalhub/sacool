@@ -17,17 +17,6 @@ var retrySigninFirebaseCount = 0;
 const MaxRetryCallFirebaseCount = 8;
 var retryCallFirebaseCount = 0;
 
-<<<<<<< Updated upstream
-export const firebaseConfig = {
-  apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
-  authDomain: "fir-virtual-meeting.firebaseapp.com",
-  databaseURL: "https://fir-virtual-meeting-default-rtdb.firebaseio.com",
-  projectId: "fir-virtual-meeting",
-  storageBucket: "fir-virtual-meeting.appspot.com",
-  messagingSenderId: "737531674288",
-  appId: "1:737531674288:web:92e0dea04a550f963ec575",
-  measurementId: "G-VLET9B2MS9"
-=======
 
 var firebase_apiKey ='';
 var firebase_authDomain ='';
@@ -58,7 +47,6 @@ export const firebaseConfig = {
   messagingSenderId:firebase_messagingSenderId,
   appId: firebase_appId,
   measurementId: firebase_measurementId
->>>>>>> Stashed changes
 };
 
 //Init Firebase config
