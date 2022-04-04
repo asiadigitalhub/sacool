@@ -16,6 +16,25 @@ function registerNetworkSchemas() {
       };
     };
   };
+  const positionUpdate = epsilon => {
+    return () => {
+      let prev = null;
+
+      return curr => {
+        window.currentPosition = curr;
+        window.positionUpdate && window.positionUpdate(curr);
+        if (prev === null) {
+          prev = new THREE.Vector3(curr.x, curr.y, curr.z);
+          return true;
+        } else if (!NAF.utils.almostEqualVec3(prev, curr, epsilon)) {
+          prev.copy(curr);
+          return true;
+        }
+
+        return false;
+      };
+    };
+  };
 
   // Note: networked template ids are semantically important. We use the template suffix as a filter
   // for allowing and authorizing messages in reticulum.
@@ -29,7 +48,7 @@ function registerNetworkSchemas() {
     components: [
       {
         component: "position",
-        requiresNetworkUpdate: vectorRequiresUpdate(0.001)
+        requiresNetworkUpdate: positionUpdate(0.001)
       },
       {
         component: "rotation",
