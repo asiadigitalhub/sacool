@@ -11,21 +11,42 @@ import {
     uploadString
 } from "firebase/storage";
 import Axios from "axios";
-
+import configs from "./configs";
 const pool = {
     audio: null,
     rec: null,
     blob: null
 };
 
-const firebaseConfig = {
-    apiKey: "AIzaSyDdLLiYv-72_ZLHcp7Pk5xZGiGgJDrkhdU",
-    authDomain: "forward-camera-345608.firebaseapp.com",
-    projectId: "forward-camera-345608",
-    storageBucket: "forward-camera-345608.appspot.com",
-    messagingSenderId: "949882238628",
-    appId: "1:949882238628:web:53b3d7bbb93db13c579831",
-    measurementId: "G-FJ41DDTBZH"
+var firebase_apiKey ='';
+var firebase_authDomain ='';
+var firebase_databaseURL ='';
+var firebase_projectId ='';
+var firebase_storageBucket ='';
+var firebase_messagingSenderId ='';
+var firebase_appId ='';
+var firebase_measurementId ='';
+try {
+  firebase_apiKey =  configs.feature("default_firebase_apiKey");
+  firebase_authDomain =  configs.feature("default_firebase_authDomain");
+  firebase_databaseURL =  configs.feature("default_firebase_databaseURL");
+  firebase_projectId  =  configs.feature("default_firebase_projectId");
+  firebase_storageBucket =  configs.feature("default_firebase_storageBucket");
+  firebase_messagingSenderId =  configs.feature("default_firebase_messagingSenderId");
+  firebase_appId =  configs.feature("default_firebase_appId");
+  firebase_measurementId =  configs.feature("default_firebase_measurementId");
+  console.log('firebase_apiKey' , firebase_apiKey);
+} catch (error) {
+}
+  const firebaseConfig = {
+  apiKey: firebase_apiKey,
+  authDomain: firebase_authDomain,
+  databaseURL: firebase_databaseURL,
+  projectId:firebase_projectId,
+  storageBucket: firebase_storageBucket,
+  messagingSenderId:firebase_messagingSenderId,
+  appId: firebase_appId,
+  measurementId: firebase_measurementId
 };
 
 const app = initializeApp(firebaseConfig, "[NewMetaverse]");

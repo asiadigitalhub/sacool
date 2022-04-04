@@ -16,17 +16,38 @@ var isSignedIn;
 var retrySigninFirebaseCount = 0;
 
 const MaxRetryCallFirebaseCount = 8;
-var retryCallFirebaseCount = 0;
 
-console.log('const defaultRoomId = configs.feature("default_room_id"); ',configs.feature("default_firebase_config"));
-var firebaseConfigData ={};
+var retryCallFirebaseCount = 0; 
+var firebase_apiKey ='';
+var firebase_authDomain ='';
+var firebase_databaseURL ='';
+var firebase_projectId ='';
+var firebase_storageBucket ='';
+var firebase_messagingSenderId ='';
+var firebase_appId ='';
+var firebase_measurementId ='';
 try {
-  firebaseConfigData =  JSON.parse(configs.feature("default_firebase_config"));
+  firebase_apiKey =  configs.feature("default_firebase_apiKey");
+  firebase_authDomain =  configs.feature("default_firebase_authDomain");
+  firebase_databaseURL =  configs.feature("default_firebase_databaseURL");
+  firebase_projectId  =  configs.feature("default_firebase_projectId");
+  firebase_storageBucket =  configs.feature("default_firebase_storageBucket");
+  firebase_messagingSenderId =  configs.feature("default_firebase_messagingSenderId");
+  firebase_appId =  configs.feature("default_firebase_appId");
+  firebase_measurementId =  configs.feature("default_firebase_measurementId");
+  console.log('firebase_apiKey' , firebase_apiKey);
 } catch (error) {
-  firebaseConfigData={};
 }
-console.log(firebaseConfigData);
-export const firebaseConfig = firebaseConfigData;
+export const firebaseConfig = {
+  apiKey: firebase_apiKey,
+  authDomain: firebase_authDomain,
+  databaseURL: firebase_databaseURL,
+  projectId:firebase_projectId,
+  storageBucket: firebase_storageBucket,
+  messagingSenderId:firebase_messagingSenderId,
+  appId: firebase_appId,
+  measurementId: firebase_measurementId
+};
 
 //Init Firebase config
 const app = initializeApp(firebaseConfig);
