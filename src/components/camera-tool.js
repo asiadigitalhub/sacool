@@ -112,6 +112,7 @@ AFRAME.registerComponent("camera-tool", {
 
     this.camera = new THREE.PerspectiveCamera(50, RENDER_WIDTH / RENDER_HEIGHT, 0.1, 30000);
     this.camera.layers.enable(Layers.CAMERA_LAYER_VIDEO_TEXTURE_TARGET);
+    this.camera.facing = "user"
     this.camera.rotation.set(0, Math.PI, 0);
     this.camera.position.set(0, 0, 0.05);
     this.camera.matrixNeedsUpdate = true;
@@ -212,12 +213,14 @@ AFRAME.registerComponent("camera-tool", {
       this.snapMenu = this.el.querySelector(".camera-snap-menu");
       this.snapButton = this.el.querySelector(".snap-button");
       this.recordButton = this.el.querySelector(".record-button");
+      this.switchFacingButton = this.el.querySelector(".switch-facing-button");
 
       this.cancelButton = this.el.querySelector(".cancel-button");
       this.nextDurationButton = this.el.querySelector(".next-duration");
       this.prevDurationButton = this.el.querySelector(".prev-duration");
       this.snapButton.object3D.addEventListener("interact", () => this.snapClicked(true));
       this.recordButton.object3D.addEventListener("interact", () => this.snapClicked(false));
+      this.switchFacingButton.object3D.addEventListener("interact", () => this.switchFacing());
       this.cancelButton.object3D.addEventListener("interact", () => this.cancelSnapping());
       this.nextDurationButton.object3D.addEventListener("interact", () => this.changeDuration(1));
       this.prevDurationButton.object3D.addEventListener("interact", () => this.changeDuration(-1));
@@ -240,6 +243,12 @@ AFRAME.registerComponent("camera-tool", {
         this.playerCamera = document.getElementById("viewing-camera").getObject3D("camera");
       });
     });
+  },
+
+  switchFacing() {
+    this.camera.facing = this.camera.facing === "user" ? "enviroment" : "user"
+    this.camera.rotation.set(0, this.camera.facing === "user" ? Math.PI : 0, 0);
+    this.camera.matrixNeedsUpdate = true;
   },
 
   remove() {
