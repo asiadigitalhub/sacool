@@ -99,7 +99,7 @@ export const blobToBase64 = async blob => {
 
 export const ask = async () => {
     // bot first response
-    const languageCode = APP.store.state.preferences.locale;
+    const languageCode = APP.store.state.preferences.locale || 'en';
     const preText = {
         vi: 'Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.',
         en: 'Let me thing...'
