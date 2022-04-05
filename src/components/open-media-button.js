@@ -53,6 +53,11 @@ AFRAME.registerComponent("open-media-button", {
         name: name,
         src: src
       })
+      pushDataLayer({
+        event: "open_link",
+        name: name,
+        src: src
+      })
 
       let hubId;
       if (this.data.onlyOpenLink) {

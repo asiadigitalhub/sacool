@@ -298,6 +298,10 @@ export default class HubChannel extends EventTarget {
       event: "send_chat_message",
       type: type
     })
+    pushDataLayer({
+      event: "send_chat_message",
+      type: type
+    })
   };
 
   _getCreatorAssignmentToken = () => {

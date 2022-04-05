@@ -197,6 +197,7 @@ import PinningHelper from "./utils/pinning-helper";
 import { sleep } from "./utils/async-utils";
 import { platformUnsupported } from "./support";
 import { logAction, logActionClick } from "./utils/firebase-util";
+import { pushDataLayer } from "./utils/gtm"
 
 window.APP = new App();
 window.APP.dialog = new DialogAdapter();
@@ -1340,7 +1341,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       logAction({
         event: "hub_joined"
       })
-      logActionClick('test_action')
+      pushDataLayer({
+        event: "hub_joined"
+      })
+      
       messageDispatch.receive({
         type: "join",
         presence: meta.presence,
@@ -1355,6 +1359,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       logAction({
         event: "room_leave"
       })
+      pushDataLayer({
+        event: "room_leave"
+      })
 
       messageDispatch.receive({
         type: "leave",
@@ -1366,6 +1373,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     events.on(`hub:change`, ({ current }) => {
       if (scene.is("entered") && current.presence === 'room') {
         logAction({
+          event: "room_entered"
+        })
+        pushDataLayer({
           event: "room_entered"
         })
         const videos = document.querySelectorAll("[media-video]")

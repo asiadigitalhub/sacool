@@ -9,6 +9,7 @@ import { Column } from "../layout/Column";
 import { InviteLinkInputField } from "./InviteLinkInputField";
 import { FormattedMessage, defineMessage, useIntl } from "react-intl";
 import { logActionClick } from "../../utils/firebase-util";
+import { pushDataLayer } from "../../utils/gtm";
 
 function InvitePopoverContent({ url, embed, inviteRequired, fetchingInvite, inviteUrl, revokeInvite }) {
   
@@ -89,6 +90,7 @@ export function InvitePopoverButton({
           selected={popoverVisible}
           onClick={()=>{
             logActionClick('inviteClick');
+            pushDataLayer({event: 'inviteClick'});
             togglePopover();
           }}
           label={title}

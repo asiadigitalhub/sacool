@@ -22,6 +22,10 @@ export function ImageGridPopover({ fullscreen, items, closePopover }) {
                 event: "react_utilization",
                 id: item.id
               })
+              pushDataLayer({
+                event: "react_utilization",
+                id: item.id
+              })
               closePopover();
             }}
             // crossOrigin: "anonymous" is a workaround for CORS error on Chrome. See #4400

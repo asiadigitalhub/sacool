@@ -35,6 +35,9 @@ function MoreMenuItem({ item, closePopover }) {
           logAction({
             event: "react-open-menu"
           })
+          pushDataLayer({
+            event: "react-open-menu"
+          })
         }}>
           <Icon />
           <span>{item.label}</span>

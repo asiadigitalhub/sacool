@@ -788,6 +788,9 @@ class UIRoot extends Component {
         logAction({
           event: "open_chat"
         })
+        pushDataLayer({
+          event: "open_chat"
+        })
         ZaloSocialSDK && ZaloSocialSDK?.reload()
         FB && FB?.XFBML && FB?.XFBML?.parse()
       }
@@ -852,6 +855,9 @@ class UIRoot extends Component {
           onSpectate={() => {
             this.setState({ watching: true })
             logAction({
+              event: "spectator_button"
+            })
+            pushDataLayer({
               event: "spectator_button"
             })
           }}
@@ -1168,6 +1174,10 @@ class UIRoot extends Component {
                 event: "react-utilization",
                 id: "more-menu.profile"
               })
+              pushDataLayer({
+                event: "react-utilization",
+                id: "more-menu.profile"
+              })
             }
           },
           // {
@@ -1205,6 +1215,10 @@ class UIRoot extends Component {
             onClick: () => {
               this.setSidebar("room-info")
               logAction({
+                event: "react-utilization",
+                id: "more-menu.room-info"
+              })
+              pushDataLayer({
                 event: "react-utilization",
                 id: "more-menu.room-info"
               })
@@ -1247,6 +1261,10 @@ class UIRoot extends Component {
                   event: "react-utilization",
                   id: "more-menu.enter-streamer-mode"
                 })
+                pushDataLayer({
+                  event: "react-utilization",
+                  id: "more-menu.enter-streamer-mode"
+                })
               }
             },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
@@ -1267,6 +1285,10 @@ class UIRoot extends Component {
             icon: DeleteIcon,
             onClick: () => {
               logAction({
+                event: "react-utilization",
+                id: "more-menu.close-room"
+              })
+              pushDataLayer({
                 event: "react-utilization",
                 id: "more-menu.close-room"
               })
@@ -1306,6 +1328,10 @@ class UIRoot extends Component {
                 event: "react-utilization",
                 id: "report-issue"
               })
+              pushDataLayer({
+                event: "react-utilization",
+                id: "report-issue"
+              })
             }
           },
           entered && {
@@ -1323,6 +1349,10 @@ class UIRoot extends Component {
             href: configs.link("docs", "https://hubs.mozilla.com/docs"),
             onClick: () => {
               logAction({
+                event: "react-utilization",
+                id: "help"
+              })
+              pushDataLayer({
                 event: "react-utilization",
                 id: "help"
               })
@@ -1344,6 +1374,10 @@ class UIRoot extends Component {
                 event: "react-utilization",
                 id: "whats-new"
               })
+              pushDataLayer({
+                event: "react-utilization",
+                id: "whats-new"
+              })
             }
           },
           configs.feature("show_terms") && {
@@ -1359,6 +1393,10 @@ class UIRoot extends Component {
             href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
             onClick: () => {
               logAction({
+                event: "react-utilization",
+                id: "privacy"
+              })
+              pushDataLayer({
                 event: "react-utilization",
                 id: "privacy"
               })
@@ -1655,17 +1693,19 @@ class UIRoot extends Component {
                           showNonHistoriedDialog={this.showNonHistoriedDialog}
                         />
                         {this.props.hubChannel.can("spawn_emoji") && <ReactionPopoverContainer />}
+                        {this.props.hubChannel.can("spawn_camera") && 
+                          <ToolbarButton
+                            icon={<ShareIcon />}
+                            preset="accent5"
+                            label={
+                              <FormattedMessage id="share-social-toolbar-button" defaultMessage="Share" />
+                            }
+                            onClick={() => this.props.scene.emit("action_toggle_camera")}
+                          />
+                        }
                       </>
                     )}
                     <ChatToolbarButtonContainer onClick={() => this.toggleSidebar("chat")} />
-                    <ToolbarButton
-                      icon={<ShareIcon />}
-                      preset="accent5"
-                      label={
-                        <FormattedMessage id="share-social-toolbar-button" defaultMessage="Share" />
-                      }
-                      onClick={() => this.props.scene.emit("action_toggle_camera")}
-                    />
                     {entered &&
                       isMobileVR && (
                         <ToolbarButton
@@ -1690,6 +1730,10 @@ class UIRoot extends Component {
                           event: "set_locale",
                           value: "vi"
                         })
+                        pushDataLayer({
+                          event: "set_locale",
+                          value: "vi"
+                        })
                       }}
                     />
                    
@@ -1700,6 +1744,10 @@ class UIRoot extends Component {
                       onClick={() => {
                         setLocale('en');
                         logAction({
+                          event: "set_locale",
+                          value: "en"
+                        })
+                        pushDataLayer({
                           event: "set_locale",
                           value: "en"
                         })

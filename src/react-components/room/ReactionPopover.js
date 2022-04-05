@@ -31,7 +31,10 @@ export function ReactionPopoverButton({ items }) {
           selected={popoverVisible}
           onClick={() => {
             togglePopover()
-            !popoverVisible && logAction({ event: "react_open_menu" })
+            if (!popoverVisible) {
+              logAction({ event: "react_open_menu" })
+              pushDataLayer({ event: "react_open_menu" })
+            }
           }}
           label={title}
           preset="accent2"
