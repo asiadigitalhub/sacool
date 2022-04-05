@@ -1446,7 +1446,8 @@ class UIRoot extends Component {
                     {(!this.props.selectedObject ||
                       (this.props.breakpoint !== "sm" && this.props.breakpoint !== "md")) && (
                        <ContentMenu>
-                       <UserVoiceButtonContainer  />
+                      <UserVoiceButtonContainer isMedia={true} />
+                       <UserVoiceButtonContainer isMedia={false}  />
                        {showObjectList && (
                          <ObjectsMenuButton
                            active={this.state.sidebarId === "objects"}
