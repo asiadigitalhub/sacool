@@ -73,6 +73,10 @@ export default class ProfileEntryPanel extends Component {
       event: "accept_avatar",
       avatarId: this.state.avatarId
     })
+    pushDataLayer({
+      event: "accept_avatar",
+      avatarId: this.state.avatarId
+    })
     this.scene.emit("avatar_updated");
   };
 
