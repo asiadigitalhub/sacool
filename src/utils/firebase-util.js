@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import configs from "./configs";
 
 const isDeploy = (location.hostname !== "localhost");
 
@@ -15,8 +16,28 @@ var isSignedIn;
 var retrySigninFirebaseCount = 0;
 
 const MaxRetryCallFirebaseCount = 8;
-var retryCallFirebaseCount = 0;
 
+var retryCallFirebaseCount = 0; 
+var firebase_apiKey ='';
+var firebase_authDomain ='';
+var firebase_databaseURL ='';
+var firebase_projectId ='';
+var firebase_storageBucket ='';
+var firebase_messagingSenderId ='';
+var firebase_appId ='';
+var firebase_measurementId ='';
+try {
+  firebase_apiKey =  configs.feature("default_firebase_apiKey");
+  firebase_authDomain =  configs.feature("default_firebase_authDomain");
+  firebase_databaseURL =  configs.feature("default_firebase_databaseURL");
+  firebase_projectId  =  configs.feature("default_firebase_projectId");
+  firebase_storageBucket =  configs.feature("default_firebase_storageBucket");
+  firebase_messagingSenderId =  configs.feature("default_firebase_messagingSenderId");
+  firebase_appId =  configs.feature("default_firebase_appId");
+  firebase_measurementId =  configs.feature("default_firebase_measurementId");
+  console.log('firebase_apiKey' , firebase_apiKey);
+} catch (error) {
+}
 export const firebaseConfig = {
   apiKey: "AIzaSyBPsxeF7WaOJA60Q6rCL5YXvgKNLxzB25Q",
   authDomain: "fir-virtual-meeting.firebaseapp.com",

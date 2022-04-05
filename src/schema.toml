@@ -28,6 +28,15 @@ features.show_model_collection_link = { category = "features", type = "boolean",
 features.hide_powered_by = { category = "features", type = "boolean", name = "Hide Powered By Hubs", description = "Hides the 'Powered by Hubs Cloud' notice on the home page and loading screens." }
 features.public_rooms = { category = "features", type = "boolean", name = "Public Rooms", description = "Allow visitors to set rooms to public to feature them on the homepage." }
 features.default_room_id = { category = "features", type = "string", name = "Homepage Room ID", description = "Use the specified room in place of the homepage."}
+features.default_firebase_config = { category = "features", type = "string", name = "Firebase config", description = "Firebase config."}
+features.default_firebase_apiKey = { category = "features", type = "string", name = "Firebase API key", description = "Firebase config."}
+features.default_firebase_authDomain = { category = "features", type = "string", name = "Firebase authDomain", description = "Firebase config."}
+features.default_firebase_databaseURL = { category = "features", type = "string", name = "Firebase databaseURL", description = "Firebase config."}
+features.default_firebase_projectId = { category = "features", type = "string", name = "Firebase projectId", description = "Firebase config."}
+features.default_firebase_storageBucket = { category = "features", type = "string", name = "Firebase storageBucket", description = "Firebase config."}
+features.default_firebase_messagingSenderId = { category = "features", type = "string", name = "Firebase messagingSenderId", description = "Firebase config."}
+features.default_firebase_appId = { category = "features", type = "string", name = "Firebase appId", description = "Firebase config."}
+features.default_firebase_measurementId = { category = "features", type = "string", name = "Firebase measurementId", description = "Firebase config."}
 features.enable_spoke = { category = "features", type = "boolean", name = "Enable Scene Editor", description = "Enable Scene Editor for all visitors."}
 features.enable_lobby_ghosts = { category = "features", type = "boolean", name = "Enable Lobby Ghosts", description = "Allow people in the lobby to explore the room while remaining invisible and inaudible." }
 features.public_api_access = { category = "features", type = "boolean", name = "Public API Access", description = "Enables a publicly-accessible API for managing backend resources programmatically.", internal = "false" }

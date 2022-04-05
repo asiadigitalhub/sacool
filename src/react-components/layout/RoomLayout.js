@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import classNames from "classnames";
 import styles from "./RoomLayout.scss";
 import { Toolbar } from "./Toolbar";
+import { AIUI } from "./ai-ui";
 
 export function RoomLayout({
   className,
@@ -32,6 +33,7 @@ export function RoomLayout({
           right={toolbarRight}
         />
       )}
+      {(<AIUI>helloWorld</AIUI>)}
       <div
         className={classNames(styles.main, styles.viewport, { [styles.streaming]: streaming }, viewportClassName)}
         ref={viewportRef}

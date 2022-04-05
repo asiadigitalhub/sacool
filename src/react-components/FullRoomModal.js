@@ -21,7 +21,7 @@ export function FullRoomModal({ onClose, onAccept, isShowBackButton }) {
           <p>
             <FormattedMessage
               id="metabar.back-landing-page"
-              defaultMessage="The room you are trying to join is full. Click here to select another Room (Url to Landing Page)."
+              defaultMessage="The room you are trying to join is full. Click here to select another Room."
               values={{ linebreak: <br /> }}
             />
           </p>}
