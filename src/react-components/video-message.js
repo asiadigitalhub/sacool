@@ -7,6 +7,8 @@ import classNames from "classnames";
 import { FormattedMessage, useIntl } from "react-intl";
 
 import { share } from "../utils/share";
+import { logAction } from "../utils/firebase-util";
+import { pushDataLayer } from "../utils/gtm";
 
 export default function VideoMessage({ name, body: { src: url }, className, maySpawn, hubId }) {
   const intl = useIntl();

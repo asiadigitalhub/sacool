@@ -8,6 +8,8 @@ import classNames from "classnames";
 import { share } from "../utils/share";
 import { getLandingPageForPhoto } from "../utils/phoenix-utils";
 import { FormattedMessage, useIntl } from "react-intl";
+import { logAction } from "../utils/firebase-util";
+import { pushDataLayer } from "../utils/gtm";
 
 export default function PhotoMessage({ name, body: { src: url }, className, maySpawn, hubId }) {
   const intl = useIntl();
