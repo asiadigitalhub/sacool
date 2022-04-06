@@ -41,6 +41,11 @@ const VIDEO_FPS = 25;
 const videoCodec = ["h264", "vp9,opus", "vp8,opus", "vp9", "vp8"].find(
   codec => window.MediaRecorder && MediaRecorder.isTypeSupported(`video/webm; codecs=${codec}`)
 );
+// check supported video codec for iPhone Safari
+if (videoCodec == null || videoCodec == undefined) {
+  videoCodec = window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4"); 
+}
+
 const videoMimeType = videoCodec ? `video/webm; codecs=${videoCodec}` : null;
 const hasWebGL2 = !!document.createElement("canvas").getContext("webgl2");
 const allowVideo = !!videoMimeType && hasWebGL2;
