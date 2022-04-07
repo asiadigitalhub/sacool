@@ -16,18 +16,27 @@ export function FullRoomModal({ onClose, onAccept, isShowBackButton }) {
         title={<FormattedMessage id="metabar.room-is-full" defaultMessage="This Room is full" />}
         beforeTitle={<CloseButton onClick={onClose}/>}
       >
-        <Column padding center centerMd="both" grow>          
+        <Column padding center centerMd="both" grow> 
+        {isShowBackButton &&
+          <p>
+            <FormattedMessage
+              id="metabar.back-landing-page"
+              defaultMessage="The room you are trying to join is full. Click here to select another Room."
+              values={{ linebreak: <br /> }}
+            />
+          </p>}
+          {isShowBackButton != true &&
           <p>
             <FormattedMessage
               id="metabar.select-other-room"
               defaultMessage="This room is full. Please select another one."
               values={{ linebreak: <br /> }}
             />
-          </p>
+          </p>}
           { isShowBackButton && <Button preset="cancel" onClick={onClose}>
-            <FormattedMessage id="metabar.back" defaultMessage="Back"/>
+            <FormattedMessage id="metabar.landingpage" defaultMessage="Landing page"/>
           </Button> }
-          { !isShowBackButton && <Button preset="cancel" onClick={onClose}>
+          { isShowBackButton != true && <Button preset="cancel" onClick={onClose}>
             <FormattedMessage id="metabar.cancel" defaultMessage="Cancel"/>
           </Button> }
           <Button preset="accept" onClick={onAccept}>

@@ -10,6 +10,11 @@ import { waitForDOMContentLoaded } from "../utils/async-utils";
 import cameraModelSrc from "../assets/camera_tool.glb";
 import anime from "animejs";
 import { Layers } from "./layers";
+const { detect } = require("detect-browser");
+
+const browser = detect();
+
+const isFirefox = browser.name === "firefox";
 
 const cameraModelPromise = waitForDOMContentLoaded().then(() => loadModel(cameraModelSrc));
 
@@ -33,10 +38,20 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const VIEWFINDER_FPS = 6;
 const VIDEO_FPS = 25;
 // Prefer h264 if available due to faster decoding speec on most platforms
-const videoCodec = ["h264", "vp9,opus", "vp8,opus", "vp9", "vp8"].find(
+const codec = ["h264", "vp9,opus", "vp8,opus", "vp9", "vp8"].find(
   codec => window.MediaRecorder && MediaRecorder.isTypeSupported(`video/webm; codecs=${codec}`)
 );
-const videoMimeType = videoCodec ? `video/webm; codecs=${videoCodec}` : null;
+var videoCodec;
+
+if (codec) { // if we found a codec
+  videoCodec = `video/webm; codecs=${codec}`;
+} else { // check supported video codec for iPhone Safari
+  if (window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4")) {
+    videoCodec = "video/mp4";
+  } 
+}
+
+const videoMimeType = videoCodec ? videoCodec : null;
 const hasWebGL2 = !!document.createElement("canvas").getContext("webgl2");
 const allowVideo = !!videoMimeType && hasWebGL2;
 
@@ -112,6 +127,7 @@ AFRAME.registerComponent("camera-tool", {
 
     this.camera = new THREE.PerspectiveCamera(50, RENDER_WIDTH / RENDER_HEIGHT, 0.1, 30000);
     this.camera.layers.enable(Layers.CAMERA_LAYER_VIDEO_TEXTURE_TARGET);
+    this.camera.facing = "user"
     this.camera.rotation.set(0, Math.PI, 0);
     this.camera.position.set(0, 0, 0.05);
     this.camera.matrixNeedsUpdate = true;
@@ -212,12 +228,14 @@ AFRAME.registerComponent("camera-tool", {
       this.snapMenu = this.el.querySelector(".camera-snap-menu");
       this.snapButton = this.el.querySelector(".snap-button");
       this.recordButton = this.el.querySelector(".record-button");
+      this.switchFacingButton = this.el.querySelector(".switch-facing-button");
 
       this.cancelButton = this.el.querySelector(".cancel-button");
       this.nextDurationButton = this.el.querySelector(".next-duration");
       this.prevDurationButton = this.el.querySelector(".prev-duration");
       this.snapButton.object3D.addEventListener("interact", () => this.snapClicked(true));
       this.recordButton.object3D.addEventListener("interact", () => this.snapClicked(false));
+      this.switchFacingButton.object3D.addEventListener("interact", () => this.switchFacing());
       this.cancelButton.object3D.addEventListener("interact", () => this.cancelSnapping());
       this.nextDurationButton.object3D.addEventListener("interact", () => this.changeDuration(1));
       this.prevDurationButton.object3D.addEventListener("interact", () => this.changeDuration(-1));
@@ -240,6 +258,12 @@ AFRAME.registerComponent("camera-tool", {
         this.playerCamera = document.getElementById("viewing-camera").getObject3D("camera");
       });
     });
+  },
+
+  switchFacing() {
+    this.camera.facing = this.camera.facing === "user" ? "enviroment" : "user"
+    this.camera.rotation.set(0, this.camera.facing === "user" ? Math.PI : 0, 0);
+    this.camera.matrixNeedsUpdate = true;
   },
 
   remove() {
@@ -374,15 +398,21 @@ AFRAME.registerComponent("camera-tool", {
 
     // HACK: FF 73+ seems to fail to decode videos with no audio track, so we always include a silent track.
     // Note that chrome won't generate the video without some data flowing to the track, hence the oscillator.
+    // This adds hacks for current browser issues with media recordings when audio tracks are muted or missing.
     const attachBlankAudio = () => {
-      const context = THREE.AudioContext.getContext();
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-      const destination = context.createMediaStreamDestination();
-      gain.gain.setValueAtTime(0.0001, context.currentTime);
-      oscillator.connect(destination);
-      gain.connect(destination);
-      stream.addTrack(destination.stream.getAudioTracks()[0]);
+      // Chrome has issues when the audio tracks are silent so we only do this for FF.
+      // https://bugs.chromium.org/p/chromium/issues/detail?id=1223382
+      if (isFirefox) {
+        // FF 73+ seems to fail to decode videos with no audio track, so we always include a silent track.
+        const context = THREE.AudioContext.getContext();
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const destination = context.createMediaStreamDestination();
+        gain.gain.setValueAtTime(0.0001, context.currentTime);
+        oscillator.connect(destination);
+        gain.connect(destination);
+        stream.addTrack(destination.stream.getAudioTracks()[0]);
+      }
     };
 
     if (this.data.captureAudio) {

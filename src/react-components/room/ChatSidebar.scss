@@ -142,13 +142,4 @@
   max-height: 50vh;
 }
 
-:local(.social-share-container) {
-  font-size: 0;
-  margin-top: 5px;
-  display: flex;
-  justify-content: flex-end;
 
-  div + div {
-    margin-left: 5px;
-  }
-}

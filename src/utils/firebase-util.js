@@ -4,6 +4,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics,logEvent } from "firebase/analytics";
 import { getDatabase, ref, get, child, update, increment, runTransaction } from "firebase/database";
 import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
+import configs from "./configs";
 
 const isDeploy = (location.hostname !== "localhost");
 
@@ -15,9 +16,8 @@ var isSignedIn;
 var retrySigninFirebaseCount = 0;
 
 const MaxRetryCallFirebaseCount = 8;
-var retryCallFirebaseCount = 0;
 
-
+var retryCallFirebaseCount = 0; 
 var firebase_apiKey ='';
 var firebase_authDomain ='';
 var firebase_databaseURL ='';
@@ -123,6 +123,10 @@ export function getVideoRef(videoName) {
 
 export function getVideoControlRef() {
   return ref(firebaseDatabase,"/videos_control");
+}
+
+export function logAction(data) {
+  logEvent(analytics, "action", data);
 }
 
 

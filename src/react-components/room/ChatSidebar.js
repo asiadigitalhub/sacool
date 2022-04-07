@@ -16,6 +16,8 @@ import { EmojiPicker } from "./EmojiPicker";
 import styles from "./ChatSidebar.scss";
 import { formatMessageBody } from "../../utils/chat-message";
 import { FormattedMessage, useIntl, defineMessages, FormattedRelativeTime } from "react-intl";
+import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 export function SpawnMessageButton(props) {
   return (
@@ -363,8 +365,8 @@ function getMessageComponent(message, sent) {
         <MessageBubble key={message.id} media>
           <img src={message.body.src} />
           <div className={styles.socialShareContainer}>
-            <div class="fb-share-button" data-href={message.body.src} data-layout="button" data-size="small"><a target="_blank" href={message.body.src} class="fb-xfbml-parse-ignore">Chia sẻ</a></div>
-            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
+            <div class="facebook-share-button" onClick={() => {fbShare(message.body.src)}}><svg fill="#ffffff" viewBox="0 0 24 24" width="16px" height="16px"><path d="M17.525,9H14V7c0-1.032,0.084-1.682,1.563-1.682h1.868v-3.18C16.522,2.044,15.608,1.998,14.693,2 C11.98,2,10,3.657,10,6.699V9H7v4l3-0.001V22h4v-9.003l3.066-0.001L17.525,9z"/></svg> Chia sẻ</div>
+            <div class="zalo-share-button" data-href={message.body.src} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"  data-callback="onZaloShared"></div>
           </div>
         </MessageBubble>
       )
@@ -374,8 +376,36 @@ function getMessageComponent(message, sent) {
   
 }
 
+window.onZaloShared = () => {
+  logAction({
+    event: "social_shared",
+    type: "zalo"
+  })
+  pushDataLayer({
+    event: "social_shared",
+    type: "zalo"
+  })
+}
+
+const fbShare = (url) => {
+  FB.ui({
+    method: 'share',
+    href: url,
+  }, function(response){
+    if (response && !response.error_message) {
+      logAction({
+        event: "social_shared",
+        type: "facebook"
+      })
+      pushDataLayer({
+        event: "social_shared",
+        type: "facebook"
+      })
+    }
+  });
+}
+
 export function ChatMessageGroup({ sent, sender, timestamp, messages }) {
-  console.log(sent, sender)
   return sent ? (
     <li className={classNames(styles.messageGroup, { [styles.sent]: sent })}>
       <p className={styles.messageGroupLabel}>

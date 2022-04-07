@@ -111,9 +111,7 @@ export function ChatContextProvider({ messageDispatch, children }) {
 
         if (
           newMessage.type === "chat" ||
-          newMessage.type === "image" ||
-          newMessage.type === "photo" ||
-          newMessage.type === "video"
+          newMessage.type === "image"
         ) {
           setUnreadMessages(true);
         }

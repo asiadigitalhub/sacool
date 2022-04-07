@@ -2,6 +2,8 @@ import React from "react";
 import PropTypes from "prop-types";
 import classNames from "classnames";
 import styles from "./ImageGridPopover.scss";
+import { pushDataLayer } from "../../utils/gtm";
+import { logAction } from "../../utils/firebase-util";
 
 export function ImageGridPopover({ fullscreen, items, closePopover }) {
   return (
@@ -16,7 +18,14 @@ export function ImageGridPopover({ fullscreen, items, closePopover }) {
               if (item.onSelect) {
                 item.onSelect(item);
               }
-
+              logAction({
+                event: "react_utilization",
+                id: item.id
+              })
+              pushDataLayer({
+                event: "react_utilization",
+                id: item.id
+              })
               closePopover();
             }}
             // crossOrigin: "anonymous" is a workaround for CORS error on Chrome. See #4400

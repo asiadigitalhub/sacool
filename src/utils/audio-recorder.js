@@ -18,7 +18,6 @@ const pool = {
     blob: null
 };
 
-
 var firebase_apiKey ='';
 var firebase_authDomain ='';
 var firebase_databaseURL ='';
