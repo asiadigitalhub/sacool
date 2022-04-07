@@ -18,7 +18,7 @@
         rel="stylesheet">
     <!-- Google Analytics -->
     <!-- NOTE GA tracking is disabled by default. You'll need to set the GA_TRACKING_ID build variable to enable it. -->
-    <script>
+    <script  >
         if (navigator.doNotTrack !== "1") {
             (function (i, s, o, g, r, a, m) {
                 i['GoogleAnalyticsObject'] = r;
@@ -35,6 +35,17 @@
     </script>
     <script async defer crossorigin="anonymous" src="https://connect.facebook.net/vi_VN/sdk.js#xfbml=1&version=v13.0&autoLogAppEvents=1" nonce="Ju3o55bQ"></script>
     <script src="https://sp.zalo.me/plugins/sdk.js"></script>
+    <script >
+        window.fbAsyncInit = function() {
+          FB.init({
+            appId            : '336000031897269',
+            autoLogAppEvents : true,
+            xfbml            : true,
+            version          : 'v13.0'
+          });
+        };
+    </script>
+      <script   async defer crossorigin="anonymous" src="https://connect.facebook.net/en_US/sdk.js"></script>
     <style>
         /* Ease the transition to the load screen by displaying a default overlay */
         #preload-overlay {

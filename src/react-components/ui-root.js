@@ -1381,18 +1381,25 @@ class UIRoot extends Component {
                     {(!this.props.selectedObject ||
                       (this.props.breakpoint !== "sm" && this.props.breakpoint !== "md")) && (
                        <ContentMenu>
-                       <UserVoiceButtonContainer  />
+                      <div style={{display: 'flex',  justifyContent:'center'
+                      ,flexDirection: 'column', alignItems:'center'}}>
                        {showObjectList && (
                          <ObjectsMenuButton
                            active={this.state.sidebarId === "objects"}
                            onClick={() => this.toggleSidebar("objects")}
                          />
                        )}
+                         <UserVoiceButtonContainer isMedia={true} />
+                       </div> 
+                       <div style={{display: 'flex',  justifyContent:'center'
+                      ,flexDirection: 'column', alignItems:'center'}}>
                        <PeopleMenuButton
                          active={this.state.sidebarId === "people"}
                          onClick={() => this.toggleSidebar("people")}
                          presencecount={this.state.presenceCount}
                        />
+                       <UserVoiceButtonContainer isMedia={false}  />
+                       </div>
                      </ContentMenu>
                   
                     )}
@@ -1589,7 +1596,6 @@ class UIRoot extends Component {
                           showNonHistoriedDialog={this.showNonHistoriedDialog}
                         />
                         {this.props.hubChannel.can("spawn_emoji") && <ReactionPopoverContainer />}
-                      </>
                     )}
                     <ChatToolbarButtonContainer onClick={() => this.toggleSidebar("chat")} />
                     {entered &&

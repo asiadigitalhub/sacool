@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "fir-virtual-meeting",
+  "private_key_id": "6a2ee85f3117818decd065eba622a28fb27c42d0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQClHbuNPjmPO8Fd\nEvD+QUaoRgmzmvOhgAqIxsVNSZCbfjq2V/csGm+/Z0L+UzEeUxnVlAP9VnKqkoFE\nBzzoM/m9L4Ip2idYonS5FlxHWTe2nSkdbKU+hxOTap8I9reeODJQqTCb5OeVM50T\n3gMumbwAshwvtBmxMPvwTKQyC3dtm7GFj7ig1q7rhZ3GsAcjeniuZO3is/G9Ffml\nZl+7s3GQnN2hJFLOlJZf/YYjABPZlB6UxyJMG4Jf5PvXVpLQGhlnfDYFGlDtDsOG\n9ZmZkRgx8nOcE3ubQzrpfRndeF18vi3d07xGDG9U2uOrU+baqAObiQSvCJizPqlu\nMqhiyzxnAgMBAAECggEAD9iSIsR5fqsD7BxAv43hK44JKVDyF6ozmJvG3Jt2Qs3y\n8YPwpy1kUxCkZ8bxHFFqVcpuNZZhy8fimvY83KX8TjEsgzq58vIoVIj2UyyXQbHE\ne9vs4drRwKCHYbNXvNn0zjPmg9eMeA+rf/gbAxJi7ggp11Qn8Q7b5txcF6dtDzot\nuEYb65WRSLR/QbvB9yTNFcuaESkGMX4ZhEHnkhzGRJEXgIebKD3qm3ScdnZCZeQG\njCrMHfdHpN5x9M1QREqA5ruw3gFVg6TzIOwEgIeP+X664YOJcc5qDIjzaM3pnS38\nLDMcMGgkmtGRjkCXTm49dHkqruJBeAx8nJSn17JmkQKBgQDkqLNijSVrmt/o/eEl\nq3ojbFtzIxOXVuGJPxRoHcVEaPGyVwQxgeuyHbnR1UugV+WgbB+UAApMaelksCgL\nlUZtAesn7clI0eVAcSc962P3nCMB+L3w+i9MH7uwQUW/YfHi1GbBiN3XxqdSIQug\nyN4BqN5ndahW2KhYmGjM9EoNkQKBgQC42/jhnlOXRhLPvZgLyIVXIFkPGXQismNz\nS59UcFl+fEud169v13QBKbtvTzOsYe/DHy1VkS9JIDVQZs89g0mABWcQ6XTpDP/C\noJ3syKaawI9sawuq7uhDvKD+vBNCav+vtSOeBHWY9haSqrIzQ5ERsPJoTvinhFb+\n/91BUREOdwKBgAKtEsRhgIGc42f3qK3nLtvBReS4EV+hDaysh1Gcn5VoYQPETvFB\nYv/Hp0gUZfkvbimNemUiBvzT9H5QLXfNPHDEJ/tkpglrI3K4oEvyOE5KjoJUZeyv\nEOSkLm8mpGlT/R+5eqZjMq12zriAWIF+OFLupgOx9dFmYbn/tqJHbaJxAoGAKoQl\nNLb2YMd0EiV379XZnRVKhmeDR2uh5eWRqpkAbE/oEFCIAAAcpRvVCR+9MbuAqm7k\nPVbb+kSXHnvW1D36zJ/xeXlIM0WTGU9ZoxjvAI6jLftcvp6d+t5KZOwavd7gGahe\nnbxG07xdqrPpslKq7de1mPn4xIZyf8mXOKuNcbcCgYA73d+Dj17KtU0S/GhiBpiN\nvcDVnyhQ8dSY6ohwHhB7abp7yGCVTotjR9d9WqdIrn6HI9CTmlUjarStLwugyc/A\nQ4T6LCrQTdpVqeczB9k3S/8b5upZ4VxFdvXl7fSlUWbkr3BSASkMHVNiN1uBnZjG\naoseBp9x4R97PLS47L18Ug==\n-----END PRIVATE KEY-----\n",
+  "client_email": "dialogflowlocal@fir-virtual-meeting.iam.gserviceaccount.com",
+  "client_id": "112270942871943514215",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/dialogflowlocal%40fir-virtual-meeting.iam.gserviceaccount.com"
+}

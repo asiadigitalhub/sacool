@@ -4,12 +4,9 @@ import PropTypes from "prop-types";
 import { ReactComponent as VolumeHigh } from "../icons/VolumeHigh.svg";
 import { ReactComponent as VolumeMuted } from "../icons/VolumeMuted.svg";
 import { ToolbarButton } from "../input/ToolbarButton";
-import { useMicrophone } from "./useMicrophone";
-import { FormattedMessage } from "react-intl";
 import {
   GLOBAL_VOLUME_DEFAULT
 } from "../../react-components/preferences-screen";
-import isMobile from "../../utils/is-mobile";
 
 
 function getPrefs() {
