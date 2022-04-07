@@ -38,15 +38,20 @@ const isMobileVR = AFRAME.utils.device.isMobileVR();
 const VIEWFINDER_FPS = 6;
 const VIDEO_FPS = 25;
 // Prefer h264 if available due to faster decoding speec on most platforms
-const videoCodec = ["h264", "vp9,opus", "vp8,opus", "vp9", "vp8"].find(
+const codec = ["h264", "vp9,opus", "vp8,opus", "vp9", "vp8"].find(
   codec => window.MediaRecorder && MediaRecorder.isTypeSupported(`video/webm; codecs=${codec}`)
 );
-// check supported video codec for iPhone Safari
-if (videoCodec == null || videoCodec == undefined) {
-  videoCodec = window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4"); 
+var videoCodec;
+
+if (codec) { // if we found a codec
+  videoCodec = `video/webm; codecs=${codec}`;
+} else { // check supported video codec for iPhone Safari
+  if (window.MediaRecorder && MediaRecorder.isTypeSupported("video/mp4")) {
+    videoCodec = "video/mp4";
+  } 
 }
 
-const videoMimeType = videoCodec ? `video/webm; codecs=${videoCodec}` : null;
+const videoMimeType = videoCodec ? videoCodec : null;
 const hasWebGL2 = !!document.createElement("canvas").getContext("webgl2");
 const allowVideo = !!videoMimeType && hasWebGL2;
 
