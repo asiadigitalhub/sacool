@@ -6,6 +6,17 @@
   flex-basis: max-content;
 }
 
+:local(.social-share-container) {
+  font-size: 0;
+  margin-top: 5px;
+  display: flex;
+  // justify-content: flex-end;
+  align-items: center;
+
+  div + div {
+    margin-left: 5px;
+  }
+}
 :local(.message-list) {
   display: flex;
   flex-grow: 1;
