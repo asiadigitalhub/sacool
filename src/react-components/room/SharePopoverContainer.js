@@ -69,11 +69,8 @@ function useShare(scene, hubChannel) {
   );
 
   const toggleShareCamera = useCallback(
-    () => {
-      logActionClick('shareCamera');
-      pushDataLayer({
-        event: "shareCamera"
-      })
+    () => {  
+      pushDataLayer({event: 'click',category:'button',name:'ShareCamera'});
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {
@@ -85,10 +82,8 @@ function useShare(scene, hubChannel) {
 
   const toggleShareScreen = useCallback(
     () => {
-      logActionClick('shareScreen');
-      pushDataLayer({
-        event: "shareScreen"
-      })
+      
+      pushDataLayer({event: 'click',category:'button',name:'ShareScreen'});
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {

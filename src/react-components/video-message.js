@@ -62,10 +62,7 @@ export default function VideoMessage({ name, body: { src: url }, className, mayS
 }
 
 window.onZaloShared = () => {
-  logAction({
-    event: "social_shared",
-    type: "zalo"
-  })
+   
   pushDataLayer({
     event: "social_shared",
     type: "zalo"
@@ -78,10 +75,7 @@ const fbShare = (url) => {
     href: url,
   }, function(response){
     if (response && !response.error_message) {
-      logAction({
-        event: "social_shared",
-        type: "facebook"
-      })
+     
       pushDataLayer({
         event: "social_shared",
         type: "facebook"

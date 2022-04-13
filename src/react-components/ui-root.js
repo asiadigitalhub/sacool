@@ -785,12 +785,7 @@ class UIRoot extends Component {
     }, () => {
       console.log(this.state.sidebarId)
       if (this.state.sidebarId === "chat") {
-        logAction({
-          event: "open_chat"
-        })
-        pushDataLayer({
-          event: "open_chat"
-        })
+        pushDataLayer({event: 'click',category:'button',name:'OpenChat'});  
         ZaloSocialSDK && ZaloSocialSDK?.reload()
         FB && FB?.XFBML && FB?.XFBML?.parse()
       }
@@ -854,12 +849,7 @@ class UIRoot extends Component {
           showSpectate={!this.state.waitingOnAudio}
           onSpectate={() => {
             this.setState({ watching: true })
-            logAction({
-              event: "spectator_button"
-            })
-            pushDataLayer({
-              event: "spectator_button"
-            })
+            pushDataLayer({event: 'click',category:'button',name:'Spectator'});  
           }}
           showOptions={this.props.hubChannel.canOrWillIfCreator("update_hub")}
           onOptions={() => {
@@ -1170,14 +1160,7 @@ class UIRoot extends Component {
             icon: AvatarIcon,
             onClick: () => {
               this.setSidebar("profile")
-              logAction({
-                event: "react-utilization",
-                id: "more-menu.profile"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "more-menu.profile"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'InitProfile'});  
             }
           },
           // {
@@ -1214,14 +1197,7 @@ class UIRoot extends Component {
             icon: HomeIcon,
             onClick: () => {
               this.setSidebar("room-info")
-              logAction({
-                event: "react-utilization",
-                id: "more-menu.room-info"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "more-menu.room-info"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'RoomInfo'});  
             }
           },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
@@ -1257,14 +1233,7 @@ class UIRoot extends Component {
               icon: CameraIcon,
               onClick: () => {
                 this.toggleStreamerMode()
-                logAction({
-                  event: "react-utilization",
-                  id: "more-menu.enter-streamer-mode"
-                })
-                pushDataLayer({
-                  event: "react-utilization",
-                  id: "more-menu.enter-streamer-mode"
-                })
+                pushDataLayer({event: 'click',category:'button',name:'Stream'});  
               }
             },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
@@ -1284,14 +1253,7 @@ class UIRoot extends Component {
             label: <FormattedMessage id="more-menu.close-room" defaultMessage="Close Room" />,
             icon: DeleteIcon,
             onClick: () => {
-              logAction({
-                event: "react-utilization",
-                id: "more-menu.close-room"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "more-menu.close-room"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'CloseRoom'});  
               this.props.performConditionalSignIn(
                 () => this.props.hubChannel.can("update_hub"),
                 () => {
@@ -1324,14 +1286,7 @@ class UIRoot extends Component {
             icon: WarningCircleIcon,
             href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html"),
             onClick: () => {
-              logAction({
-                event: "react-utilization",
-                id: "report-issue"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "report-issue"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'Report'});  
             }
           },
           entered && {
@@ -1348,14 +1303,7 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: configs.link("docs", "https://hubs.mozilla.com/docs"),
             onClick: () => {
-              logAction({
-                event: "react-utilization",
-                id: "help"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "help"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'Help'});   
             }
           },
           configs.feature("show_controls_link") && {
@@ -1370,14 +1318,8 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: "/whats-new",
             onClick: () => {
-              logAction({
-                event: "react-utilization",
-                id: "whats-new"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "whats-new"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'WhatsNew'});  
+             
             }
           },
           configs.feature("show_terms") && {
@@ -1392,14 +1334,7 @@ class UIRoot extends Component {
             icon: ShieldIcon,
             href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
             onClick: () => {
-              logAction({
-                event: "react-utilization",
-                id: "privacy"
-              })
-              pushDataLayer({
-                event: "react-utilization",
-                id: "privacy"
-              })
+              pushDataLayer({event: 'click',category:'button',name:'Privacy'});  
             }
           }
         ].filter(item => item)
@@ -1732,14 +1667,8 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
-                        logAction({
-                          event: "set_locale",
-                          value: "vi"
-                        })
-                        pushDataLayer({
-                          event: "set_locale",
-                          value: "vi"
-                        })
+                        pushDataLayer({event: 'click',category:'button',name:'Vi'});  
+                        
                       }}
                     />
                    
@@ -1749,14 +1678,8 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');
-                        logAction({
-                          event: "set_locale",
-                          value: "en"
-                        })
-                        pushDataLayer({
-                          event: "set_locale",
-                          value: "en"
-                        })
+                        pushDataLayer({event: 'click',category:'button',name:'En'});  
+                      
                       }}
                     />                    
                     {entered &&

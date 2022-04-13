@@ -294,14 +294,8 @@ export default class HubChannel extends EventTarget {
   sendMessage = (body, type = "chat") => {
     if (!body) return;
     this.channel.push("message", { body, type });
-    logAction({
-      event: "send_chat_message",
-      type: type
-    })
-    pushDataLayer({
-      event: "send_chat_message",
-      type: type
-    })
+    
+    pushDataLayer({event: 'click',category:'button',name:'SendChatMessage'});
   };
 
   _getCreatorAssignmentToken = () => {

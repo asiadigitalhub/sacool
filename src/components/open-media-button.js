@@ -48,14 +48,12 @@ AFRAME.registerComponent("open-media-button", {
 
       const name = this.targetEl?.object3D?.name
       const src = this.src
-      logAction({
-        event: "open_link",
-        name: name,
-        src: src
-      })
+      
+      pushDataLayer({event: 'click',category:'button',name:'OpenLink'});
+
       pushDataLayer({
         event: "open_link",
-        name: name,
+        type: 'link',
         src: src
       })
 

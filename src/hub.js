@@ -1338,12 +1338,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       ) {
         return;
       }
-      logAction({
-        event: "hub_joined"
-      })
-      pushDataLayer({
-        event: "hub_joined"
-      })
+      logAction({state:'joined'});
+      // pushDataLayer({
+      //   event: "hub_state",
+      //   state:'joined'
+      // })
+      
       
       messageDispatch.receive({
         type: "join",
@@ -1355,13 +1355,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     events.on(`hub:leave`, ({ meta }) => {
       if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
         return;
-      }
-      logAction({
-        event: "room_leave"
-      })
-      pushDataLayer({
-        event: "room_leave"
-      })
+      } 
+      logAction({state:'leave'});
+      // pushDataLayer({
+      //   event: "hub_state",
+      //   state:'leave'
+      // })
 
       messageDispatch.receive({
         type: "leave",
@@ -1372,12 +1371,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Issue IOS not autoplay video: cheat trigger play video after enter room
     events.on(`hub:change`, ({ current }) => {
       if (scene.is("entered") && current.presence === 'room') {
-        logAction({
-          event: "room_entered"
-        })
-        pushDataLayer({
-          event: "room_entered"
-        })
+         
+        logAction({state:'entered'});
+        // pushDataLayer({
+        //   event: "hub_state",
+        //   state:'entered'
+        // })
         const videos = document.querySelectorAll("[media-video]")
         videos.forEach(m => {
           const videoComponent = m.components["media-video"];

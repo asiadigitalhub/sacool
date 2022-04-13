@@ -126,30 +126,30 @@ export function getVideoControlRef() {
 }
 
 export function logAction(data) {
-  logEvent(analytics, "action", data);
+  logEvent(analytics, "hubs_state",data);
 }
 
 
 export function logActionClick(actionName) {
-  logEvent(analytics, "action", {
-    action_type: 'click',
-    action_name: actionName
-  });
+  // logEvent(analytics, "action", {
+  //   action_type: 'click',
+  //   action_name: actionName
+  // });
 }
 
 export function logFPS(fps) {
-  logEvent(analytics, "frame_rate", {value:fps});
+  // logEvent(analytics, "frame_rate", {value:fps});
 }
 
 export function logTelemetry(trackedPage, trackedTitle) {
 
-    if (trackedPage) {
-      logEvent(analytics, "page", trackedPage);
-    }
+    // if (trackedPage) {
+    //   logEvent(analytics, "page", trackedPage);
+    // }
 
-    if (trackedTitle) {
-      logEvent(analytics, "title", trackedTitle);
-    }
+    // if (trackedTitle) {
+    //   logEvent(analytics, "title", trackedTitle);
+    // }
 }
 
 export class FirebaseDatabaseKeys {

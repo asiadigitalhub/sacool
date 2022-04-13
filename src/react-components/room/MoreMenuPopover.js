@@ -32,12 +32,7 @@ function MoreMenuItem({ item, closePopover }) {
       ) : (
         <button className={styles.moreMenuItemTarget} onClick={event => {
           item.onClick(item, event)
-          logAction({
-            event: "react-open-menu"
-          })
-          pushDataLayer({
-            event: "react-open-menu"
-          })
+        
         }}>
           <Icon />
           <span>{item.label}</span>

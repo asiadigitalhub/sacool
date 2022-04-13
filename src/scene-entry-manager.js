@@ -480,21 +480,13 @@ export default class SceneEntryManager {
 
     this.scene.addEventListener("photo_taken", e => {
       this.hubChannel.sendMessage({ src: e.detail }, "photo")
-      logAction({
-        event: "photo_taken"
-      })
-      pushDataLayer({
-        event: "photo_taken"
-      })
+      
+      pushDataLayer({event: 'click',category:'button',name:'photo_taken'});
+     
     });
     this.scene.addEventListener("video_taken", e => {
       this.hubChannel.sendMessage({ src: e.detail }, "video")
-      logAction({
-        event: "video_taken"
-      })
-      pushDataLayer({
-        event: "video_taken"
-      })
+      pushDataLayer({event: 'click',category:'button',name:'video_taken'});
     });
   };
 

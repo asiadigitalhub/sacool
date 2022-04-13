@@ -18,10 +18,7 @@ export function ImageGridPopover({ fullscreen, items, closePopover }) {
               if (item.onSelect) {
                 item.onSelect(item);
               }
-              logAction({
-                event: "react_utilization",
-                id: item.id
-              })
+             
               pushDataLayer({
                 event: "react_utilization",
                 id: item.id

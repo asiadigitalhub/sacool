@@ -69,14 +69,8 @@ export default class ProfileEntryPanel extends Component {
       }
     });
     this.props.finished();
-    logAction({
-      event: "accept_avatar",
-      avatarId: this.state.avatarId
-    })
-    pushDataLayer({
-      event: "accept_avatar",
-      avatarId: this.state.avatarId
-    })
+
+    pushDataLayer({event: 'click',category:'button',name:'UpdateProfile'}); 
     this.scene.emit("avatar_updated");
   };
 

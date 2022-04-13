@@ -89,8 +89,7 @@ export function InvitePopoverButton({
           icon={<InviteIcon />}
           selected={popoverVisible}
           onClick={()=>{
-            logActionClick('inviteClick');
-            pushDataLayer({event: 'inviteClick'});
+            pushDataLayer({event: 'click',category:'button',name:'inviteClick'});
             togglePopover();
           }}
           label={title}

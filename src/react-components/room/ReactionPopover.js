@@ -32,8 +32,7 @@ export function ReactionPopoverButton({ items }) {
           onClick={() => {
             togglePopover()
             if (!popoverVisible) {
-              logAction({ event: "react_open_menu" })
-              pushDataLayer({ event: "react_open_menu" })
+              pushDataLayer({event: 'click',category:'button',name:'OpenReact'});
             }
           }}
           label={title}
