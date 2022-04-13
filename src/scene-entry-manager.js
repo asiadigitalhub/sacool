@@ -66,6 +66,17 @@ export default class SceneEntryManager {
     return 0;
   };
 
+  // get filter-effect parameter from url
+  getFilterEffectStatusFromQueryUrl = () => {
+    // get effect status in url
+    if (window.location.search.length > 0) {      
+      const qs = new URLSearchParams(window.location.search);
+      var effect = qs.get("effect");
+      return effect;
+    }    
+    return null;
+  };
+
   enterScene = async (enterInVR, muteOnEntry) => {
     console.log("Entering scene...");
     document.getElementById("viewing-camera").removeAttribute("scene-preview-camera");

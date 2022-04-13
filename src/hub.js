@@ -266,6 +266,22 @@ import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 import { FirebaseErrorModal } from "./react-components/FirebaseErrorModal";
 
+//----------filter-------
+import { BloomEffect, EffectComposer, EffectPass, RenderPass, DotScreenEffect, PixelationEffect, ColorAverageEffect,
+  SepiaEffect, VignetteEffect, KawaseBlurPass, BlendFunction, KernelSize, VignetteTechnique } from "postprocessing";
+class FilterEffectType {
+  static PixelationEffect = 1;
+  static BloomEffect = 2;
+  static BlurEffect = 3;
+  static DotScreenEffect = 4;
+  static ColorAverageEffect = 5;
+  static SepiaEffect = 6;
+  static VignetteEffect = 7;
+}
+
+const arrayOfFilterEffectTypes = [[], [FilterEffectType.PixelationEffect], [FilterEffectType.BloomEffect], [FilterEffectType.BlurEffect], 
+  [FilterEffectType.DotScreenEffect], [FilterEffectType.ColorAverageEffect], [FilterEffectType.SepiaEffect], [FilterEffectType.VignetteEffect] ];
+//-----------------------
 const metabarText = "metabar";
 var roomIdNeedCheck = null;
 var hubId = null;
@@ -417,8 +433,6 @@ export async function getSceneUrlForHub(hub) {
   if (hub.scene) {
     isLegacyBundle = false;
     sceneUrl = hub.scene.model_url;
-
-
     /**
      * Auth: Duy 
      * TODO: will remove when deploy 
@@ -482,7 +496,98 @@ export async function updateEnvironmentForHub(hub, entryManager) {
         document.querySelector(".a-canvas").classList.remove("a-hidden");
 
         sceneEl.addState("visible");
+   
+        //----------Filter effect-------------   
+        var effect = entryManager.getFilterEffectStatusFromQueryUrl();   
+        if (effect) {
+          // add effect filter
+          const scene = sceneEl.object3D;
+          const renderer = sceneEl.renderer;
+          const camera = sceneEl.camera;
 
+          const composer = new EffectComposer(renderer);        
+
+          composer.addPass(new RenderPass(scene, camera));
+          var passList = [];
+          var currentLoopIndex = effect;
+          var doFilter = () => {
+            // remove old Effect Passes
+            passList.forEach(pass=>{
+              composer.removePass(pass);
+            });
+            passList = [];
+            if (currentLoopIndex < arrayOfFilterEffectTypes.length) {            
+              var filterEffectTypes = arrayOfFilterEffectTypes[currentLoopIndex];
+              // loop to add filter effect into screen
+              filterEffectTypes.forEach(filterEffectType => {
+                switch (filterEffectType) {
+                  case FilterEffectType.PixelationEffect:
+                    var pass = new EffectPass(camera, new PixelationEffect(3));
+                    passList.push(pass);
+                    composer.addPass(pass);
+                    break;
+                  
+                  case FilterEffectType.BloomEffect:
+                    var pass = new EffectPass(camera, new BloomEffect({intensity:2, kernelSize: KernelSize.SMALL}));
+                    passList.push(pass);
+                    composer.addPass(pass);
+                    break;
+
+                  case FilterEffectType.BlurEffect:                  
+                    var pass = new KawaseBlurPass({renderer, kernelSize: KernelSize.VERY_SMALL});                  
+                    passList.push(pass);
+                    // pass.getKernels(); // [0,1,2,2,3] (a clone)
+                    // pass.setKernels([0, 1]); 
+                    composer.addPass(pass);
+
+                    // var pass = new EffectPass(camera, new BloomEffect({intensity:2, luminanceThreshold:1, luminanceSmoothing:1, resolutionScale: 0.5, 
+                    //   kernelSize: KernelSize.SMALL}));
+                    // passList.push(pass);
+                    // composer.addPass(pass);
+                    
+                    break;
+
+                  case FilterEffectType.DotScreenEffect:
+                    var pass = new EffectPass(camera, new DotScreenEffect({scale: 4}));
+                    passList.push(pass);
+                    composer.addPass(pass);
+                    break;
+                    
+                  case FilterEffectType.ColorAverageEffect:  
+                    var pass = new EffectPass(camera, new ColorAverageEffect());
+                    passList.push(pass);            
+                    composer.addPass(pass);              
+                    break;
+
+                  case FilterEffectType.SepiaEffect:   
+                    var pass = new EffectPass(camera, new SepiaEffect({intensity:2, blendFunction: BlendFunction.OVERLAY}));
+                    passList.push(pass);             
+                    composer.addPass(pass);  
+                    // composer.addPass(new EffectPass(camera, new VignetteEffect()));  
+                    // renderer.outputEncoding = THREE.sRGBEncoding;
+                    break;
+
+                  case FilterEffectType.VignetteEffect:   
+                    var pass = new EffectPass(camera, new VignetteEffect({technique:VignetteTechnique.ESKIL, offset: 2, darkness: 0.9}));
+                    passList.push(pass);             
+                    composer.addPass(pass);                    
+                    // renderer.outputEncoding = THREE.sRGBEncoding;
+                    break;
+                }
+              });               
+            }          
+          };        
+            
+          if (currentLoopIndex < arrayOfFilterEffectTypes.length) {
+            // run the effect
+            requestAnimationFrame(function render() {
+              requestAnimationFrame(render);
+              composer.render();        
+            });        
+          }
+          doFilter();   
+        }                  
+        //-----------------------
         envSystem.updateEnvironment(environmentEl);
 
         //TODO: check if the environment was made with spoke to determine if a shape should be added
