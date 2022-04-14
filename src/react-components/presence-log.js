@@ -26,6 +26,8 @@ class PresenceLog extends Component {
     super(props);
   }
 
+  
+
   domForEntry = e => {
     const entryClasses = {
       [styles.presenceLogEntry]: true,
@@ -34,8 +36,16 @@ class PresenceLog extends Component {
       [styles.expired]: !!e.expired
     };
 
+
+    console.log('NAF.clientId ',NAF.clientId);
+    
+
     const presenceContext = e.sessionId ? getPresenceContextForSession(this.props.presences, e.sessionId) : {};
     const isBot = !!presenceContext.discord;
+
+    if(NAF.clientId != e.sessionId){
+      return;
+    }
 
     switch (e.type) {
       case "chat":
@@ -103,7 +113,7 @@ class PresenceLog extends Component {
       [styles.presenceLog]: true,
       [styles.presenceLogInRoom]: this.props.inRoom
     };
-
+    console.log("history ",this.props.entries);
     return <div className={classNames(presenceClasses)}>{this.props.entries.map(this.domForEntry)}</div>;
   }
 }

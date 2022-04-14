@@ -30,20 +30,21 @@ export default function PhotoMessage({ name, body: { src: url }, className, mayS
     )
   });
 
+
+
   return (
     <div className={className}>
       {maySpawn && <button className={classNames(styles.iconButton, styles.share)} onClick={onShareClicked} />}
       <div className={styles.mediaBody}>
-        <div>test</div>
         <FormattedMessage
           id="photo-message.body"
-          defaultMessage="{name} took a <a>photo</a>."
+          defaultMessage="{name} took a <a>photo</a>"
           values={{
             name: <b>{name}</b>,
             // eslint-disable-next-line react/display-name
             a: chunks => (
               <b>
-                <a href={landingPageUrl} target="_blank" rel="noopener noreferrer">``
+                <a href={landingPageUrl} target="_blank" rel="noopener noreferrer">
                   {chunks}
                 </a>
               </b>

@@ -770,13 +770,16 @@ class UIRoot extends Component {
   pushHistoryState = (k, v) => pushHistoryState(this.props.history, k, v);
 
   setSidebar(sidebarId, otherState) {
-    this.setState({ sidebarId, selectedUserId: null, ...otherState });
+    this.setState({ sidebarId, selectedUserId: null, ...otherState },()=>{
+
+      ZaloSocialSDK && ZaloSocialSDK?.reload()
+      FB && FB?.XFBML && FB?.XFBML?.parse()
+    });
   }
 
   toggleSidebar(sidebarId, otherState) {
     this.setState(({ sidebarId: curSidebarId }) => {
       const nextSidebarId = curSidebarId === sidebarId ? null : sidebarId;
-
       return {
         sidebarId: nextSidebarId,
         selectedUserId: null,
@@ -1498,7 +1501,9 @@ class UIRoot extends Component {
                           occupantCount={this.occupantCount()}
                           canSpawnMessages={entered && this.props.hubChannel.can("spawn_and_move_media")}
                           scene={this.props.scene}
-                          onClose={() => this.setSidebar(null)}
+                          onClose={() => {
+                            this.setSidebar(null);
+                          }}
                         />
                       )}
                       {this.state.sidebarId === "objects" && (
@@ -1641,7 +1646,10 @@ class UIRoot extends Component {
                             label={
                               <FormattedMessage id="share-social-toolbar-button" defaultMessage="Share" />
                             }
-                            onClick={() => this.props.scene.emit("action_toggle_camera")}
+                            onClick={()=> {
+                             
+                              this.props.scene.emit("action_toggle_camera");
+                            }}
                           />
                         }
                       </>
