@@ -45,6 +45,7 @@ exports.shareVideo = functions.https.onRequest((request, response) => {
                 '}'+
             'video.center {'+
                 'display: block;'+
+                'width: 100%;'+
                 'margin-left: auto;'+
                 'margin-right: auto;'+
             '}'+
