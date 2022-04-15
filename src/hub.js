@@ -269,6 +269,15 @@ import { FirebaseErrorModal } from "./react-components/FirebaseErrorModal";
 //----------filter-------
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, DotScreenEffect, PixelationEffect, ColorAverageEffect,
   SepiaEffect, VignetteEffect, KawaseBlurPass, BlendFunction, KernelSize, VignetteTechnique } from "postprocessing";
+  import {
+    DepthPickingPass,
+    EdgeDetectionMode,    
+    ShockWaveEffect,
+    SMAAEffect,
+    SMAAPreset
+  } from "postprocessing";
+import { Vector3 } from "three";
+  
 class FilterEffectType {
   static PixelationEffect = 1;
   static BloomEffect = 2;
@@ -277,10 +286,12 @@ class FilterEffectType {
   static ColorAverageEffect = 5;
   static SepiaEffect = 6;
   static VignetteEffect = 7;
+  static ShockWaveEffect = 8;
 }
 
 const arrayOfFilterEffectTypes = [[], [FilterEffectType.PixelationEffect], [FilterEffectType.BloomEffect], [FilterEffectType.BlurEffect], 
-  [FilterEffectType.DotScreenEffect], [FilterEffectType.ColorAverageEffect], [FilterEffectType.SepiaEffect], [FilterEffectType.VignetteEffect] ];
+  [FilterEffectType.DotScreenEffect], [FilterEffectType.ColorAverageEffect], [FilterEffectType.SepiaEffect], [FilterEffectType.VignetteEffect],
+[FilterEffectType.ShockWaveEffect] ];
 //-----------------------
 const metabarText = "metabar";
 var roomIdNeedCheck = null;
@@ -502,8 +513,12 @@ export async function updateEnvironmentForHub(hub, entryManager) {
         if (effect) {
           // add effect filter
           const scene = sceneEl.object3D;
+          
           const renderer = sceneEl.renderer;
           const camera = sceneEl.camera;
+          
+          // const camera = document.getElementById("scene-preview-node");
+          // const previewCamera = document.getElementById("environment-scene").object3D.getObjectByName("scene-preview-camera");
 
           const composer = new EffectComposer(renderer);        
 
@@ -513,7 +528,7 @@ export async function updateEnvironmentForHub(hub, entryManager) {
           var doFilter = () => {
             // remove old Effect Passes
             passList.forEach(pass=>{
-              composer.removePass(pass);
+              // composer.removePass(pass);
             });
             passList = [];
             if (currentLoopIndex < arrayOfFilterEffectTypes.length) {            
@@ -522,7 +537,7 @@ export async function updateEnvironmentForHub(hub, entryManager) {
               filterEffectTypes.forEach(filterEffectType => {
                 switch (filterEffectType) {
                   case FilterEffectType.PixelationEffect:
-                    var pass = new EffectPass(camera, new PixelationEffect(3));
+                    var pass = new EffectPass(camera, new PixelationEffect(2));
                     passList.push(pass);
                     composer.addPass(pass);
                     break;
@@ -570,21 +585,72 @@ export async function updateEnvironmentForHub(hub, entryManager) {
                   case FilterEffectType.VignetteEffect:   
                     var pass = new EffectPass(camera, new VignetteEffect({technique:VignetteTechnique.ESKIL, offset: 2, darkness: 0.9}));
                     passList.push(pass);             
-                    composer.addPass(pass);                    
-                    // renderer.outputEncoding = THREE.sRGBEncoding;
+                    composer.addPass(pass);                                        
+                    break;
+                    
+                  case FilterEffectType.ShockWaveEffect:                       
+                    // Passes
+                    const target = new THREE.Vector3(-0.5, 3, -0.25);
+                    const smaaEffect = new SMAAEffect(
+                      // assets.get("smaa-search"),
+                      // assets.get("smaa-area"),
+                      SMAAPreset.HIGH,
+                      EdgeDetectionMode.DEPTH
+                    );
+
+                    smaaEffect.edgeDetectionMaterial.setEdgeDetectionThreshold(0.01);
+
+                    const shockWaveEffect = new ShockWaveEffect(camera, target, {
+                      speed: 1.25,
+                      maxRadius: 0.5,
+                      waveSize: 0.2,
+                      amplitude: 0.05
+                    });
+
+                    const effectPass = new EffectPass(camera, shockWaveEffect);
+                    const smaaPass = new EffectPass(camera, smaaEffect);
+                    const depthPickingPass = new DepthPickingPass();                    
+                    // composer.addPass(smaaPass);                  
+
+                    var ndc = new THREE.Vector3();
+                    document.addEventListener("pointermove", (e) => {                      
+                      ndc.x = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+                      ndc.y = -(e.clientY / window.innerHeight) * 2.0 + 1.0;                      
+                    });
+
+                    document.addEventListener("keyup", (e) => {
+                      if(e.key === "x") {   
+                        composer.addPass(depthPickingPass);
+                        composer.addPass(effectPass);
+                        setTimeout(async ()=>{
+                          var position = new Vector3();                          
+                          ndc.z = await depthPickingPass.readDepth(ndc);
+                          ndc.z = ndc.z * 2.0 - 1.0;
+                          // Convert from NDC to world position.
+                          position.copy(ndc.unproject(camera));                        
+                          
+                          if (position) {                              
+                            shockWaveEffect.epicenter.copy(position);
+                            shockWaveEffect.explode();                  
+                          }      
+                          setTimeout(()=>{
+                            composer.removePass(depthPickingPass);
+                            composer.removePass(effectPass);
+                          }, 700);          
+                        }, 400);       
+                      }                      
+                    });                    
                     break;
                 }
               });               
-            }          
+            }            
           };        
             
-          if (currentLoopIndex < arrayOfFilterEffectTypes.length) {
-            // run the effect
-            requestAnimationFrame(function render() {
-              requestAnimationFrame(render);
-              composer.render();        
-            });        
-          }
+          // run the effect
+          requestAnimationFrame(function render() {
+            composer.render();        
+            requestAnimationFrame(render);            
+          });  
           doFilter();   
         }                  
         //-----------------------
