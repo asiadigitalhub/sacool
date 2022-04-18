@@ -269,6 +269,15 @@ import { FirebaseErrorModal } from "./react-components/FirebaseErrorModal";
 //----------filter-------
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, DotScreenEffect, PixelationEffect, ColorAverageEffect,
   SepiaEffect, VignetteEffect, KawaseBlurPass, BlendFunction, KernelSize, VignetteTechnique } from "postprocessing";
+  import {
+    DepthPickingPass,
+    EdgeDetectionMode,    
+    ShockWaveEffect,
+    SMAAEffect,
+    SMAAPreset
+  } from "postprocessing";
+import { Vector3 } from "three";
+  
 class FilterEffectType {
   static PixelationEffect = 1;
   static BloomEffect = 2;
@@ -277,10 +286,12 @@ class FilterEffectType {
   static ColorAverageEffect = 5;
   static SepiaEffect = 6;
   static VignetteEffect = 7;
+  static ShockWaveEffect = 8;
 }
 
 const arrayOfFilterEffectTypes = [[], [FilterEffectType.PixelationEffect], [FilterEffectType.BloomEffect], [FilterEffectType.BlurEffect], 
-  [FilterEffectType.DotScreenEffect], [FilterEffectType.ColorAverageEffect], [FilterEffectType.SepiaEffect], [FilterEffectType.VignetteEffect] ];
+  [FilterEffectType.DotScreenEffect], [FilterEffectType.ColorAverageEffect], [FilterEffectType.SepiaEffect], [FilterEffectType.VignetteEffect],
+[FilterEffectType.ShockWaveEffect] ];
 //-----------------------
 const metabarText = "metabar";
 var roomIdNeedCheck = null;
@@ -496,98 +507,7 @@ export async function updateEnvironmentForHub(hub, entryManager) {
         document.querySelector(".a-canvas").classList.remove("a-hidden");
 
         sceneEl.addState("visible");
-   
-        //----------Filter effect-------------   
-        var effect = entryManager.getFilterEffectStatusFromQueryUrl();   
-        if (effect) {
-          // add effect filter
-          const scene = sceneEl.object3D;
-          const renderer = sceneEl.renderer;
-          const camera = sceneEl.camera;
-
-          const composer = new EffectComposer(renderer);        
-
-          composer.addPass(new RenderPass(scene, camera));
-          var passList = [];
-          var currentLoopIndex = effect;
-          var doFilter = () => {
-            // remove old Effect Passes
-            passList.forEach(pass=>{
-              composer.removePass(pass);
-            });
-            passList = [];
-            if (currentLoopIndex < arrayOfFilterEffectTypes.length) {            
-              var filterEffectTypes = arrayOfFilterEffectTypes[currentLoopIndex];
-              // loop to add filter effect into screen
-              filterEffectTypes.forEach(filterEffectType => {
-                switch (filterEffectType) {
-                  case FilterEffectType.PixelationEffect:
-                    var pass = new EffectPass(camera, new PixelationEffect(3));
-                    passList.push(pass);
-                    composer.addPass(pass);
-                    break;
-                  
-                  case FilterEffectType.BloomEffect:
-                    var pass = new EffectPass(camera, new BloomEffect({intensity:2, kernelSize: KernelSize.SMALL}));
-                    passList.push(pass);
-                    composer.addPass(pass);
-                    break;
-
-                  case FilterEffectType.BlurEffect:                  
-                    var pass = new KawaseBlurPass({renderer, kernelSize: KernelSize.VERY_SMALL});                  
-                    passList.push(pass);
-                    // pass.getKernels(); // [0,1,2,2,3] (a clone)
-                    // pass.setKernels([0, 1]); 
-                    composer.addPass(pass);
-
-                    // var pass = new EffectPass(camera, new BloomEffect({intensity:2, luminanceThreshold:1, luminanceSmoothing:1, resolutionScale: 0.5, 
-                    //   kernelSize: KernelSize.SMALL}));
-                    // passList.push(pass);
-                    // composer.addPass(pass);
-                    
-                    break;
-
-                  case FilterEffectType.DotScreenEffect:
-                    var pass = new EffectPass(camera, new DotScreenEffect({scale: 4}));
-                    passList.push(pass);
-                    composer.addPass(pass);
-                    break;
-                    
-                  case FilterEffectType.ColorAverageEffect:  
-                    var pass = new EffectPass(camera, new ColorAverageEffect());
-                    passList.push(pass);            
-                    composer.addPass(pass);              
-                    break;
-
-                  case FilterEffectType.SepiaEffect:   
-                    var pass = new EffectPass(camera, new SepiaEffect({intensity:2, blendFunction: BlendFunction.OVERLAY}));
-                    passList.push(pass);             
-                    composer.addPass(pass);  
-                    // composer.addPass(new EffectPass(camera, new VignetteEffect()));  
-                    // renderer.outputEncoding = THREE.sRGBEncoding;
-                    break;
-
-                  case FilterEffectType.VignetteEffect:   
-                    var pass = new EffectPass(camera, new VignetteEffect({technique:VignetteTechnique.ESKIL, offset: 2, darkness: 0.9}));
-                    passList.push(pass);             
-                    composer.addPass(pass);                    
-                    // renderer.outputEncoding = THREE.sRGBEncoding;
-                    break;
-                }
-              });               
-            }          
-          };        
-            
-          if (currentLoopIndex < arrayOfFilterEffectTypes.length) {
-            // run the effect
-            requestAnimationFrame(function render() {
-              requestAnimationFrame(render);
-              composer.render();        
-            });        
-          }
-          doFilter();   
-        }                  
-        //-----------------------
+           
         envSystem.updateEnvironment(environmentEl);
 
         //TODO: check if the environment was made with spoke to determine if a shape should be added
@@ -901,6 +821,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     subscriptions.register();
   
     const scene = document.querySelector("a-scene");
+
     window.APP.scene = scene;
     scene.renderer.debug.checkShaderErrors = false;
   
@@ -1027,6 +948,139 @@ document.addEventListener("DOMContentLoaded", async () => {
       }          
     }
     
+
+    //----------Filter effect-------------   
+    var effect = entryManager.getFilterEffectStatusFromQueryUrl();   
+    if (effect) {
+      // add effect filter
+      const sceneEl = document.querySelector("a-scene");
+      const scene = sceneEl.object3D;
+      
+      const renderer = sceneEl.renderer;
+      
+      const camera = sceneEl.camera;
+              
+      const composer = new EffectComposer(renderer);        
+      
+      composer.addPass(new RenderPass(scene, camera));        
+
+      var passList = [];
+      var currentLoopIndex = effect;
+      var doFilter = () => {
+        // remove old Effect Passes
+        passList.forEach(pass=>{
+          composer.removePass(pass);
+        });
+        passList = [];
+        if (currentLoopIndex < arrayOfFilterEffectTypes.length) {            
+          var filterEffectTypes = arrayOfFilterEffectTypes[currentLoopIndex];
+          // loop to add filter effect into screen
+          filterEffectTypes.forEach(filterEffectType => {
+            switch (filterEffectType) { // effect = 1
+              case FilterEffectType.PixelationEffect:
+                var granularity = isMobile ? 0.3 : 1.6;
+                var pass = new EffectPass(camera, new PixelationEffect(granularity));
+                pass.encodeOutput = false;                                                    
+                passList.push(pass);
+                composer.addPass(pass);
+                break;
+              
+              case FilterEffectType.BloomEffect: // effect = 2
+                var pass = new EffectPass(camera, new BloomEffect({intensity:2.5, kernelSize: KernelSize.MEDIUM}));
+                passList.push(pass);
+                pass.encodeOutput = false;
+                composer.addPass(pass);
+                break;
+
+              case FilterEffectType.BlurEffect: // effect = 3         
+                var pass = new KawaseBlurPass({kernelSize: KernelSize.VERY_SMALL, resolutionScale:1});                  
+                pass.encodeOutput = false;
+                passList.push(pass);
+                composer.addPass(pass);
+                
+                break;
+
+              case FilterEffectType.DotScreenEffect: // effect = 4
+                var scale = isMobile ? 0.4 : 2; // get scaile of dot effect for mobile or desktop                  
+                var pass = new EffectPass(camera, new DotScreenEffect({scale: scale}));
+                pass.encodeOutput = false;                  
+                passList.push(pass);
+                composer.addPass(pass);
+                break;
+                
+              case FilterEffectType.ColorAverageEffect: // effect = 5
+                var pass = new EffectPass(camera, new ColorAverageEffect());
+                pass.encodeOutput = false;
+                passList.push(pass);            
+                composer.addPass(pass);              
+                break;
+
+              case FilterEffectType.SepiaEffect: // effect = 6  
+                var pass = new EffectPass(camera, new SepiaEffect({intensity:2, blendFunction: BlendFunction.OVERLAY}));
+                pass.encodeOutput = false;
+                passList.push(pass);             
+                composer.addPass(pass);  
+                break;
+
+              case FilterEffectType.VignetteEffect: // effect = 7
+                var pass = new EffectPass(camera, new VignetteEffect({technique:VignetteTechnique.ESKIL, offset: 2, darkness: 0.9}));
+                pass.encodeOutput = false;
+                passList.push(pass);             
+                composer.addPass(pass);                                        
+                break;
+              // shock way effect  
+              case FilterEffectType.ShockWaveEffect: // effect = 8                       
+                // Passes
+                const target = new THREE.Vector3(-0.5, 3, -0.25);                    
+                const shockWaveEffect = new ShockWaveEffect(camera, target, {
+                  speed: 1.25,
+                  maxRadius: 0.5,
+                  waveSize: 0.2,
+                  amplitude: 0.05
+                });
+
+                const effectPass = new EffectPass(camera, shockWaveEffect);
+                const depthPickingPass = new DepthPickingPass();  
+                
+                effectPass.encodeOutput = false;
+                depthPickingPass.encodeOutput = false;
+                
+                composer.addPass(depthPickingPass);
+                composer.addPass(effectPass);                  
+                
+                var ndc = new THREE.Vector3();
+                document.addEventListener("pointermove", (e) => {                      
+                  ndc.x = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+                  ndc.y = -(e.clientY / window.innerHeight) * 2.0 + 1.0;                      
+                });
+
+                document.addEventListener("keyup", async (e) => {
+                  if(e.key === "x") {                         
+                    var position = new Vector3();                          
+                    ndc.z = await depthPickingPass.readDepth(ndc);
+                    ndc.z = ndc.z * 2.0 - 1.0;
+                    // Convert from NDC to world position.
+                    position.copy(ndc.unproject(camera));                        
+                    // do shock wave
+                    shockWaveEffect.epicenter.copy(position);
+                    shockWaveEffect.explode();                               
+                  }                      
+                });                    
+                break;              
+            }
+          });               
+        }            
+      };        
+        
+      // run the effect
+      requestAnimationFrame(function render() {
+        composer.render();        
+        requestAnimationFrame(render);            
+      });  
+      doFilter();   
+    }                  
+    //-----------------------
+
     APP.dialog.on(DIALOG_CONNECTION_CONNECTED, () => {
       scene.emit("didConnectToDialog");
     });
