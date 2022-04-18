@@ -270,21 +270,20 @@ function registerNetworkSchemas() {
   NAF.schemas.add({
     template: "#interactable-camera",
     components: [
-      // Exclude  Camera sharing
-      // "position",
-      // "rotation",
-      // {
-      //   component: "camera-tool",
-      //   property: "isSnapping"
-      // },
-      // {
-      //   component: "camera-tool",
-      //   property: "isRecording"
-      // },
-      // {
-      //   component: "camera-tool",
-      //   property: "label"
-      // }
+      "position",
+      "rotation",
+      {
+        component: "camera-tool",
+        property: "isSnapping"
+      },
+      {
+        component: "camera-tool",
+        property: "isRecording"
+      },
+      {
+        component: "camera-tool",
+        property: "label"
+      }
     ]
   });
 

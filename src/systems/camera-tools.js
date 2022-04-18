@@ -8,6 +8,7 @@ AFRAME.registerSystem("camera-tools", {
     this.cameraEls = [];
     this.cameraUpdateCount = 0;
     this.ticks = 0;
+    this.cameraTimeout = null;
     this.updateMyCamera = this.updateMyCamera.bind(this);
 
     waitForDOMContentLoaded().then(() => {
@@ -54,8 +55,17 @@ AFRAME.registerSystem("camera-tools", {
     this.myCamera = this.cameraEls.find(NAF.utils.isMine);
 
     if (this.myCamera) {
+      this.cameraTimeout = setTimeout(() => {
+        const myCamera = this.cameraEls.find(NAF.utils.isMine);;
+        myCamera?.parentNode.removeChild(myCamera);
+      }, 30000);
+      
       this.sceneEl.addState("camera");
     } else {
+      if(this.cameraTimeout){
+          clearTimeout(this.cameraTimeout);
+          this.cameraTimeout = null;
+      }
       this.sceneEl.removeState("camera");
     }
   },

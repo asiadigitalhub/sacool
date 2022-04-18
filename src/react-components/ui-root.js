@@ -1647,8 +1647,7 @@ class UIRoot extends Component {
                               <FormattedMessage id="share-social-toolbar-button" defaultMessage="Share" />
                             }
                             onClick={()=> {
-                             
-                              this.props.scene.emit("action_toggle_camera");
+                               this.props.scene.emit("action_toggle_camera");
                             }}
                           />
                         }

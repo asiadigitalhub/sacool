@@ -40,7 +40,6 @@ export default class SceneEntryManager {
     this._entered = false;
     this.performConditionalSignIn = () => {};
     this.history = history;
-    this.cameraTimeout = null;
   }
 
   init = () => {
@@ -477,17 +476,10 @@ export default class SceneEntryManager {
       if (!this.hubChannel.can("spawn_camera")) return;
       const myCamera = this.scene.systems["camera-tools"].getMyCamera();
 
+      console.log("action_toggle_camera");
       if (myCamera) {
         myCamera.parentNode.removeChild(myCamera);
-        
-        if(this.cameraTimeout)
-          clearTimeout(this.cameraTimeout);
-        
       } else {
-        this.cameraTimeout = setTimeout(() => {
-          const myCamera = this.scene.systems["camera-tools"].getMyCamera();
-          myCamera.parentNode.removeChild(myCamera);
-        }, 30000);
         const entity = document.createElement("a-entity");
         entity.setAttribute("networked", { template: "#interactable-camera" });
         entity.setAttribute("offset-relative-to", {
