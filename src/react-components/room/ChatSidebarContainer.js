@@ -256,7 +256,8 @@ export function ChatSidebarContainer({ scene, canSpawnMessages, presences, occup
   const isOverMaxLength = message.length > MAX_MESSAGE_LENGTH;
   return (
     <ChatSidebar onClose={onClose}>
-      <ChatMessageList ref={listRef} onScroll={onScrollList}>
+      <ChatMessageList ref={listRef} onScroll={onScrollList}  style={{paddingTop:"50px"}}>
+     
         {messageGroups.map(({ id, systemMessage, ...rest }) => {
           if (systemMessage) {
             return <SystemMessage key={id} {...rest} />;

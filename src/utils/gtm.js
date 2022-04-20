@@ -3,5 +3,5 @@ export function pushDataLayer(data) {
     window.dataLayer = []
   }
 
-  window.dataLayer.push(data)
+  // window.dataLayer.push(data)
 }

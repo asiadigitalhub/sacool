@@ -126,7 +126,7 @@ export function getVideoControlRef() {
 }
 
 export function logAction(data) {
-  logEvent(analytics, "hubs_state",data);
+  // logEvent(analytics, "hubs_state",data);
 }
 
 
