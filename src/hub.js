@@ -1676,7 +1676,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
   
     hubPhxChannel.on("message", ({ session_id, type, body, from }) => {
-      body.src += "#t=0.5"; // t=0.5: display the first frame of video for iPhone's Safari
+      if(type =='video'){
+        body.src += "#t=0.5"; // t=0.5: display the first frame of video for iPhone's Safari
+      }
       const getAuthor = () => {
         const userInfo = hubChannel.presence.state[session_id];
         if (from) {

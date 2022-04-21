@@ -338,6 +338,7 @@ function getMessageComponent(message, sent) {
   switch (message.type) {
     case "chat": {
       const { formattedBody, monospace, emoji } = formatMessageBody(message.body);
+      console.log("formattedBody ",formattedBody)
       return (
         <MessageBubble key={message.id} monospace={monospace} emoji={emoji}>
           {formattedBody}
