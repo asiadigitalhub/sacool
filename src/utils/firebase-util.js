@@ -125,8 +125,40 @@ export function getVideoControlRef() {
   return ref(firebaseDatabase,"/videos_control");
 }
 
+export function logReact(data) {
+  logEvent(analytics, "react",data );
+}
+
+export function logSocialShare(data) {
+  logEvent(analytics, "share",data );
+}
+
+export function logOpenLink(data) {
+  logEvent(analytics, "open_link",data);
+}
+
+export function logEventClick(data) {
+  logEvent(analytics, "click",data);
+}
+
 export function logAction(data) {
-  // logEvent(analytics, "hubs_state",data);
+  logEvent(analytics, "hubs_state",data);
+}
+
+export function joinGroup(id) {
+  logEvent(analytics, "join_group",{
+    group_id: id
+  });
+}
+
+export function joinHub(data) {
+  logEvent(analytics, "hubs",data);
+}
+
+export function leaveGroup(id) {
+  logEvent(analytics, "leave_group",{
+    group_id: id
+  });
 }
 
 

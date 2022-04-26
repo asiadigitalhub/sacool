@@ -3,8 +3,7 @@ import { EventTarget } from "event-target-shim";
 import { Presence } from "phoenix";
 import { migrateChannelToSocket, discordBridgesForPresences, migrateToChannel } from "./phoenix-utils";
 import configs from "./configs";
-import { pushDataLayer } from "./gtm";
-import { logAction } from "./firebase-util";
+import { logEventClick } from "./firebase-util";
 
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
 const MS_PER_MONTH = 1000 * 60 * 60 * 24 * 30;
@@ -295,7 +294,7 @@ export default class HubChannel extends EventTarget {
     if (!body) return;
     this.channel.push("message", { body, type });
     
-    pushDataLayer({event: 'click',category:'button',name:'SendChatMessage'});
+    logEventClick({name:'SendChatMessage'});
   };
 
   _getCreatorAssignmentToken = () => {

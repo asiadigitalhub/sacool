@@ -99,8 +99,7 @@ import { SpectatingLabel } from "./room/SpectatingLabel";
 import { SignInMessages } from "./auth/SignInModal";
 
 import { setLocale ,getLocale} from "../utils/i18n";
-import { pushDataLayer } from "../utils/gtm";
-import { logAction } from "../utils/firebase-util";
+import { logEventClick } from "../utils/firebase-util";
 
 const avatarEditorDebug = qsTruthy("avatarEditorDebug");
 
@@ -788,7 +787,7 @@ class UIRoot extends Component {
     }, () => {
       console.log(this.state.sidebarId)
       if (this.state.sidebarId === "chat") {
-        pushDataLayer({event: 'click',category:'button',name:'OpenChat'});  
+        logEventClick({name:'OpenChat'});  
         ZaloSocialSDK && ZaloSocialSDK?.reload()
         FB && FB?.XFBML && FB?.XFBML?.parse()
       }
@@ -852,7 +851,7 @@ class UIRoot extends Component {
           showSpectate={!this.state.waitingOnAudio}
           onSpectate={() => {
             this.setState({ watching: true })
-            pushDataLayer({event: 'click',category:'button',name:'Spectator'});  
+            logEventClick({name:'Spectator'});  
           }}
           showOptions={this.props.hubChannel.canOrWillIfCreator("update_hub")}
           onOptions={() => {
@@ -1163,7 +1162,7 @@ class UIRoot extends Component {
             icon: AvatarIcon,
             onClick: () => {
               this.setSidebar("profile")
-              pushDataLayer({event: 'click',category:'button',name:'InitProfile'});  
+              logEventClick({name:'InitProfile'});  
             }
           },
           // {
@@ -1200,7 +1199,7 @@ class UIRoot extends Component {
             icon: HomeIcon,
             onClick: () => {
               this.setSidebar("room-info")
-              pushDataLayer({event: 'click',category:'button',name:'RoomInfo'});  
+              logEventClick({name:'RoomInfo'});  
             }
           },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
@@ -1236,7 +1235,7 @@ class UIRoot extends Component {
               icon: CameraIcon,
               onClick: () => {
                 this.toggleStreamerMode()
-                pushDataLayer({event: 'click',category:'button',name:'Stream'});  
+                logEventClick({name:'Stream'});  
               }
             },
           (this.props.breakpoint === "sm" || this.props.breakpoint === "md") &&
@@ -1256,7 +1255,7 @@ class UIRoot extends Component {
             label: <FormattedMessage id="more-menu.close-room" defaultMessage="Close Room" />,
             icon: DeleteIcon,
             onClick: () => {
-              pushDataLayer({event: 'click',category:'button',name:'CloseRoom'});  
+              logEventClick({name:'CloseRoom'});  
               this.props.performConditionalSignIn(
                 () => this.props.hubChannel.can("update_hub"),
                 () => {
@@ -1289,7 +1288,7 @@ class UIRoot extends Component {
             icon: WarningCircleIcon,
             href: configs.link("issue_report", "https://hubs.mozilla.com/docs/help.html"),
             onClick: () => {
-              pushDataLayer({event: 'click',category:'button',name:'Report'});  
+              logEventClick({name:'Report'});  
             }
           },
           entered && {
@@ -1306,7 +1305,7 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: configs.link("docs", "https://hubs.mozilla.com/docs"),
             onClick: () => {
-              pushDataLayer({event: 'click',category:'button',name:'Help'});   
+              logEventClick({name:'Help'});   
             }
           },
           configs.feature("show_controls_link") && {
@@ -1321,7 +1320,7 @@ class UIRoot extends Component {
             icon: SupportIcon,
             href: "/whats-new",
             onClick: () => {
-              pushDataLayer({event: 'click',category:'button',name:'WhatsNew'});  
+              logEventClick({name:'WhatsNew'});  
              
             }
           },
@@ -1337,7 +1336,7 @@ class UIRoot extends Component {
             icon: ShieldIcon,
             href: configs.link("privacy_notice", "https://github.com/mozilla/hubs/blob/master/PRIVACY.md"),
             onClick: () => {
-              pushDataLayer({event: 'click',category:'button',name:'Privacy'});  
+              logEventClick({name:'Privacy'});  
             }
           }
         ].filter(item => item)
@@ -1674,7 +1673,7 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('vi');
-                        pushDataLayer({event: 'click',category:'button',name:'Vi'});  
+                        logEventClick({name:'Vi'});  
                         
                       }}
                     />
@@ -1685,7 +1684,7 @@ class UIRoot extends Component {
                       icon={<img src="../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
                       onClick={() => {
                         setLocale('en');
-                        pushDataLayer({event: 'click',category:'button',name:'En'});  
+                        logEventClick({name:'En'});  
                       
                       }}
                     />                    

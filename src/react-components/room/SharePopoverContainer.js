@@ -7,7 +7,7 @@ import { ReactComponent as AvatarIcon } from "../icons/Avatar.svg";
 import { SharePopoverButton } from "./SharePopover";
 import { FormattedMessage } from "react-intl";
 import useAvatar from "./useAvatar";
-import { pushDataLayer } from "../../utils/gtm";
+import { logEventClick } from "../../utils/firebase-util";
 
 function useShare(scene, hubChannel) {
   const [sharingSource, setSharingSource] = useState(null);
@@ -70,7 +70,7 @@ function useShare(scene, hubChannel) {
 
   const toggleShareCamera = useCallback(
     () => {  
-      pushDataLayer({event: 'click',category:'button',name:'ShareCamera'});
+      logEventClick({name:'ShareCamera'});
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {
@@ -83,7 +83,7 @@ function useShare(scene, hubChannel) {
   const toggleShareScreen = useCallback(
     () => {
       
-      pushDataLayer({event: 'click',category:'button',name:'ShareScreen'});
+      logEventClick({name:'ShareScreen'});
       if (sharingSource) {
         scene.emit("action_end_video_sharing");
       } else {

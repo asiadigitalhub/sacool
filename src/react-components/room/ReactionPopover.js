@@ -5,8 +5,7 @@ import { Popover } from "../popover/Popover";
 import { ToolbarButton } from "../input/ToolbarButton";
 import { ReactComponent as ReactionIcon } from "../icons/Reaction.svg";
 import { defineMessage, useIntl } from "react-intl";
-import { pushDataLayer } from "../../utils/gtm";
-import { logAction } from "../../utils/firebase-util";
+import { logEventClick } from "../../utils/firebase-util";
 
 const reactionPopoverTitle = defineMessage({
   id: "reaction-popover.title",
@@ -32,7 +31,7 @@ export function ReactionPopoverButton({ items }) {
           onClick={() => {
             togglePopover()
             if (!popoverVisible) {
-              pushDataLayer({event: 'click',category:'button',name:'OpenReact'});
+              logEventClick({name:'OpenReact'});
             }
           }}
           label={title}

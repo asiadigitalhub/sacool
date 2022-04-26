@@ -6,8 +6,7 @@ import { replaceHistoryState } from "../utils/history";
 import { AvatarSettingsSidebar } from "./room/AvatarSettingsSidebar";
 import { AvatarSetupModal } from "./room/AvatarSetupModal";
 import AvatarPreview from "./avatar-preview";
-import { pushDataLayer } from "../utils/gtm";
-import { logAction } from "../utils/firebase-util";
+import { logEventClick } from "../utils/firebase-util";
 
 export default class ProfileEntryPanel extends Component {
   static propTypes = {
@@ -70,7 +69,7 @@ export default class ProfileEntryPanel extends Component {
     });
     this.props.finished();
 
-    pushDataLayer({event: 'click',category:'button',name:'UpdateProfile'}); 
+    logEventClick({name:'UpdateProfile'}); 
     this.scene.emit("avatar_updated");
   };
 

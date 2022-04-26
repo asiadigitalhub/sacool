@@ -2,8 +2,7 @@ import { isLocalHubsUrl, isLocalHubsSceneUrl, isHubsRoomUrl, isLocalHubsAvatarUr
 import { guessContentType } from "../utils/media-url-utils";
 import { handleExitTo2DInterstitial } from "../utils/vr-interstitial";
 import { changeHub } from "../change-hub";
-import { pushDataLayer } from "../utils/gtm"
-import { logAction } from "../utils/firebase-util"
+import { logEventClick ,logOpenLink} from "../utils/firebase-util"
 
 AFRAME.registerComponent("open-media-button", {
   schema: {
@@ -49,12 +48,10 @@ AFRAME.registerComponent("open-media-button", {
       const name = this.targetEl?.object3D?.name
       const src = this.src
       
-      pushDataLayer({event: 'click',category:'button',name:'OpenLink'});
+      logEventClick({name:'OpenLink'});
 
-      pushDataLayer({
-        event: "open_link",
-        type: 'link',
-        src: src
+      logOpenLink({
+        link: src,
       })
 
       let hubId;

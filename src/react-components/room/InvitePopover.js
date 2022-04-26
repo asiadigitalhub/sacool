@@ -8,8 +8,7 @@ import { ReactComponent as InviteIcon } from "../icons/Invite.svg";
 import { Column } from "../layout/Column";
 import { InviteLinkInputField } from "./InviteLinkInputField";
 import { FormattedMessage, defineMessage, useIntl } from "react-intl";
-import { logActionClick } from "../../utils/firebase-util";
-import { pushDataLayer } from "../../utils/gtm";
+import { logEventClick } from "../../utils/firebase-util";
 
 function InvitePopoverContent({ url, embed, inviteRequired, fetchingInvite, inviteUrl, revokeInvite }) {
   
@@ -89,7 +88,7 @@ export function InvitePopoverButton({
           icon={<InviteIcon />}
           selected={popoverVisible}
           onClick={()=>{
-            pushDataLayer({event: 'click',category:'button',name:'inviteClick'});
+            logEventClick({name:'inviteClick'});
             togglePopover();
           }}
           label={title}

@@ -8,8 +8,7 @@ import classNames from "classnames";
 import { share } from "../utils/share";
 import { getLandingPageForPhoto } from "../utils/phoenix-utils";
 import { FormattedMessage, useIntl } from "react-intl";
-import { logAction } from "../utils/firebase-util";
-import { pushDataLayer } from "../utils/gtm";
+import { logSocialShare } from "../utils/firebase-util";
 
 export default function PhotoMessage({ name, body: { src: url }, className, maySpawn, hubId }) {
   const intl = useIntl();
@@ -64,9 +63,9 @@ export default function PhotoMessage({ name, body: { src: url }, className, mayS
 }
 
 window.onZaloShared = () => {
-  pushDataLayer({
-    event: "social_shared",
-    type: "zalo"
+  logSocialShare({
+    method: "zalo",
+    content_type: "image",
   })
 }
 
@@ -76,9 +75,9 @@ const fbShare = (url) => {
     href: url,
   }, function(response){
     if (response && !response.error_message) {
-      pushDataLayer({
-        event: "social_shared",
-        type: "facebook"
+      logSocialShare({
+        method: "facebook",
+        content_type: "image",
       })
     }
   });
