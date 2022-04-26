@@ -1,4 +1,5 @@
 import createTextGeometry from "three-bmfont-text";
+import fontJSON from "../assets/fonts/times-msdf.json";
 
 // 1 to match other A-Frame default widths.
 const DEFAULT_WIDTH = 1;
@@ -64,6 +65,18 @@ function loadFont(src) {
     });
 }
 
+// load font json from local
+function loadLocalFont() {
+  var font = fontJSON;
+  // Fix negative Y offsets for font from tool. Experimentally determined.
+  for (const ch of font.chars) {
+    ch.yoffset += 30;
+  }
+
+  font.widthFactor = computeFontWidthFactor(font);
+  return font;
+}
+
 function loadTexture(src) {
   return new Promise((resolve, reject) => {
     new THREE.ImageLoader().load(
@@ -84,10 +97,19 @@ function loadTexture(src) {
   });
 }
 
+// load font texture from local
+function loadLocalTexture() {
+  const textureImage = require('../assets/fonts/times.png');
+  const texture = new THREE.TextureLoader().load(textureImage);
+  texture.needsUpdate = true;
+  texture.anisotropy = MAX_ANISOTROPY;
+  return texture;  
+}
+
 const FONTS = {
   roboto: {
-    json: loadFont("https://cdn.aframe.io/fonts/Roboto-msdf.json"),
-    texture: loadTexture("https://cdn.aframe.io/fonts/Roboto-msdf.png")
+    json: loadLocalFont(), // loadFont("https://cdn.aframe.io/fonts/Roboto-msdf.json")
+    texture: loadLocalTexture() // loadTexture("https://cdn.aframe.io/fonts/Roboto-msdf.png") 
   }
 };
 

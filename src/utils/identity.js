@@ -3,10 +3,13 @@ import defaultAvatar from "../assets/models/DefaultAvatar.glb";
 import configs from "./configs";
 // get beer labels
 var beerLabelJSON = configs.feature("beer_labels");
-beerLabelJSON = beerLabelJSON.replaceAll('\\"','"');
-console.log("beerLabelJSON ",beerLabelJSON);
-const beerLabels = JSON.parse((beerLabelJSON != null && beerLabelJSON != undefined) ? beerLabelJSON : "[]");
-// receive beer labels, if they is empty then get human names
+var beerLabels = [];
+if (beerLabelJSON) {
+  beerLabelJSON = beerLabelJSON.replaceAll('\\"','"');
+  beerLabels = JSON.parse(beerLabelJSON);
+}
+ 
+// receive beer labels, if they are empty then get human names
 const names = beerLabels.length > 0 ? beerLabels :
 [
   "Đặng Tuấn Anh",
