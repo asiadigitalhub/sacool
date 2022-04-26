@@ -196,7 +196,7 @@ import MediaDevicesManager from "./utils/media-devices-manager";
 import PinningHelper from "./utils/pinning-helper";
 import { sleep } from "./utils/async-utils";
 import { platformUnsupported } from "./support";
-import { joinGroup, leaveGroup,joinHub } from "./utils/firebase-util";
+import { enterHub, leaveHub,joinHub } from "./utils/firebase-util";
 import { pushDataLayer } from "./utils/gtm"
 
 window.APP = new App();
@@ -1498,10 +1498,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
     
-      // pushDataLayer({
-      //   event: "hub_state",
-      //   state:'joined'
-      // })
+      joinHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
       
       
       messageDispatch.receive({
@@ -1515,7 +1512,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (APP.hideHubPresenceEvents || hubChannel.presence.list().length > NOISY_OCCUPANT_COUNT) {
         return;
       } 
-      leaveGroup(hubId);
+      leaveHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
 
       messageDispatch.receive({
         type: "leave",
@@ -1527,8 +1524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     events.on(`hub:change`, ({ current }) => {
       if (scene.is("entered") && current.presence === 'room') {
          
-        joinHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
-        joinGroup(hubId);
+        enterHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
 
         const videos = document.querySelectorAll("[media-video]")
         videos.forEach(m => {

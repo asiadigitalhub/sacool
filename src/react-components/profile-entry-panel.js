@@ -6,7 +6,7 @@ import { replaceHistoryState } from "../utils/history";
 import { AvatarSettingsSidebar } from "./room/AvatarSettingsSidebar";
 import { AvatarSetupModal } from "./room/AvatarSetupModal";
 import AvatarPreview from "./avatar-preview";
-import { logEventClick } from "../utils/firebase-util";
+import { logEventClick,logAvatarSelection } from "../utils/firebase-util";
 
 export default class ProfileEntryPanel extends Component {
   static propTypes = {
@@ -67,6 +67,8 @@ export default class ProfileEntryPanel extends Component {
         avatarId: this.state.avatarId
       }
     });
+    logAvatarSelection({avatar_id:this.state.avatarId})
+
     this.props.finished();
 
     logEventClick({name:'UpdateProfile'}); 

@@ -141,6 +141,10 @@ export function logEventClick(data) {
   logEvent(analytics, "click",data);
 }
 
+export function logAvatarSelection(data) {
+  logEvent(analytics, "avatar_selected",data);
+}
+
 export function logAction(data) {
   logEvent(analytics, "hubs_state",data);
 }
@@ -152,13 +156,15 @@ export function joinGroup(id) {
 }
 
 export function joinHub(data) {
-  logEvent(analytics, "hubs",data);
+  logEvent(analytics, "hubs_joined",data);
 }
 
-export function leaveGroup(id) {
-  logEvent(analytics, "leave_group",{
-    group_id: id
-  });
+export function enterHub(data) {
+  logEvent(analytics, "hubs_entered",data);
+}
+
+export function leaveHub(data) {
+  logEvent(analytics, "hubs_leaved",data);
 }
 
 

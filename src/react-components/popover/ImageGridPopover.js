@@ -17,7 +17,6 @@ export function ImageGridPopover({ fullscreen, items, closePopover }) {
               if (item.onSelect) {
                 item.onSelect(item);
               }
-             
               logReact({
                 react_id:item.id
               })
