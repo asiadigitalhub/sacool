@@ -8,7 +8,7 @@ import { ReactComponent as MoreIcon } from "../icons/More.svg";
 import { useIntl, defineMessage } from "react-intl";
 import { ToolbarButtonLanguage } from "../input/ToolbarButtonLanguage";
 import { pushDataLayer } from "../../utils/gtm";
-import { logAction } from "../../utils/firebase-util";
+import { logAction ,logEventClick} from "../../utils/firebase-util";
 
 import { setLocale ,getLocale} from "../../utils/i18n";
 
@@ -80,6 +80,7 @@ function MoreMenuPopoverContent({ menu, closePopover }) {
           selected={getLocale()==='vi'}
           icon={<img src="../../assets/images/flags/icon_flag_vietnam.png" style={{height: '15px', width : '22px'}} /> }                      
           onClick={() => {
+            logEventClick({name:'Vi'});  
             setLocale('vi');
           }}
             />
@@ -90,6 +91,7 @@ function MoreMenuPopoverContent({ menu, closePopover }) {
           selected={getLocale()==='en'}
             icon={<img src="../../assets/images/flags/icon_flag_us.png" style={{height: '15px', width : '22px'}} /> }                      
             onClick={() => {
+              logEventClick({name:'En'});  
               setLocale('en');
             }}
           />     

@@ -832,6 +832,7 @@ class UIRoot extends Component {
           roomName={this.props.hub.name}
           showJoinRoom={!this.state.waitingOnAudio && !this.props.entryDisallowed}
           onJoinRoom={() => {
+            logEventClick({name:'JoinRoom'});  
             if (promptForNameAndAvatarBeforeEntry || !this.props.forcedVREntryType) {
               this.setState({ entering: true });
               this.props.hubChannel.sendEnteringEvent();
@@ -1602,7 +1603,10 @@ class UIRoot extends Component {
                           icon={<EnterIcon />}
                           label={<FormattedMessage id="toolbar.join-room-button" defaultMessage="Join Room" />}
                           preset="accept"
-                          onClick={() => this.setState({ watching: false })}
+                          onClick={() => {
+                            logEventClick({name:'JoinRoom'});  
+                            this.setState({ watching: false });
+                          }}
                         />
                         {enableSpectateVRButton && (
                           <ToolbarButton

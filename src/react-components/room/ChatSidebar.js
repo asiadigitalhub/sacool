@@ -352,7 +352,7 @@ function getMessageComponent(message, sent) {
           <video controls src={message.body.src} paused={true} />
           <div className={styles.socialShareContainer}>
             <div class="fb-share-button" data-href={urlSrc}  data-layout="button" data-size="small"><a target="_blank" href={message.body.src} class="fb-xfbml-parse-ignore">Chia sẻ</a></div>
-            <div class="zalo-share-button" data-href={urlSrc} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false"></div>
+            <div class="zalo-share-button" data-href={urlSrc} data-oaid="579745863508352884" data-layout="2" data-color="blue" data-customize="false" data-callback="onZaloShared"></div>
           </div>
         </MessageBubble>
       )
