@@ -1,6 +1,14 @@
 @use "../../react-components/styles/theme.scss";
 @import 'shared.scss';
 
+.rrssb-zalo{cursor:pointer}
+.rrssb-zalo a{background-color:#018fe5;padding:6px 10px 0 0;border-radius:3px}
+.rrssb-zalo svg{height:18px;margin-top:6px;margin-left:10px}
+.zshare-zalo{display:inline-block;cursor:pointer;border-radius:3px;height:20px;background:#008fe5;color:#fff;padding:0 5px}
+.zshare-zalo:hover{background:#0c7abf}
+.zshare-zalo svg{margin-top:1px}
+.zshare-label{display:inline-block;font-weight:bold;font-size:13px;line-height:16px;height:20px;vertical-align:top;color:white;margin-left:3px;margin-top:6px}
+
 :local(.presence-log) {
   align-self: flex-start;
   display: flex;
@@ -259,6 +267,32 @@
   -webkit-user-select: none;
   white-space: nowrap;
   display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  zoom: 1;
+
+  svg {
+    // margin-right: 6px;
+  }
+}
+
+.zalo-share-button {
+  border-radius: 3px;
+  font-size: 11px;
+  height: 20px;
+  padding: 5px 5px 5px 5px;
+  background: #018fe5;
+  border: 0;
+  color: #fff;
+  cursor: pointer;
+  font-family: Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  position: relative;
+  -webkit-user-select: none;
+  white-space: nowrap;
+  display: inline-flex;
+  text-decoration: none !important;
   justify-content: center;
   align-items: center;
   zoom: 1;
