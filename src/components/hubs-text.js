@@ -70,7 +70,7 @@ function loadLocalFont() {
   var font = fontJSON;
   // Fix negative Y offsets for font from tool. Experimentally determined.
   for (const ch of font.chars) {
-    ch.yoffset += 30;
+    ch.yoffset -= 4;
   }
 
   font.widthFactor = computeFontWidthFactor(font);
