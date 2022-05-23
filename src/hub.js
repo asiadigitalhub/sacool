@@ -1524,7 +1524,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     events.on(`hub:change`, ({ current }) => {
       if (scene.is("entered") && current.presence === 'room') {
          
-        enterHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
+        
 
         const videos = document.querySelectorAll("[media-video]")
         videos.forEach(m => {
@@ -1557,7 +1557,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       ) {
         return;
       }
-  
+      enterHub({id:hubId,user_session:hubChannel.channel.socket.params().session_id});
       messageDispatch.receive({
         type: "entered",
         presence: current.presence,
