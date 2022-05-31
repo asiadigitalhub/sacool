@@ -1,3 +1,4 @@
+import e from "cors";
 import { detectOS } from "detect-browser";
 
 export function disableiOSZoom() {
@@ -7,8 +8,9 @@ export function disableiOSZoom() {
 
   document.addEventListener("touchmove", ev => {
     if (ev.scale === 1) return;
-
-    ev.preventDefault();
+    if (ev.defaultPrevented) { // This is not a passive event
+      ev.preventDefault();
+    }    
   });
 
   document.addEventListener("touchend", ev => {

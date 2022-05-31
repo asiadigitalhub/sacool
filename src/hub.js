@@ -266,6 +266,8 @@ import { FullRoomModal } from "./react-components/FullRoomModal";
 import { FullAllRoomModal } from "./react-components/FullAllRoomModal";
 import { FirebaseErrorModal } from "./react-components/FirebaseErrorModal";
 
+import { TopSwipeMenu } from "./react-components/TopSwipeMenu";
+
 //----------filter-------
 import { BloomEffect, EffectComposer, EffectPass, RenderPass, DotScreenEffect, PixelationEffect, ColorAverageEffect,
   SepiaEffect, VignetteEffect, KawaseBlurPass, BlendFunction, KernelSize, VignetteTechnique } from "postprocessing";
@@ -426,6 +428,7 @@ function mountUI(props = {}) {
         {props.showFullRoomModal && <FullRoomModal onClose={onCloseFullRoomModal} onAccept={onContinueFullRoomModal} isShowBackButton={true}></FullRoomModal> }
         {props.showFullAllRoomModal && <FullAllRoomModal onClose={onCloseFullRoomModal} onAccept={onCloseFullRoomModal}></FullAllRoomModal> }
         {props.showFirebaseErrorModal && <FirebaseErrorModal onClose={onCloseFirebaseErrorModal} onAccept={onContinueFirebaseErrorModal} isShowBackButton={true}></FirebaseErrorModal> }        
+        {true && <TopSwipeMenu onLeftSoundChanged={null} onRightSoundChanged={null}></TopSwipeMenu> }
       </ThemeProvider>
     </WrappedIntlProvider>,
     document.getElementById("ui-root")
@@ -946,8 +949,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }        
         }
       }          
-    }
-    
+    }     
 
     //----------Filter effect-------------   
     var effect = entryManager.getFilterEffectStatusFromQueryUrl();   
