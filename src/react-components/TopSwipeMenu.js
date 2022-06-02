@@ -1,11 +1,44 @@
-import React from "react";
+import React , { useEffect, useRef, useState ,useCallback}from "react";
 import PropTypes from "prop-types";
 import DoubleArrowUpIcon from "../assets/images/icon_double_arrow_up.png";
 import SoundIcon from "../assets/images/icon_sound.png";
 import { FormattedMessage } from "react-intl";
 
+import {
+    GLOBAL_VOLUME_DEFAULT,
+    GLOBAL_VOLUME_MAX
+  } from "../react-components/preferences-screen";
+  
+function getPrefs() {
+    const prefs = {
+      globalVoiceVolume: APP.store.state.preferences.globalVoiceVolume,
+      globalMediaVolume: APP.store.state.preferences.globalMediaVolume
+    };
+    if (prefs.globalVoiceVolume === undefined) prefs.globalVoiceVolume = GLOBAL_VOLUME_DEFAULT;
+    if (prefs.globalMediaVolume === undefined) prefs.globalMediaVolume = GLOBAL_VOLUME_DEFAULT;
+    return prefs;
+  }
+  
 // ui of top swipe-down/up menu for mobile
 export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
+
+    // const [preferences, setPreferences] = useState(getPrefs());
+    // const onPreferencesUpdated = useCallback(
+    //     () => {
+    //       setPreferences(getPrefs());
+    //       APP.store.addEventListener("statechanged", onPreferencesUpdated);
+    //       return () => {
+    //         APP.store.removeEventListener("statechanged", onPreferencesUpdated);
+    //       };
+    //     },
+    //     [setPreferences]
+    //   );
+    // useEffect(
+    // () => {
+    //     onPreferencesUpdated();
+    // },
+    // [onPreferencesUpdated]
+    // );
 
     const TopDivId = "IdOfTopSwipeMenu";
     const DoubleArrowImageId = "DoubleArrowImageId";
@@ -198,8 +231,16 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
         }            
     }
     // when touch on progress bar moves
-    var progressbarHandleTouchMove = (evt, div) => {
-        changeProgressBar(evt, div);           
+    var progressbarHandleTouchMove = (evt, div, callbackProgressSound) => {
+        if(!yDownProgress){
+            return;
+        }
+        changeProgressBar(evt, div);       
+        if (callbackProgressSound) {
+            const top = getTopOfADiv(div);
+            const percentage = ((heightSoundProgressDiv - top) / heightSoundProgressDiv) * 100;
+            callbackProgressSound(percentage) ;
+        }           
     }
     // create sound div
     var createSoundDiv = (isLeft, callbackProgressSound) => {
@@ -214,7 +255,7 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
         };
         // when touch on progressDiv moves
         const touchMoveEvent = (evt) => {
-            progressbarHandleTouchMove(evt, progressDiv);
+            progressbarHandleTouchMove(evt, progressDiv,callbackProgressSound);
             evt.stopPropagation();
         };
         // when touch on progressDiv ends
@@ -224,21 +265,43 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
         };
         const floating = isLeft ? "left" : "right";
 
+        var initValue = (APP.store.state.preferences.globalMediaVolume)/GLOBAL_VOLUME_MAX;
+        if(!isLeft){
+            initValue = (APP.store.state.preferences.globalVoiceVolume)/GLOBAL_VOLUME_MAX;
+        }
+
+        initValue = 100 - initValue*100;
+        console.log('initValue');
+        console.log(initValue);
         return <div style={{position:"relative", pointerEvents:"visible", width: widthSoundProgressDiv.toString() + 'px', height: heightSoundProgressDiv.toString() + 'px', 
                 top: ((heightBackgroundDiv - heightSoundProgressDiv - heightTextAreaDiv) / 2).toString() + 'px', left: leftAlign, right: rightAlign,
                 float: floating, backgroundColor: "lightgrey", borderRadius: "15px", overflow: "hidden" }}
                 onTouchStart={touchStartEvent} onTouchMove={touchMoveEvent} onTouchEnd={touchEndEvent} onTouchCancel={touchEndEvent} 
                 onMouseDown={touchStartEvent} onMouseMove={touchMoveEvent} onMouseUp={touchEndEvent} onMouseLeave={touchEndEvent}>                         
 
-                <div id={ProgressDivId} style={{position:"absolute", pointerEvents:"visible", width: '100%', height: '100%', top: '28px', left: "0px",
+                <div id={ProgressDivId} style={{position:"absolute", pointerEvents:"visible", width: '100%', height: '100%', top:(initValue) +'px', left: "0px",
                     justifyContent:"center", alignItems: "end", backgroundColor: "grey" }} >                        
                 </div>
                 <img style={{position:"absolute", width:"30px", height: "22px", bottom:"18px", left: 'calc(50% - 15px)' }} src={SoundIcon} />        
             </div>;
     }
 
-    const leftProgressBarDiv = createSoundDiv(true, onLeftSoundChanged);
-    const rightProgressBarDiv = createSoundDiv(false, onRightSoundChanged);
+    const leftProgressBarDiv = createSoundDiv(true, (value)=>{
+        console.log('createSoundDiv');
+        console.log(value);
+        APP.store.update({
+            preferences: {
+              globalMediaVolume: value/100*GLOBAL_VOLUME_MAX
+            }
+          });
+    });
+    const rightProgressBarDiv = createSoundDiv(false, (value)=>{
+        APP.store.update({
+            preferences: {
+              globalVoiceVolume:  value/100*GLOBAL_VOLUME_MAX
+            }
+          });
+    });
 
     return (        
         <div id={TopDivId} style={{position:"absolute", zIndex:"10000", pointerEvents:"visible", width:"100%", height: maxHeightOfTopDiv.toString() + 'px', 

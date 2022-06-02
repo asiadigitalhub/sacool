@@ -1430,7 +1430,7 @@ class UIRoot extends Component {
                            onClick={() => this.toggleSidebar("objects")}
                          />
                        )}
-                         <UserVoiceButtonContainer isMedia={true} />
+                         {/* <UserVoiceButtonContainer isMedia={true} /> */}
                        </div> 
                        <div style={{display: 'flex',  justifyContent:'center'
                       ,flexDirection: 'column', alignItems:'center'}}>
@@ -1439,7 +1439,7 @@ class UIRoot extends Component {
                          onClick={() => this.toggleSidebar("people")}
                          presencecount={this.state.presenceCount}
                        />
-                       <UserVoiceButtonContainer isMedia={false}  />
+                       {/* <UserVoiceButtonContainer isMedia={false}  /> */}
                        </div>
                      </ContentMenu>
                   
