@@ -2,6 +2,7 @@ import React , { useEffect, useRef, useState ,useCallback}from "react";
 import PropTypes from "prop-types";
 import DoubleArrowUpIcon from "../assets/images/icon_double_arrow_up.png";
 import SoundIcon from "../assets/images/icon_sound.png";
+import MuteIcon from "../assets/images/icon_mute_sound.png";
 import { FormattedMessage } from "react-intl";
 
 import {
@@ -42,7 +43,8 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
 
     const TopDivId = "IdOfTopSwipeMenu";
     const DoubleArrowImageId = "DoubleArrowImageId";
-    
+    const imageSoundLeft ="imageSoundLeft";
+    const imageSoundRight ="imageSoundRight";
     const LeftProgressBarId = "LeftProgressBarId";
     const RightProgressBarId = "RightProgressBarId";
 
@@ -244,7 +246,8 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
     }
     // create sound div
     var createSoundDiv = (isLeft, callbackProgressSound) => {
-        const ProgressDivId = isLeft ? LeftProgressBarId : RightProgressBarId;        
+        const ProgressDivId = isLeft ? LeftProgressBarId : RightProgressBarId;   
+        const imageSoundId = isLeft ? imageSoundLeft : imageSoundRight;        
         const progressDiv = document.getElementById(ProgressDivId);
         const leftAlign = isLeft ? "calc(25% - " + (widthSoundProgressDiv / 2).toString() + 'px)' : 'unset';
         const rightAlign = isLeft ? 'unset' : "calc(25% - " + (widthSoundProgressDiv / 2).toString() + 'px)';        
@@ -273,6 +276,8 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
         initValue = 100 - initValue*100;
         console.log('initValue');
         console.log(initValue);
+
+        var iconSoundDisplay =initValue>=100?MuteIcon: SoundIcon;
         return <div style={{position:"relative", pointerEvents:"visible", width: widthSoundProgressDiv.toString() + 'px', height: heightSoundProgressDiv.toString() + 'px', 
                 top: ((heightBackgroundDiv - heightSoundProgressDiv - heightTextAreaDiv) / 2).toString() + 'px', left: leftAlign, right: rightAlign,
                 float: floating, backgroundColor: "lightgrey", borderRadius: "15px", overflow: "hidden" }}
@@ -282,9 +287,12 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
                 <div id={ProgressDivId} style={{position:"absolute", pointerEvents:"visible", width: '100%', height: '100%', top:(initValue) +'px', left: "0px",
                     justifyContent:"center", alignItems: "end", backgroundColor: "grey" }} >                        
                 </div>
-                <img style={{position:"absolute", width:"30px", height: "22px", bottom:"18px", left: 'calc(50% - 15px)' }} src={SoundIcon} />        
+                <img id={imageSoundId} style={{position:"absolute", width:"30px", height: "22px", bottom:"18px", left: 'calc(50% - 15px)' }} src={iconSoundDisplay} />        
             </div>;
     }
+
+    const tagImageLeft = document.getElementById(imageSoundLeft);
+    const tagImageRight = document.getElementById(imageSoundRight);
 
     const leftProgressBarDiv = createSoundDiv(true, (value)=>{
         console.log('createSoundDiv');
@@ -294,13 +302,18 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
               globalMediaVolume: value/100*GLOBAL_VOLUME_MAX
             }
           });
+
+        var iconSoundDisplay =value<=0?MuteIcon: SoundIcon;
+        tagImageLeft.src = iconSoundDisplay;
     });
     const rightProgressBarDiv = createSoundDiv(false, (value)=>{
         APP.store.update({
             preferences: {
               globalVoiceVolume:  value/100*GLOBAL_VOLUME_MAX
             }
-          });
+          }); 
+          var iconSoundDisplay =value<=0?MuteIcon: SoundIcon;
+          tagImageRight.src = iconSoundDisplay;
     });
 
     return (        
