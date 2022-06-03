@@ -67,7 +67,6 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
     const widthSoundProgressDiv = 70;
 
     const heightArrowButtonDiv = 20;
-    const widthArrowButtonDiv = 50;
 
     const heightExpandCollapseButtonDiv = 40;
     const widthExpandCollapseButtonDiv = 60;
@@ -346,11 +345,11 @@ export function TopSwipeMenu({ onLeftSoundChanged, onRightSoundChanged }) {
             {/* bottom expand-collapse button */}
             <div style={{position:"relative", display:"flex", pointerEvents:"visible", width: widthExpandCollapseButtonDiv.toString() + 'px', height: heightExpandCollapseButtonDiv.toString() + 'px', 
                 bottom: ((heightExpandCollapseButtonDiv - heightArrowButtonDiv) / 2).toString() + 'px', left: "calc(50% - " + (widthExpandCollapseButtonDiv / 2).toString() + "px)",
-                backgroundColor:"transparent", flexDirection: "column", justifyContent: "center", alignItems:"end" }} 
+                backgroundColor:"transparent", flexDirection: "column", justifyContent: "center", alignItems:"center" }} 
                 onTouchEnd={handleTouchEndExpandCollapse} onTouchCancel={handleTouchEndExpandCollapse}
                 onMouseUp={handleTouchEndExpandCollapse}>
                 {/* bottom arrow icon */}
-                <div style={{position:"relative", display:"flex", pointerEvents:"visible", width: widthArrowButtonDiv.toString() + 'px', height: heightArrowButtonDiv.toString() + 'px', 
+                <div style={{position:"relative", display:"flex", pointerEvents:"visible", width: widthExpandCollapseButtonDiv.toString() + 'px', height: heightArrowButtonDiv.toString() + 'px', 
                     bottom: '1px', backgroundColor:"white", flexDirection: "column", justifyContent: "center", alignItems:"center", borderBottomRightRadius: "5px", borderBottomLeftRadius: "5px",
                     boxShadow: "0 4px 2px 2px #0005" }} >
                     <img id={DoubleArrowImageId} style={{width:"15px", height: "10px", transform: "rotate(180deg)" }} src={DoubleArrowUpIcon} />
