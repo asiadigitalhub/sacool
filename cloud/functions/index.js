@@ -2,13 +2,16 @@ const functions = require("firebase-functions");
 const speech = require('@google-cloud/speech');
 const dialogflow = require('@google-cloud/dialogflow');
 // const fs = require('fs');
+const cors = require('cors')({
+    origin: true
+});
 
 const client = new speech.SpeechClient({
     keyFilename: "./speech-key.json"
 });
 
 const sessionClient = new dialogflow.SessionsClient({
-    keyFilename: "./dialogflow-key.json"
+    keyFilename: "./speech-key.json"
 });
 
 exports.shareVideo = functions.https.onRequest((request, response) => {
@@ -21,106 +24,109 @@ exports.shareVideo = functions.https.onRequest((request, response) => {
 
     const src = request.query.src
     functions.logger.log('Video src', src);
-    response.set('Content-Type', 'text/html');// eslint-disable-line
-    response.send('<!DOCTYPE html>'+
-    '<html>'+
-      '<head>'+
-       ' <meta property="og:image" content="https://asiahubmeta-assets.asiahubmeta.com/files/3172f11e-0f89-4a34-9a19-bf8193e21f56.jpg">'+
-        '<link itemprop="thumbnailUrl" href="https://asiahubmeta-assets.asiahubmeta.com/files/554af03f-6b76-48be-bb95-6c7c56262079.jpg">'+
-        '<meta property="og:image:width" content="1280">'+
-       ' <meta property="og:image:height" content="720">'+
-        '<meta property="og:url" content="https://metaverse.asiadigitalhub.net/metabar" />'+
-        '<meta property="og:title" content="Metabar" />'+
-    
-        '<meta property="og:video" content="'+src+'" />'+
-        '<meta property="og:description" content="Metabar description" /> '+
-        '<meta charset="utf-8">'+
-       ' <meta name="viewport" content="width=device-width, initial-scale=1">'+
-        '<title>Metabar</title>'+
-    
-       ' <style media="screen">'+
-            'body { background: #2e2e2e; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif;  }'+
-            '.center {'+
-                'text-align: center;'+
-                '}'+
-            'video.center {'+
-                'display: block;'+
-                'width: 100%;'+
-                'margin-left: auto;'+
-                'margin-right: auto;'+
-            '}'+
+    response.set('Content-Type', 'text/html'); // eslint-disable-line
+    response.send('<!DOCTYPE html>' +
+        '<html>' +
+        '<head>' +
+        ' <meta property="og:image" content="https://asiahubmeta-assets.asiahubmeta.com/files/3172f11e-0f89-4a34-9a19-bf8193e21f56.jpg">' +
+        '<link itemprop="thumbnailUrl" href="https://asiahubmeta-assets.asiahubmeta.com/files/554af03f-6b76-48be-bb95-6c7c56262079.jpg">' +
+        '<meta property="og:image:width" content="1280">' +
+        ' <meta property="og:image:height" content="720">' +
+        '<meta property="og:url" content="https://metaverse.asiadigitalhub.net/metabar" />' +
+        '<meta property="og:title" content="Metabar" />' +
 
-        '</style>'+
-      '</head>'+
-      '<body>'+
-       ' <div class="center">'+
-          '<video  class="center" controls>'+
-           ' <source src="'+src+'" type="video/mp4">'+
-         ' </video>'+
-        '</div>'+
-       
-     ' </body>'+
-    '</html>'
+        '<meta property="og:video" content="' + src + '" />' +
+        '<meta property="og:description" content="Metabar description" /> ' +
+        '<meta charset="utf-8">' +
+        ' <meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<title>Metabar</title>' +
+
+        ' <style media="screen">' +
+        'body { background: #2e2e2e; color: rgba(0,0,0,0.87); font-family: Roboto, Helvetica, Arial, sans-serif;  }' +
+        '.center {' +
+        'text-align: center;' +
+        '}' +
+        'video.center {' +
+        'display: block;' +
+        'width: 100%;' +
+        'margin-left: auto;' +
+        'margin-right: auto;' +
+        '}' +
+
+        '</style>' +
+        '</head>' +
+        '<body>' +
+        ' <div class="center">' +
+        '<video  class="center" controls>' +
+        ' <source src="' + src + '" type="video/mp4">' +
+        ' </video>' +
+        '</div>' +
+
+        ' </body>' +
+        '</html>'
     ); // eslint-disable-line
-  });
-  
+});
 
-exports.helloWorld = functions.https.onRequest(async (request, response) => {
-    // const filename = './sample.mp3';
-    const encoding = 'MP3';
-    // const sampleRateHertz = 16000;
-    const languageCode = request.query.languageCode || 'vi-VN';
 
-    const config = {
-        encoding: encoding,
-        // sampleRateHertz: sampleRateHertz,
-        languageCode: languageCode,
-    };
+exports.translate = functions.https.onRequest(async (request, response) => {
+    cors(request, response, async () => {
 
-    const audio = {
-        // content: fs.readFileSync(filename).toString('base64'),
-        uri: decodeURIComponent(request.query.audio)
-    };
+        // const filename = './sample.mp3';
+        const encoding = 'MP3';
+        // const sampleRateHertz = 16000;
+        const languageCode = request.query.languageCode || 'vi-VN';
 
-    const rq = {
-        config: config,
-        audio: audio,
-    };
-
-    const [operation] = await client.longRunningRecognize(rq);
-
-    // Get a Promise representation of the final result of the job
-    const [res] = await operation.promise();
-    const transcription = res.results
-        .map(result => result.alternatives[0].transcript)
-        .join('\n');
-    console.log(`Transcription: ${transcription}`);
-    console.log(res);
-    //
-    if (transcription) {
-        const sessionPath = sessionClient.projectAgentSessionPath('fir-virtual-meeting', '696969');
-        const request = {
-            session: sessionPath,
-            queryInput: {
-                text: {
-                    text: transcription,
-                    languageCode: languageCode,
-                },
-            },
+        const config = {
+            encoding: encoding,
+            // sampleRateHertz: sampleRateHertz,
+            languageCode: languageCode,
         };
-        const responses = await sessionClient.detectIntent(request);
-        if (responses) {
-            const text = responses[0].queryResult.fulfillmentText;
-            console.log(text);
-            return response.send({
-                ask: transcription,
-                answer: text
-            });
+
+        const audio = {
+            // content: fs.readFileSync(filename).toString('base64'),
+            uri: decodeURIComponent(request.query.audio)
+        };
+
+        const rq = {
+            config: config,
+            audio: audio,
+        };
+
+        const [operation] = await client.longRunningRecognize(rq);
+
+        // Get a Promise representation of the final result of the job
+        const [res] = await operation.promise();
+        const transcription = res.results
+            .map(result => result.alternatives[0].transcript)
+            .join('\n');
+        console.log(`Transcription: ${transcription}`);
+        console.log(res);
+        //
+        if (transcription) {
+            const sessionPath = sessionClient.projectAgentSessionPath('forward-camera-345608', '696969');
+            const request = {
+                session: sessionPath,
+                queryInput: {
+                    text: {
+                        text: transcription,
+                        languageCode: languageCode,
+                    },
+                },
+            };
+            const responses = await sessionClient.detectIntent(request);
+            if (responses) {
+                const text = responses[0].queryResult.fulfillmentText;
+                console.log(text);
+                return response.send({
+                    ask: transcription,
+                    answer: text
+                });
+            }
         }
-    }
-    //
-    return response.send({
-        ask: transcription,
-        answer: null
-    });
+        //
+        return response.send({
+            ask: transcription,
+            answer: null
+        });
+    })
 });

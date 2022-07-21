@@ -133,7 +133,7 @@
             </a-asset-item>
             <a-asset-item id="spawn-point" response-type="arraybuffer" src="./assets/models/spawn-point.glb">
             </a-asset-item>
-            <a-asset-item id="ai-bot-asset" response-type="arraybuffer" src="./assets/models/DuckyMesh.glb"></a-asset-item>
+            <a-asset-item id="ai-bot-asset" response-type="arraybuffer" src="./assets/models/ai-bot.glb"></a-asset-item>
 
             <template id="template-waypoint-avatar">
                 <a-entity waypoint></a-entity>
@@ -1013,7 +1013,7 @@
 
             </a-entity>
         </a-entity>
-        <a-entity id="ai-bot" position="0 0.5 0" rotation="0 180 0" scale="3 3 3" gltf-model="#ai-bot-asset"></a-entity>
+        <a-entity animation-mixer="clip: *; loop: repeat;" id="ai-bot" position="0 0.15 6" rotation="0 0 0" scale="1.25 1.25 1.25" gltf-model="#ai-bot-asset"></a-entity>
 
         <!-- Environment -->
         <a-entity id="environment-root"
@@ -1072,6 +1072,7 @@
     <div id="ui-root"></div>
     <div id="preload-overlay"></div>
     <script src="https://sp.zalo.me/plugins/sdk.js"></script>
+    <script src="https://rawcdn.githack.com/elbobo/aframe-gltf-morph-component/07e9b80bd382cc1c19223468d35c453e7c76e9a2/dist/aframe-gltf-morph-component.js"></script>
 </body>
 
 </html>

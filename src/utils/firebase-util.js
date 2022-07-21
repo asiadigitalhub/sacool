@@ -191,7 +191,7 @@ export function logTelemetry(trackedPage, trackedTitle) {
 }
 
 export class FirebaseDatabaseKeys {
-    static RoomsUser = isDeploy ? "rooms_user" : "rooms_user_test"
+    static RoomsUser = isDeploy ? "rooms_user" : "rooms_user"
     static RoomName = "room_name"
     static UserNumber = "user_number"
 }

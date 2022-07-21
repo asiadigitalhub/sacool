@@ -142,7 +142,7 @@ export const ask = async () => {
         // call cloud func api to ask bot
         return new Promise(resolve => {
             Axios({
-                url: `https://us-central1-forward-camera-345608.cloudfunctions.net/helloWorld?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
+                url: `https://us-central1-forward-camera-345608.cloudfunctions.net/translate?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
                 method: 'GET'
             }).then(res => {
                 clearTimeout(timeoutID);
