@@ -53,7 +53,7 @@ const app = initializeApp(firebaseConfig, "[NewMetaverse]");
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-export const start = () => {
+export const start = (talk, stopTalk) => {
     let audio = pool.audio;
     if (!audio) {
         audio = document.createElement('audio');
@@ -94,7 +94,7 @@ export const start = () => {
                 setTimeout(() => {
                     stop();
                     setTimeout(() => {
-                        ask().then(res => resolve(res));
+                        ask(talk, stopTalk).then(res => resolve(res));
                     }, 100);
                 }, 4500);
             });
@@ -118,7 +118,7 @@ export const blobToBase64 = async blob => {
     });
 }
 
-export const ask = async () => {
+export const ask = async (talk, stopTalk) => {
     // bot first response
     const languageCode = APP.store.state.preferences.locale || 'en';
     const preText = {
@@ -126,7 +126,7 @@ export const ask = async () => {
         en: 'Let me thing...'
     }
     let timeoutID = setTimeout(() => {
-        textToSpeech(preText[languageCode], languageCode);
+        textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
     }, 5000);
     // upload mp3 file to server
     if (!auth.currentUser) {
@@ -143,21 +143,21 @@ export const ask = async () => {
         return new Promise(resolve => {
             Axios({
                 url: `https://us-central1-forward-camera-345608.cloudfunctions.net/translate?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
-                method: 'GET'
+                method: 'GET',
             }).then(res => {
                 clearTimeout(timeoutID);
                 console.log(res.data);
                 resolve(res.data);
                 // return bot response
                 if (res.data.answer) {
-                    textToSpeech(res.data.answer, languageCode);
+                    textToSpeech(res.data.answer, languageCode, talk, stopTalk);
                 }
             });
         })
     }
 }
 
-export const textToSpeech = (text, languageCode) => {
+export const textToSpeech = (text, languageCode, talk, stopTalk) => {
     const url = 'https://texttospeech.googleapis.com/v1beta1/text:synthesize?key=AIzaSyDdLLiYv-72_ZLHcp7Pk5xZGiGgJDrkhdU'
     const data = {
         'input': {
@@ -185,7 +185,11 @@ export const textToSpeech = (text, languageCode) => {
         .then(res => {
             const audio = document.createElement('audio');
             audio.src = `data:audio/mpeg;base64,${res.audioContent}`;
+            audio.onended = () => {
+                stopTalk && stopTalk();
+            };
             audio.play();
+            talk && talk();
         })
 }
 

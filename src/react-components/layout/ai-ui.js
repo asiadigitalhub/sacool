@@ -142,15 +142,15 @@ export const AIUI = () => {
     //
     const clickHandle = async () => {
         if (buttonText !== text) return;
-        BotTalking();
+        // BotTalking();
         setIsCount(true);
         setCounter(counter - 1);
         setButtonText(counter + 's');
-        await window.AI.startAsk();
+        await window.AI.startAsk(BotTalking, BotStopTalking);
         console.log('done API');
         setCounter(4);
         setButtonText(text);
-        BotStopTalking();
+        // BotStopTalking();
     }
     return (
         <>
