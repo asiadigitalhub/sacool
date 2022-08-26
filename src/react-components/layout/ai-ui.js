@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import styles from "./ai-ui.scss";
 import classNames from "classnames";
+import { lerp } from "three/src/math/MathUtils";
 
 const trackUserMove = () => {
     const pos = { x: -999, y: 0, z: -999 };
+    const botPosition = { x: 0, z: 6 };
     setInterval(() => {
         if (!window.currentPosition) return
         const cpos = window.currentPosition;
@@ -14,6 +16,7 @@ const trackUserMove = () => {
             pos.x = cpos.x;
             pos.y = cpos.y;
             pos.z = cpos.z;
+            window.currentRotation = Math.atan2(botPosition.x - pos.x, botPosition.z - pos.z) + Math.PI;
             window.dispatchEvent(new CustomEvent('onUserMove', { detail: pos }));
         }
     }, 1000)
@@ -32,6 +35,7 @@ const BotTalking = () => {
         'U': 'morphtarget:viseme_U;value:',
         'nn': 'morphtarget:viseme_nn;value:',
     };
+    currentAnimation = 'talk';
     talking = setInterval(() => {
         pitch += 0.35;
         const amount = 0.4;
@@ -50,6 +54,7 @@ const BotTalking = () => {
 
 const BotStopTalking = () => {
     clearInterval(talking);
+    currentAnimation = 'idle';
     const aibot = document.getElementById('ai-bot');
     const template = {
         'aa': 'morphtarget:viseme_aa;value:',
@@ -64,6 +69,23 @@ const BotStopTalking = () => {
     })
 }
 
+const getPostAnimation = clip => {
+    const totalTimer = clip.duration
+    const ratio = totalTimer / 230 // 230 is the total frames from raw model
+    return {
+        walk: [0, 32 * ratio],
+        idle: [40 * ratio, 100 * ratio],
+        talk: [110 * ratio, 224 * ratio]
+    }
+}
+let currentAnimation = 'idle'
+
+if (!window.AI) {
+    window.AI = {};
+}
+window.AI.startLipsSync = BotTalking;
+window.AI.stopLipsSync = BotStopTalking;
+
 const text = 'Chat with AI Bot';
 const waiting = 'Con bot nó đang suy nghĩ ...';
 
@@ -76,19 +98,24 @@ const BotIdle = () => {
         console.log(gltfModel)
         const model = gltfModel.model
         if (model) {
-          const mixer = new THREE.AnimationMixer(model)
-          const clip = model.animations[0]
-          const action = mixer.clipAction(clip)
-          const clock = new THREE.Clock()
-          action.setLoop(THREE.LoopRepeat)
-          action.play()
-          console.log(mixer, clip, action)
-          const loop = () => {
-            const delta = clock.getDelta();
-            mixer.update(delta * 1.5);
-            requestAnimationFrame(() => { loop(); });
-          }
-          loop();
+            const mixer = new THREE.AnimationMixer(model)
+            const clip = model.animations[0]
+            const action = mixer.clipAction(clip)
+            const clock = new THREE.Clock()
+            action.setLoop(THREE.LoopRepeat)
+            action.play()
+            console.log(mixer, clip, action)
+            const loop = () => {
+                const delta = clock.getDelta();
+                const currentAnimationInfo = getPostAnimation(clip)[currentAnimation];
+                if (mixer.time >= currentAnimationInfo[1]) {
+                    mixer.setTime(currentAnimationInfo[0])
+                }
+                mixer.update(delta);
+                window.temp = {mixer, clip, action};
+                requestAnimationFrame(() => { loop(); });
+            }
+            loop();
         }
         return true
     }
