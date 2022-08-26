@@ -73,9 +73,9 @@ const getPostAnimation = clip => {
     const totalTimer = clip.duration
     const ratio = totalTimer / 230 // 230 is the total frames from raw model
     return {
-        walk: [0, 32 * ratio],
-        idle: [40 * ratio, 100 * ratio],
-        talk: [110 * ratio, 224 * ratio]
+        walk: [0, 31 * ratio],
+        idle: [41 * ratio, 99 * ratio],
+        talk: [111 * ratio, 222 * ratio]
     }
 }
 let currentAnimation = 'idle'

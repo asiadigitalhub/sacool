@@ -125,7 +125,8 @@ export const ask = async (talk, stopTalk) => {
         en: 'Let me thing...'
     }
     let timeoutID = setTimeout(() => {
-        textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
+        // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
+        talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
     }, 5000);
     // upload mp3 file to server
     if (!auth.currentUser) {
@@ -149,7 +150,8 @@ export const ask = async (talk, stopTalk) => {
                 resolve(res.data);
                 // return bot response
                 if (res.data.answer) {
-                    textToSpeech(res.data.answer, languageCode, talk, stopTalk);
+                    // textToSpeech(res.data.answer, languageCode, talk, stopTalk);
+                    talkWithLipSync(res.data.answer, 1, languageCode, talk, stopTalk);
                 }
             });
         })
@@ -164,7 +166,8 @@ export const textToSpeech = (text, languageCode, talk, stopTalk) => {
         },
         'voice': {
             'languageCode': languageCode || 'vi-VN',
-            'ssmlGender': 'FEMALE'
+            'name': 'en-US-Wavenet-B',
+            'ssmlGender': 'MALE'
         },
         'audioConfig': {
             'audioEncoding': 'MP3'
@@ -352,7 +355,8 @@ export const talkWithLipSync = (text, speedRatio = 1, languageCode) => {
             },
             'voice': {
                 'languageCode': languageCode || 'vi-VN',
-                'ssmlGender': 'FEMALE'
+                'name': 'en-US-Wavenet-B',
+                'ssmlGender': 'MALE'
             },
             'audioConfig': {
                 'audioEncoding': 'MP3'
