@@ -119,6 +119,7 @@ exports.translate = functions.https.onRequest(async (request, response) => {
                 console.log(text);
                 return response.send({
                     ask: transcription,
+                    raw: responses,
                     answer: text
                 });
             }

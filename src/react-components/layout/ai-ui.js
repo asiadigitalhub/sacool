@@ -69,6 +69,52 @@ const BotStopTalking = () => {
     })
 }
 
+let speed = 0.05
+const BotMove = place => {
+    return new Promise(resolve => {
+        if (place === places.current) {
+            resolve()
+            return
+        }
+        window.currentAnimation = 'walk'
+        const aibot = document.getElementById('ai-bot');
+        const currentPos = place === "sales" ? [0, 0.15, 6] : [-19.5, 1.45, -0.5];
+        const minDiff = 0.08
+        const targetPlace = places[place]
+        let currentPath = 0
+        // do walk
+        const loop = () => {
+            const next = targetPlace.paths[currentPath]
+            if (!next) {
+                window.currentAnimation = 'idle'
+                places.current = place
+                resolve()
+                return
+            }
+            const xdir = next.x > currentPos[0] ? 1 : -1
+            const ydir = next.y > currentPos[1] ? 1 : -1
+            const zdir = next.z > currentPos[2] ? 1 : -1
+            currentPos[0] += xdir * speed
+            currentPos[1] += ydir * speed
+            currentPos[2] += zdir * speed
+            const diffX = Math.abs(currentPos[0] - next.x)
+            const diffY = Math.abs(currentPos[1] - next.y)
+            const diffZ = Math.abs(currentPos[2] - next.z)
+            if (diffX < minDiff && diffY < minDiff && diffZ < minDiff) {
+                currentPos[0] = next.x
+                currentPos[1] = next.y
+                currentPos[2] = next.z
+                currentPath++
+            }
+            aibot.setAttribute('rotation', `0 ${next.r} 0`)
+            aibot.setAttribute('position', currentPos.join(' '))
+            //
+            requestAnimationFrame(() => { loop() })
+        }
+        loop()
+    })
+}
+
 const getPostAnimation = clip => {
     const totalTimer = clip.duration
     const ratio = totalTimer / 230 // 230 is the total frames from raw model
@@ -85,6 +131,8 @@ if (!window.AI) {
 }
 window.AI.startLipsSync = BotTalking;
 window.AI.stopLipsSync = BotStopTalking;
+window.AI.botMove = BotMove;
+window.currentAnimation = currentAnimation;
 
 const text = 'Chat with AI Bot';
 const waiting = 'Con bot nó đang suy nghĩ ...';
@@ -107,7 +155,7 @@ const BotIdle = () => {
             console.log(mixer, clip, action)
             const loop = () => {
                 const delta = clock.getDelta();
-                const currentAnimationInfo = getPostAnimation(clip)[currentAnimation];
+                const currentAnimationInfo = getPostAnimation(clip)[window.currentAnimation];
                 if (mixer.time >= currentAnimationInfo[1]) {
                     mixer.setTime(currentAnimationInfo[0])
                 }
@@ -122,6 +170,54 @@ const BotIdle = () => {
     return false
 }
 
+const places = {
+    sales: {
+        paths: [
+            {
+                x: -8,
+                y: 0.15,
+                z: 0.7,
+                r: -45
+            },
+            {
+                x: -19.5,
+                y: 1.45,
+                z: -0.5,
+                r: -60
+            },
+            {
+                x: -24,
+                y: 1.45,
+                z: -0.6,
+                r: 0
+            }
+        ]
+    },
+    education: {
+        paths: [
+            {
+                x: -19.5,
+                y: 1.45,
+                z: -0.5,
+                r: 90
+            },
+            {
+                x: -8,
+                y: 0.15,
+                z: 0.7,
+                r: 45
+            },
+            {
+                x: 0,
+                y: 0.15,
+                z: 6,
+                r: 0
+            }
+        ]
+    },
+    current: "education"
+}
+
 export const AIUI = () => {
     const [disabled, setDisabled] = useState(true);
     const [isCount, setIsCount] = useState(false);
@@ -132,10 +228,18 @@ export const AIUI = () => {
             const pos = e.detail;
             console.log(e);
             if (pos) {
-                if (Math.abs(pos.x) < 3 && Math.abs(pos.z) < 8 && Math.abs(pos.z) > 4) {
-                    setDisabled(false);
-                } else {
-                    setDisabled(true);
+                if (places.current === 'education') {
+                    if (Math.abs(pos.x) < 3 && Math.abs(pos.z) < 8 && Math.abs(pos.z) > 4) {
+                        setDisabled(false);
+                    } else {
+                        setDisabled(true);
+                    }
+                } else if (places.current === 'sales') {
+                    if (pos.x < -20 && pos.x > -28 && pos.z > -4 && pos.z < 4) {
+                        setDisabled(false);
+                    } else {
+                        setDisabled(true);
+                    }
                 }
             }
         })

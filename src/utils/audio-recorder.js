@@ -144,9 +144,20 @@ export const ask = async (talk, stopTalk) => {
             Axios({
                 url: `https://us-central1-forward-camera-345608.cloudfunctions.net/translate?audio=${encodeURIComponent(url)}&languageCode=${languageCode}`,
                 method: 'GET',
-            }).then(res => {
+            }).then(async (res) => {
                 clearTimeout(timeoutID);
                 console.log(res.data);
+                const intent = res.data.raw[0].queryResult.intent.displayName;
+                if (intent === "education") {
+                    // walk to education
+                    console.log('prepare to move to "education"');
+                    await window.AI.botMove(intent);
+                }
+                if (intent === "sales") {
+                    // walk to sales
+                    console.log('prepare to move to "sales"');
+                    await window.AI.botMove(intent);
+                }
                 resolve(res.data);
                 // return bot response
                 if (res.data.answer) {
@@ -377,66 +388,99 @@ export const talkWithLipSync = (text, speedRatio = 1, languageCode) => {
                 const audio = document.createElement('audio');
                 audio.src = `data:audio/mpeg;base64,${res.audioContent}`;
                 let callbackID
-                computeSoundWave(audio.src)(speedRatio, (data, total, time) => {
-                    let current;
-                    if (!tracker.data[tracker.current] && total > 0) {
-                        tracker.data[tracker.current] = {
-                            offset: time,
-                            direction: 1,
-                            values: []
-                        }
-                    }
-                    current = tracker.data[tracker.current]
-                    console.log(current)
-                    if (current) {
-                        if (current.values.length) {
-                            const last = current.values[current.values.length - 1]
-                            if (total > last * 1.02 && current.direction === -1) {
-                                tracker.current++
-                            } else {
-                                current.values.push(total)
-                                if (total < last) {
-                                    current.direction = -1
-                                }
-                            }
-                        } else {
-                            current.values.push(total)
-                        }
-                    }
-                    console.log(tracker, total)
-                }, () => {
-                    audio.playbackRate = speedRatio || 1
-                    audio.onended = () => {
-                        clearInterval(callbackID)
-                        const aibot = document.getElementById('ai-bot');
-                        Object.keys(dictionary).forEach(key => {
-                            aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:0`)
-                        })
-                    }
-                    audio.play();
-                    // play and sync
-                    const delayPlay = setInterval(() => {
-                        if (isNaN(audio.duration)) return
-                        clearInterval(delayPlay)
-                        const timeline = new Timeline(text, words, audio.duration - 0.5)
-                        const scale = 0.5
-                        const aibot = document.getElementById('ai-bot');
+                audio.playbackRate = speedRatio || 1
+                audio.onended = () => {
+                    clearInterval(callbackID)
+                    window.currentAnimation = 'idle'
+                    const aibot = document.getElementById('ai-bot');
+                    Object.keys(dictionary).forEach(key => {
+                        aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:0`)
+                    })
+                }
+                audio.play();
+                window.currentAnimation = 'talk'
+                // play and sync
+                const delayPlay = setInterval(() => {
+                    if (isNaN(audio.duration)) return
+                    clearInterval(delayPlay)
+                    const timeline = new Timeline(text, words, audio.duration - 0.5)
+                    const scale = 0.5
+                    const aibot = document.getElementById('ai-bot');
 
-                        console.log(timeline)
-                        callbackID = setInterval(() => {
-                            const lips = timeline.getNow(audio.currentTime)
-                            lips.forEach(lipSync => {
-                                const key = mapKeyword(lipSync.char)
-                                if (key) {
-                                    aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`)
-                                    // console.log(`morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`, lipSync)
-                                }
-                            })
-                            // console.log(timeline.getNow(audio.currentTime), audio.duration, audio.currentTime)
-                            // console.log(timeline.getNow(audio.currentTime).map(i => ({ char: i.char, time: i.alpha })), audio.duration, audio.currentTime)
-                        }, 1000 / 60)
-                    }, 60)
-                })
+                    console.log(timeline)
+                    callbackID = setInterval(() => {
+                        const lips = timeline.getNow(audio.currentTime)
+                        lips.forEach(lipSync => {
+                            const key = mapKeyword(lipSync.char)
+                            if (key) {
+                                aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`)
+                                // console.log(`morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`, lipSync)
+                            }
+                        })
+                        // console.log(timeline.getNow(audio.currentTime), audio.duration, audio.currentTime)
+                        // console.log(timeline.getNow(audio.currentTime).map(i => ({ char: i.char, time: i.alpha })), audio.duration, audio.currentTime)
+                    }, 1000 / 60)
+                }, 60)
+                // computeSoundWave(audio.src)(speedRatio, (data, total, time) => {
+                //     let current;
+                //     if (!tracker.data[tracker.current] && total > 0) {
+                //         tracker.data[tracker.current] = {
+                //             offset: time,
+                //             direction: 1,
+                //             values: []
+                //         }
+                //     }
+                //     current = tracker.data[tracker.current]
+                //     console.log(current)
+                //     if (current) {
+                //         if (current.values.length) {
+                //             const last = current.values[current.values.length - 1]
+                //             if (total > last * 1.02 && current.direction === -1) {
+                //                 tracker.current++
+                //             } else {
+                //                 current.values.push(total)
+                //                 if (total < last) {
+                //                     current.direction = -1
+                //                 }
+                //             }
+                //         } else {
+                //             current.values.push(total)
+                //         }
+                //     }
+                //     console.log(tracker, total)
+                // }, () => {
+                //     audio.playbackRate = speedRatio || 1
+                //     audio.onended = () => {
+                //         clearInterval(callbackID)
+                //         const aibot = document.getElementById('ai-bot');
+                //         Object.keys(dictionary).forEach(key => {
+                //             aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:0`)
+                //         })
+                //     }
+                //     audio.play();
+                //     // play and sync
+                //     const delayPlay = setInterval(() => {
+                //         if (isNaN(audio.duration)) return
+                //         clearInterval(delayPlay)
+                //         const timeline = new Timeline(text, words, audio.duration - 0.5)
+                //         const scale = 0.5
+                //         const aibot = document.getElementById('ai-bot');
+
+                //         console.log(timeline)
+                //         callbackID = setInterval(() => {
+                //             const lips = timeline.getNow(audio.currentTime)
+                //             lips.forEach(lipSync => {
+                //                 const key = mapKeyword(lipSync.char)
+                //                 if (key) {
+                //                     aibot.setAttribute(`gltf-morph__${key}`, `morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`)
+                //                     // console.log(`morphtarget:viseme_${key};value:${Math.max(lipSync.sinAlpha * scale, 0)}`, lipSync)
+                //                 }
+                //             })
+                //             // console.log(timeline.getNow(audio.currentTime), audio.duration, audio.currentTime)
+                //             // console.log(timeline.getNow(audio.currentTime).map(i => ({ char: i.char, time: i.alpha })), audio.duration, audio.currentTime)
+                //         }, 1000 / 60)
+                //     }, 60)
+                // })
             })
     }
 }
