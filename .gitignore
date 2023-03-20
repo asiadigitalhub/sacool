@@ -69,3 +69,5 @@ results/
 .ret.credentials
 src/assets/locales/en.json
 src/assets/locales/extracted-messages.json
+cloud/functions/.env.forward-camera-345608
+cloud/functions/.env.local
