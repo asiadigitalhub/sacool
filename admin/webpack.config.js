@@ -69,7 +69,7 @@ module.exports = (env, argv) => {
       HOST: "hubs.local",
       RETICULUM_SOCKET_SERVER: "hubs.local",
       CORS_PROXY_SERVER: "hubs-proxy.local:4000",
-      NON_CORS_PROXY_DOMAINS: "hubs.local,dev.reticulum.io",
+      NON_CORS_PROXY_DOMAINS: "hubs.local,metaverse.asiadigitalhub.net",
       BASE_ASSETS_PATH: "https://hubs.local:8989/",
       RETICULUM_SERVER: "hubs.local:4000",
       POSTGREST_SERVER: "",
