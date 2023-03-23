@@ -172,8 +172,8 @@ const avatarListing = {
   attributions: { creator: "" },
   description: null,
   gltfs: {
-    avatar: "https://dev.reticulum.io/api/v1/avatars/yUXsaby/avatar.gltf?v=63734422084",
-    base: "https://dev.reticulum.io/api/v1/avatars/yUXsaby/base.gltf?v=63734422084"
+    avatar: "https://metaverse.asiadigitalhub.net/api/v1/avatars/yUXsaby/avatar.gltf?v=63734422084",
+    base: "https://metaverse.asiadigitalhub.net/api/v1/avatars/yUXsaby/base.gltf?v=63734422084"
   },
   id: "123",
   images: {
