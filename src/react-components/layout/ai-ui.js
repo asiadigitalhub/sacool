@@ -137,7 +137,7 @@ window.AI.botMove = BotMove;
 window.currentAnimation = currentAnimation;
 
 const text = "Chat with AI Bot";
-const waiting = "Let me thing...";
+const waiting = "Let me think...";
 
 const BotIdle = () => {
   console.log("BotIdle called");

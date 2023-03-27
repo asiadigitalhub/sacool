@@ -123,14 +123,15 @@ export const ask = async (talk, stopTalk) => {
   const languageCode = APP.store.state.preferences.locale || "en";
   const preText = {
     vi: "Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.",
-    en: "Let me thing..."
+    en: "Let me think..."
   };
+  if (window.currentAnimation === "talk") return;
   const timeoutID = setTimeout(() => {
     // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
     // talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
     // eslint-disable-next-line no-use-before-define
     talkWithViseme(preText[languageCode], talk, stopTalk);
-  }, 2000);
+  }, 10);
   // upload mp3 file to server
   if (!auth.currentUser) {
     await signInAnonymously(auth);
@@ -480,12 +481,12 @@ export const talkWithChatGPT = text => {
         console.log("Chat-GPT res", res);
         const messages = res.choices[0]?.text || "";
         if (messages) {
+          window.currentAnimation = "talk";
           instruction = `${instruction}\nAI:${messages}`;
           // Text to speech with viseme
           // eslint-disable-next-line no-use-before-define
           talkWithViseme(messages);
         }
-        //window.currentAnimation = "talk";
       });
   }
 };
@@ -589,8 +590,8 @@ const getAzureTTS = (ssmlBody, langCode) => {
       sound.setBuffer(buffer);
       sound.setVolume(2);
       sound.play();
-      synthesizer.close();
     });
+    window.currentAnimation = "idle";
   }
 
   function tidyTextMakeAzureSSML(ssmlBody) {
