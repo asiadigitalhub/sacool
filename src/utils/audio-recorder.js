@@ -130,7 +130,14 @@ export const ask = async (talk, stopTalk) => {
     // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
     // talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
     // eslint-disable-next-line no-use-before-define
-    talkWithViseme(preText[languageCode], talk, stopTalk);
+
+    //repeatAsk
+    const qs = new URLSearchParams(location.search);
+    const repeatAsk = parseInt(qs.get("repeatAsk"));
+    if(!repeatAsk) {
+      talkWithViseme(preText[languageCode], talk, stopTalk);
+    }
+
   }, 10);
   // upload mp3 file to server
   if (!auth.currentUser) {
@@ -458,6 +465,14 @@ export const talkWithLipSync = (text, speedRatio = 1, languageCode) => {
 
 export const talkWithChatGPT = text => {
   console.log("Text to talk: ", text);
+
+  //repeatAsk
+  const qs = new URLSearchParams(location.search);
+  const repeatAsk = parseInt(qs.get("repeatAsk"));
+  if(repeatAsk) {
+    repeatAskWithViseme(text);
+  }
+
   if (text.length) {
     instruction = `${instruction}\nHuman: ${text}`;
     const url = "https://us-central1-forward-camera-345608.cloudfunctions.net/gentext";
@@ -501,6 +516,13 @@ const talkWithViseme = text => {
   console.log("Talking content: ", message);
   // eslint-disable-next-line no-use-before-define
   getAzureTTS(message, "en-US");
+};
+
+const repeatAskWithViseme = text => {
+  const message = (text || "").replace("AI: ", "");
+  console.log("Talking content: ", message);
+  // eslint-disable-next-line no-use-before-define
+  getAzureTTS(message, "en-US", "en-US-AshleyNeural");
 };
 
 const VisemeHandler = function(host, visemes) {
@@ -552,8 +574,9 @@ const raiseVisemeEvent = (host, visemeValue, duration) => {
   host._features.TextToSpeechFeature.emit("onVisemeEvent", speechMark);
 };
 
-const getAzureTTS = (ssmlBody, langCode) => {
+const getAzureTTS = (ssmlBody, langCode, voiceName) => {
   langCode = langCode || "en-US";
+  voiceName = voiceName || "en-US-ChristopherNeural";
   const speechConfig = speechsdk.SpeechConfig.fromSubscription("ef96b0589d34477cbcd5e461db9fe75f", "eastus");
 
   const audioStream = speechsdk.AudioOutputStream.createPullStream();
@@ -593,7 +616,7 @@ const getAzureTTS = (ssmlBody, langCode) => {
     const audioLoader = new THREE.AudioLoader();
     audioLoader.load(url, function(buffer) {
       sound.setBuffer(buffer);
-      sound.setVolume(2);
+      sound.setVolume(8);
       sound.play();
     });
     window.currentAnimation = "idle";
@@ -606,7 +629,7 @@ const getAzureTTS = (ssmlBody, langCode) => {
     ssmlBody = ssmlBody.replace("</amazon:domain>", "");
     let tidiedString = ssmlBody.replace(/\n/g, " ");
     tidiedString = tidiedString.replace(/\s+/g, " ").trim();
-    return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}"><voice name="en-US-ChristopherNeural">${tidiedString}</voice></speak>`;
+    return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}"><voice name="${voiceName}">${tidiedString}</voice></speak>`;
   }
 
   // The actual cloud call
