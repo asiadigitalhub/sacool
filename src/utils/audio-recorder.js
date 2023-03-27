@@ -21,7 +21,7 @@ let firebase_messagingSenderId = "";
 let firebase_appId = "";
 let firebase_measurementId = "";
 let instruction =
-  "The following is a conversation with an AI assistant from Samsung. The assistant is helpful, creative, clever, and very friendly. Samsung is a global leader in technology, operating around the world in over 80 countries. We are also a market leader in consumer electronics, mobile communications, semiconductors, IT and home appliances. As a team of more than 257,000 global employees, we work passionately to be the best in the world at what we do. That means doing whatever it takes to delight our customers.\n";
+  "The following is a conversation with an AI assistant from Samsung. The assistant is helpful, creative, clever, and very friendly. Samsung is a global leader in technology, operating around the world in over 80 countries. We are also a market leader in consumer electronics, mobile communications, semiconductors, IT and home appliances. As a team of more than 257,000 global employees, we work passionately to be the best in the world at what we do. That means doing whatever it takes to delight our customers.\n\nHuman: Hello, how are you?\nAI: Very well thank you and how are you?\n";
 let AzuAwsVismLookup = {};
 try {
   firebase_apiKey = configs.feature("default_firebase_apiKey");
@@ -477,7 +477,14 @@ export const talkWithChatGPT = text => {
       })
       .then(res => {
         console.log("Chat-GPT res", res);
-        const messages = res.choices[0]?.text || "";
+        var messages = res.choices[0]?.text || "";
+
+        //case: ", how are you?\nAI:Very well thank you and how are you?\n"
+        const index = messages.indexOf("AI:")
+        if (index > 0) {
+          messages = messages.substring(index + 3, messages.length - 1)
+        }
+
         if (messages) {
           window.currentAnimation = "talk";
           instruction = `${instruction}\nAI:${messages}`;
