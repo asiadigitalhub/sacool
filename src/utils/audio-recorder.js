@@ -153,7 +153,7 @@ export const ask = async (talk, stopTalk) => {
     // call cloud func api to ask bot
     return new Promise(resolve => {
       Axios({
-        url: `https://us-central1-forward-camera-345608.cloudfunctions.net/translate?audio=${encodeURIComponent(
+        url: `https://us-central1-forward-camera-345608.cloudfunctions.net/translateOnly?audio=${encodeURIComponent(
           url
         )}&languageCode=${languageCode}`,
         method: "GET"
