@@ -66,6 +66,7 @@
     ]
   },
   "dependencies": {
+    "@amazon-sumerian-hosts/three": "^2.0.6",
     "@braintree/sanitize-url": "^5.0.0",
     "@formatjs/intl-locale": "^2.4.13",
     "@formatjs/intl-pluralrules": "^4.0.3",
@@ -112,6 +113,7 @@
     "lib-hubs": "github:mozillareality/lib-hubs#master",
     "linkify-it": "^2.0.3",
     "markdown-it": "^8.4.2",
+    "microsoft-cognitiveservices-speech-sdk": "^1.18.1",
     "moving-average": "^1.0.0",
     "networked-aframe": "github:mozillareality/networked-aframe#ae8ca30fcded2369c8702686b07cce46dfc16306",
     "nipplejs": "github:mozillareality/nipplejs#mr-social-client/master",
