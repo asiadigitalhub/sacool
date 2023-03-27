@@ -21,7 +21,7 @@ let firebase_messagingSenderId = "";
 let firebase_appId = "";
 let firebase_measurementId = "";
 let instruction =
-  "The following is a conversation with an AI assistant from Verticurl Agency. The assistant is helpful, creative, clever, and very friendly. Verticurl, a division of Ogilvy, was established in 2006 with the mission to be the world’s leading marketing technology services agency for multinational organizations. Verticurl enables the clients to assess, deploy and integrate MarTech platforms, activate customer experience technologies, implement lead management processes that accelerate revenue conversion and leverage marketing technology to achieve operational excellence.\n\nHuman: Hello, how are you?\nAI: Very well thank you and how are you?\nHuman:what's Verticurl’s team expertise in sales?\nAI: We have deep and wide expertise in sales and marketing operations, CRM, CX, data and technology\n";
+  "The following is a conversation with an AI assistant from Samsung. The assistant is helpful, creative, clever, and very friendly. Samsung is a global leader in technology, operating around the world in over 80 countries. We are also a market leader in consumer electronics, mobile communications, semiconductors, IT and home appliances. As a team of more than 257,000 global employees, we work passionately to be the best in the world at what we do. That means doing whatever it takes to delight our customers.\n";
 let AzuAwsVismLookup = {};
 try {
   firebase_apiKey = configs.feature("default_firebase_apiKey");
@@ -462,9 +462,7 @@ export const talkWithChatGPT = text => {
     instruction = `${instruction}\nHuman: ${text}`;
     const url = "https://us-central1-forward-camera-345608.cloudfunctions.net/gentext";
     const data = {
-      input: {
-        text: instruction
-      }
+      text: instruction
     };
     const params = {
       headers: {
