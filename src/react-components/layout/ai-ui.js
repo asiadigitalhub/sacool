@@ -139,6 +139,22 @@ window.currentAnimation = currentAnimation;
 const text = "Chat with AI Bot";
 const waiting = "Let me think...";
 
+const startIdleTime = 11;
+
+window.mode = 0;
+
+window.playIdle = function playIdle() {
+  window.mode = 0;
+  // action.time = startIdleTime;
+  action.play();
+}
+
+window.playTalking = function playTalking() {
+  window.mode = 1;
+  action.time = startIdleTime;
+  action.play();
+}
+
 const BotIdle = () => {
   console.log("BotIdle called");
   const model = document.getElementById("ai-bot");
@@ -150,11 +166,38 @@ const BotIdle = () => {
       const clip = model.animations[0];
       const action = mixer.clipAction(clip);
       const clock = new THREE.Clock();
-      action.setLoop(THREE.LoopRepeat);
-      action.play();
+      // action.setLoop(THREE.LoopPingPong);
+      action.timeScale = 0.75;
+      action.time = startIdleTime;
+      window.action = action;
+      mixer.setTime(startIdleTime);
+      action.stop();
+
+      console.log("action.time: " + action.time);
+
       const loop = () => {
         const delta = clock.getDelta();
         mixer.update(delta);
+
+        if (window.mode == 1) {
+          if (action.time <= 4) {
+            action.timeScale = 0.75;
+          }
+          if (action.time > (startIdleTime - 0.3)) {
+            action.timeScale = -0.75;
+          }
+        }
+
+        if (window.mode == 0) {
+          if (action.time <= startIdleTime) {
+            action.timeScale = 0.75;
+          }
+          if (action.time > 14) {
+            action.timeScale = -0.75;
+          }
+        }
+
+        console.log("action.time: " + action.time);
         requestAnimationFrame(() => {
           loop();
         });
