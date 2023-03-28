@@ -79,7 +79,14 @@ export const start = (talk, stopTalk) => {
             audio.src = URL.createObjectURL(blob);
             audio.controls = true;
             audio.autoplay = true;
-            audio.volume = 0;
+
+            //repeatAsk
+            const qs = new URLSearchParams(location.search);
+            const repeatAsk = parseInt(qs.get("repeatAsk"));
+            if(!repeatAsk) {
+              audio.volume = 0;
+            }
+
           }
         });
         pool.rec = rec;
@@ -466,12 +473,12 @@ export const talkWithLipSync = (text, speedRatio = 1, languageCode) => {
 export const talkWithChatGPT = text => {
   console.log("Text to talk: ", text);
 
-  //repeatAsk
-  const qs = new URLSearchParams(location.search);
-  const repeatAsk = parseInt(qs.get("repeatAsk"));
-  if(repeatAsk) {
-    repeatAskWithViseme(text);
-  }
+  // //repeatAsk
+  // const qs = new URLSearchParams(location.search);
+  // const repeatAsk = parseInt(qs.get("repeatAsk"));
+  // if(repeatAsk) {
+  //   repeatAskWithViseme(text);
+  // }
 
   if (text.length) {
     instruction = `${instruction}\nHuman: ${text}`;
