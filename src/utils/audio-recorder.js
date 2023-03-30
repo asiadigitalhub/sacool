@@ -23,6 +23,25 @@ let firebase_measurementId = "";
 let instruction =
   "The following is a conversation with an AI assistant from Samsung. The assistant is helpful, creative, clever, and very friendly. Samsung is a global leader in technology, operating around the world in over 80 countries. We are also a market leader in consumer electronics, mobile communications, semiconductors, IT and home appliances. As a team of more than 257,000 global employees, we work passionately to be the best in the world at what we do. That means doing whatever it takes to delight our customers.\n\nHuman: Hello, how are you?\nAI: Very well thank you and how are you?\n";
 let AzuAwsVismLookup = {};
+let messageBoxes = new Map([
+  [
+    "sample",
+    "The following is a conversation with an AI assistant from Samsung. The assistant is helpful, creative, clever, and very friendly. Samsung is a global leader in technology"
+  ],
+  ["how are you", "Hello Kali, I am doing very well, and you?"],
+  [
+    "galaxy",
+    "Of course, we are going to show you our latest, best in class products for today. It is The Galaxy S23 Ultra, a flagship phone with all features to push Boundaries of a new generation. S23 Ultra is equipped with a variety of new Samsung technology, allowing users to enjoy an extraordinary and superior mobile experience.The Galaxy S23 Ultra combines the top elements of the previous Note series and the new S series, putting the fastest and most responsive built-in S Pen into the S series smartphones for the first time. In addition, it is equipped with the most advanced camera to create the most powerful device in the history of the Galaxy series.Powered by the first 4nm processor, the performance of the Galaxy S23 series have been further improved. Equipped with a 120Hz Dynamic AMOLED 2X display, Vision Booster and ultra-long-lasting power, users can always enjoy the one-of-a-kind mobile entertainment experience."
+  ],
+  [
+    "introduction",
+    "Sure, Samsung understands what operators and consumers are looking for in their products. And we are investing heavily in creating products that are high in performance but reduce power consumption. We begin from one of the smallest, but important components, Samsung Network Chipset. With years of experience, Samsung has been producing our own chipsets that range from modems to RFs to end user devices. This competitive adge is enabling our products to become more powerful and compact while lowering energy consumption."
+  ],
+  [
+    "flagship",
+    "Thank you for the very detailed introduction about Samsung's flagship product, this smart handset would bring great experience for customers. Can you tell us more about the philosophy behind Samsung's products?"
+  ]
+]);
 try {
   firebase_apiKey = configs.feature("default_firebase_apiKey");
   firebase_authDomain = configs.feature("default_firebase_authDomain");
@@ -67,7 +86,7 @@ export const start = (talk, stopTalk) => {
       })
       .then(stream => {
         console.log("prepare recording");
-        let rec = new MediaRecorder(stream);
+        const rec = new MediaRecorder(stream);
         rec.addEventListener("dataavailable", e => {
           console.log("rec.ondataavailable");
           audioChunks.push(e.data);
@@ -79,14 +98,7 @@ export const start = (talk, stopTalk) => {
             audio.src = URL.createObjectURL(blob);
             audio.controls = true;
             audio.autoplay = true;
-
-            //repeatAsk
-            const qs = new URLSearchParams(location.search);
-            const repeatAsk = parseInt(qs.get("repeatAsk"));
-            if(!repeatAsk) {
-              audio.volume = 0;
-            }
-
+            audio.volume = 0;
           }
         });
         pool.rec = rec;
@@ -132,24 +144,24 @@ export const ask = async (talk, stopTalk) => {
     vi: "Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.",
     en: "Let me think..."
   };
-  if (window.currentAnimation === "talk") return;
-  const timeoutID = setTimeout(() => {
-    // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
-    // talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
-    // eslint-disable-next-line no-use-before-define
 
-    //repeatAsk
-    const qs = new URLSearchParams(location.search);
-    const repeatAsk = parseInt(qs.get("repeatAsk"));
-    if(!repeatAsk) {
-      talkWithViseme(preText[languageCode], talk, stopTalk);
-    }
+  // const timeoutID = setTimeout(() => {
+  //   // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
+  //   // talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
 
-  }, 10);
+  //   //repeatAsk
+  //   const qs = new URLSearchParams(location.search);
+  //   const repeatAsk = parseInt(qs.get("repeatAsk"));
+  //   if (!repeatAsk) {
+  //     // eslint-disable-next-line no-use-before-define
+  //     //talkWithViseme(preText[languageCode], talk, stopTalk);
+  //   }
+  // }, 1000);
   // upload mp3 file to server
   if (!auth.currentUser) {
     await signInAnonymously(auth);
   }
+  // eslint-disable-next-line no-use-before-define
   const base64 = await blobToBase64(pool.blob);
   const path = `${auth.currentUser.uid}-${new Date() - 0}.mp3`;
   const storageRef = ref(storage, path);
@@ -165,7 +177,7 @@ export const ask = async (talk, stopTalk) => {
         )}&languageCode=${languageCode}`,
         method: "GET"
       }).then(async res => {
-        clearTimeout(timeoutID);
+        // clearTimeout(timeoutID);
         console.log(res.data);
         // const intent = res.data.raw[0].queryResult.intent.displayName;
         // if (intent === "education") {
@@ -271,6 +283,13 @@ const mapKeyword = char => {
   });
 };
 
+const findKey = char => {
+  return [...messageBoxes].find(([key]) => char.indexOf(key) !== -1) ?? "";
+};
+
+const detectAskWord = char => {
+  return (char || "").split(" ").find(w => (w === "product" ? true : false));
+};
 class Timeline {
   constructor(text, words, total) {
     this.totalChar = text.length;
@@ -470,16 +489,15 @@ export const talkWithLipSync = (text, speedRatio = 1, languageCode) => {
   }
 };
 
-export const talkWithChatGPT = text => {
+export const talkWithChatGPT = (text, BotTalking, BotStopTalking) => {
   console.log("Text to talk: ", text);
-
-  // //repeatAsk
-  // const qs = new URLSearchParams(location.search);
-  // const repeatAsk = parseInt(qs.get("repeatAsk"));
-  // if(repeatAsk) {
-  //   repeatAskWithViseme(text);
-  // }
-
+  //repeatAsk
+  const qs = new URLSearchParams(location.search);
+  const repeatAsk = parseInt(qs.get("repeatAsk"));
+  if (repeatAsk) {
+    // eslint-disable-next-line no-use-before-define
+    repeatAskWithViseme(text);
+  }
   if (text.length) {
     instruction = `${instruction}\nHuman: ${text}`;
     const url = "https://us-central1-forward-camera-345608.cloudfunctions.net/gentext";
@@ -493,43 +511,52 @@ export const talkWithChatGPT = text => {
       body: JSON.stringify(data),
       method: "POST"
     };
+    const msg = findKey(text) ?? "";
+    console.log("Text to ask", msg);
+    const isPresent = detectAskWord(text);
+    window.currentAnimation = isPresent !== undefined ? "present" : "talk";
+    if (msg) {
+      instruction = `${instruction}\nAI:${msg}`;
+      // eslint-disable-next-line no-use-before-define
+      talkWithViseme(msg[1], BotTalking, BotStopTalking);
+      return;
+    }
     fetch(url, params)
       .then(data => {
         return data.json();
       })
       .then(res => {
         console.log("Chat-GPT res", res);
-        var messages = res.choices[0]?.text || "";
+        let messages = res.choices[0]?.text || "";
 
         //case: ", how are you?\nAI:Very well thank you and how are you?\n"
-        const index = messages.indexOf("AI:")
+        const index = messages.indexOf("AI:");
         if (index > 0) {
-          messages = messages.substring(index + 3, messages.length - 1)
+          messages = messages.substring(index + 3, messages.length - 1);
         }
 
         if (messages) {
-          window.currentAnimation = "talk";
           instruction = `${instruction}\nAI:${messages}`;
           // Text to speech with viseme
           // eslint-disable-next-line no-use-before-define
-          talkWithViseme(messages);
+          talkWithViseme(messages, BotTalking, BotStopTalking);
         }
       });
   }
 };
 
-const talkWithViseme = text => {
+const talkWithViseme = (text, talk, stopTalk) => {
   const message = (text || "").replace("AI: ", "");
   console.log("Talking content: ", message);
   // eslint-disable-next-line no-use-before-define
-  getAzureTTS(message, "en-US");
+  getAzureTTS(message, "en-US", "en-US-ChristopherNeural", talk, stopTalk);
 };
 
-const repeatAskWithViseme = text => {
+const repeatAskWithViseme = (text, talk, stopTalk) => {
   const message = (text || "").replace("AI: ", "");
   console.log("Talking content: ", message);
   // eslint-disable-next-line no-use-before-define
-  getAzureTTS(message, "en-US", "en-US-AshleyNeural");
+  getAzureTTS(message, "en-US", "en-US-ChristopherNeural", talk, stopTalk);
 };
 
 const VisemeHandler = function(host, visemes) {
@@ -581,11 +608,11 @@ const raiseVisemeEvent = (host, visemeValue, duration) => {
   host._features.TextToSpeechFeature.emit("onVisemeEvent", speechMark);
 };
 
-const getAzureTTS = (ssmlBody, langCode, voiceName) => {
+const getAzureTTS = (ssmlBody, langCode, voiceName, talk, stopTalk) => {
   langCode = langCode || "en-US";
+  // Voice Famale: AriaNeural
   voiceName = voiceName || "en-US-ChristopherNeural";
   const speechConfig = speechsdk.SpeechConfig.fromSubscription("ef96b0589d34477cbcd5e461db9fe75f", "eastus");
-
   const audioStream = speechsdk.AudioOutputStream.createPullStream();
   const audioConfig = speechsdk.AudioConfig.fromStreamOutput(audioStream);
   const synthesizer = new speechsdk.SpeechSynthesizer(speechConfig, audioConfig);
@@ -611,29 +638,33 @@ const getAzureTTS = (ssmlBody, langCode, voiceName) => {
     // Make a Data URL from returned WAV file
     const blob = new Blob([result.audioData], { type: "octet/stream" }),
       url = window.URL.createObjectURL(blob);
-
+    console.log("URL", url);
     // Queue up the visemes
     //host.visemeHandler = new VisemeHandler(host, result.visemes);
 
     // Start playing the audio and watch progress in the animation loop
     const audioListener = new THREE.AudioListener();
-    const sound = new THREE.PositionalAudio(audioListener);
-
+    const sound = new THREE.Audio(audioListener);
+    let playing;
+    sound.onEnded = () => {
+      sound.isPlaying = false;
+      if (stopTalk) {
+        stopTalk();
+        clearInterval(playing);
+      }
+    };
     // Use the built-in audio loaded buffer reader - accepts both AWS mp3 and Azure Wav
     const audioLoader = new THREE.AudioLoader();
     audioLoader.load(url, function(buffer) {
       sound.setBuffer(buffer);
       sound.setVolume(8);
-      sound.play();
+      playing = setInterval(sound.play(), 12000);
     });
-    window.currentAnimation = "idle";
   }
 
   function tidyTextMakeAzureSSML(ssmlBody) {
     ssmlBody = ssmlBody.replace("<speak>", "");
     ssmlBody = ssmlBody.replace("</speak>", "");
-    ssmlBody = ssmlBody.replace('<amazon:domain name="conversational">', "");
-    ssmlBody = ssmlBody.replace("</amazon:domain>", "");
     let tidiedString = ssmlBody.replace(/\n/g, " ");
     tidiedString = tidiedString.replace(/\s+/g, " ").trim();
     return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}"><voice name="${voiceName}">${tidiedString}</voice></speak>`;
@@ -647,6 +678,9 @@ const getAzureTTS = (ssmlBody, langCode, voiceName) => {
         if (result) {
           synthesizer.close();
           result.visemes = visemes;
+          if (talk) {
+            talk();
+          }
           callback(result);
         }
       },

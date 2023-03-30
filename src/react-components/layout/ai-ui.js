@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import styles from "./ai-ui.scss";
 import classNames from "classnames";
 // import { AIHost } from "./ai-host";
+let currentAnimation = "idle",
+  currentTimeAnim = 0,
+  timeID = 0;
 const trackUserMove = () => {
   const pos = { x: -999, y: 0, z: -999 };
   const botPosition = { x: 0, z: 6 };
@@ -20,53 +23,113 @@ const trackUserMove = () => {
 
 trackUserMove();
 
-const BotTalking = () => {
-//   const aibot = document.getElementById("ai-bot");
-//   const template = {
-//     aa: "morphtarget:viseme_aa;value:",
-//     E: "morphtarget:viseme_E;value:",
-//     I: "morphtarget:viseme_I;value:",
-//     O: "morphtarget:viseme_O;value:",
-//     U: "morphtarget:viseme_U;value:",
-//     nn: "morphtarget:viseme_nn;value:"
-//   };
-//   // eslint-disable-next-line no-use-before-define
-//   currentAnimation = "talk";
-//   talking = setInterval(() => {
-//     pitch += 0.35;
-//     const amount = 0.4;
-//     const val = Math.sin(pitch) * amount;
-//     const val2 = Math.sin(pitch * 0.8) * amount;
-//     const val3 = Math.cos(pitch * 0.8) * amount;
-//     const val4 = Math.cos(pitch * 1.15) * amount;
-//     const val5 = Math.sin(pitch + Math.PI * 0.65) * amount;
-//     const val6 = Math.cos(pitch + Math.PI * 0.65) * amount;
-//     const arr = [val, val2, val3, val4, val5, val6];
-//     Object.keys(template).forEach((key, index) => {
-//       aibot.setAttribute(`gltf-morph__${key}`, `${template[key]}${Math.max(arr[index], 0)}`);
-//     });
-//   }, 50);
+const InitBot = () => {
+  const aibot = document.getElementById("ai-bot");
+  const gltfModel = aibot.components["gltf-model"];
+  let mixer, action, clock, clip;
+  if (gltfModel) {
+    const model = gltfModel.model;
+    if (model) {
+      mixer = new THREE.AnimationMixer(model);
+      clip = model.animations[0];
+      action = mixer.clipAction(clip);
+      clock = new THREE.Clock();
+    }
+  }
+
+  return { mixer, action, clock, clip };
+};
+
+const doAnimationLoop = (mixer, clock, currentAnimationInfo) => {
+  if (timeID) {
+    cancelAnimationFrame(timeID);
+  }
+  const loop = () => {
+    const delta = clock.getDelta();
+    if (mixer.time >= currentAnimationInfo[1]) {
+      mixer.setTime(currentAnimationInfo[0]);
+    }
+    currentTimeAnim = mixer.time;
+    mixer.update(delta);
+    if (timeID) {
+      cancelAnimationFrame(timeID);
+    }
+    timeID = requestAnimationFrame(loop);
+  };
+  loop();
+};
+
+const BotTalking = state => {
+  console.log("Start talking...");
+  currentAnimation = state || "talk";
+  if (window.currentAnimation === "present") {
+    currentAnimation = "present";
+  }
+
+  const { mixer, action, clock, clip } = InitBot();
+  if (mixer) {
+    action.setLoop(THREE.LoopRepeat, Infinity);
+    // eslint-disable-next-line no-use-before-define
+    const currentAnimationInfo = getPostAnimation(clip)[currentAnimation];
+    mixer.setTime(currentAnimationInfo[0]);
+    action.play();
+    doAnimationLoop(mixer, clock, currentAnimationInfo);
+  }
 };
 
 const BotStopTalking = () => {
-//   clearInterval(talking);
-//   // eslint-disable-next-line no-use-before-define
-//   currentAnimation = "idle";
-//   const aibot = document.getElementById("ai-bot");
-//   const template = {
-//     aa: "morphtarget:viseme_aa;value:",
-//     E: "morphtarget:viseme_E;value:",
-//     I: "morphtarget:viseme_I;value:",
-//     O: "morphtarget:viseme_O;value:",
-//     U: "morphtarget:viseme_U;value:",
-//     nn: "morphtarget:viseme_nn;value:"
-//   };
-//   Object.keys(template).forEach(key => {
-//     aibot.setAttribute(`gltf-morph__${key}`, `${template[key]}0`);
-//   });
-console.log("Stop talking");
+  // eslint-disable-next-line no-use-before-define
+  const { mixer, action, clock, clip } = InitBot();
+  currentAnimation = "idle";
+  if (mixer) {
+    action.setLoop(THREE.LoopRepeat, Infinity);
+    // eslint-disable-next-line no-use-before-define
+    const currentAnimationInfo = getPostAnimation(clip)[currentAnimation];
+    action.play();
+    doAnimationLoop(mixer, clock, currentAnimationInfo);
+  }
 };
 
+let rotateCallbackId = 0;
+const NoteActiveRotate = () => {
+  const ssnoteGLB = document.getElementById("ai-samsung-glb");
+  let rot = 90;
+  const rotateHandler = () => {
+    rot += 0.15;
+    ssnoteGLB.setAttribute("rotation", `180.00 ${rot} 180.00`);
+    rotateCallbackId = requestAnimationFrame(() => rotateHandler());
+  };
+  rotateHandler();
+};
+const FlyAnimation = (direction = 1) => {
+  if (rotateCallbackId) {
+    cancelAnimationFrame(rotateCallbackId);
+  }
+  const ssnoteGLB = document.getElementById("ai-samsung-glb");
+  const cachedPosition = [-14.3, 1.46, -24.2];
+  const targetPosition = [-14.3, 3.46, -24.2];
+  const scaleFrom = 4;
+  const scaleTo = 20;
+  const posDiff = targetPosition[1] - cachedPosition[1];
+  const step = 0.01;
+  let alpha = direction > 0 ? 0 : 1;
+  const flyHandler = () => {
+    alpha += step * direction;
+    if (alpha > 1 || alpha < 0) {
+      if (direction > 0) {
+        NoteActiveRotate();
+      }
+      return;
+    }
+    const scale = scaleFrom + (scaleTo - scaleFrom) * alpha;
+    const position = [cachedPosition[0], cachedPosition[1] + posDiff * alpha, cachedPosition[2]];
+    ssnoteGLB.setAttribute("position", position.join(" "));
+    ssnoteGLB.setAttribute("rotation", "180.00 90.00 180.00");
+    ssnoteGLB.setAttribute("scale", `${scale} ${scale} ${scale}`);
+    requestAnimationFrame(() => flyHandler());
+  };
+  flyHandler();
+};
 const speed = 0.05;
 const BotMove = place => {
   return new Promise(resolve => {
@@ -119,14 +182,13 @@ const BotMove = place => {
 
 const getPostAnimation = clip => {
   const totalTimer = clip.duration;
-  const ratio = totalTimer / 230; // 230 is the total frames from raw model
+  const ratio = totalTimer / 1099; // 1099 is the total frames from raw model
   return {
-    walk: [0, 31 * ratio],
-    idle: [41 * ratio, 99 * ratio],
-    talk: [111 * ratio, 222 * ratio]
+    idle: [0, 99 * ratio],
+    talk: [100 * ratio, 880 * ratio],
+    present: [881 * ratio, 1099 * ratio]
   };
 };
-let currentAnimation = "idle";
 
 if (!window.AI) {
   window.AI = {};
@@ -136,31 +198,18 @@ window.AI.stopLipsSync = BotStopTalking;
 window.AI.botMove = BotMove;
 window.currentAnimation = currentAnimation;
 
-const text = "Chat with AI Bot";
+const text = "Chat with John";
 const waiting = "Let me think...";
 
 const BotIdle = () => {
   console.log("BotIdle called");
-  const model = document.getElementById("ai-bot");
-  const gltfModel = model.components["gltf-model"];
-  if (gltfModel) {
-    const model = gltfModel.model;
-    if (model) {
-      const mixer = new THREE.AnimationMixer(model);
-      const clip = model.animations[0];
-      const action = mixer.clipAction(clip);
-      const clock = new THREE.Clock();
-      action.setLoop(THREE.LoopRepeat);
-      action.play();
-      const loop = () => {
-        const delta = clock.getDelta();
-        mixer.update(delta);
-        requestAnimationFrame(() => {
-          loop();
-        });
-      };
-      loop();
-    }
+  const { mixer, action, clock, clip } = InitBot();
+  if (mixer) {
+    action.setLoop(THREE.LoopRepeat);
+    const currentAnimationInfo = getPostAnimation(clip)["idle"];
+    action.play();
+    doAnimationLoop(mixer, clock, currentAnimationInfo);
+    currentAnimation = "present";
     return true;
   }
   return false;
@@ -224,7 +273,7 @@ export const AIUI = () => {
       const pos = e.detail;
       if (pos) {
         if (places.current === "education") {
-          if (Math.abs(pos.x) > 16.5 && Math.abs(pos.x) < 20 && Math.abs(pos.z) < 28) {
+          if (Math.abs(pos.x) > 18.5 && Math.abs(pos.x) < 23 && Math.abs(pos.z) < 28) {
             setDisabled(false);
           } else {
             setDisabled(true);
@@ -238,14 +287,39 @@ export const AIUI = () => {
         }
       }
     });
-
+    let direction = 1;
+    window.addEventListener("keypress", e => {
+      switch (e.code) {
+        case "KeyT":
+          console.log("Begin Talking");
+          BotTalking();
+          break;
+        case "KeyL":
+          console.log("Present Talking");
+          BotTalking("present");
+          break;
+        case "KeyP":
+          console.log("Stop Talking");
+          BotStopTalking();
+          break;
+        case "Space":
+          // eslint-disable-next-line no-use-before-define
+          clickHandle();
+          break;
+        case "KeyF":
+          FlyAnimation(direction);
+          direction *= -1;
+          break;
+      }
+    });
     const callbackID = setInterval(() => {
       const inited = BotIdle();
-      //AIHost();
+      // AIHost();
       if (inited) {
         clearInterval(callbackID);
       }
     }, 1000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   useEffect(
     () => {
