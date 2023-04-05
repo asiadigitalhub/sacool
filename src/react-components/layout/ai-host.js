@@ -1,12 +1,11 @@
 import * as HOST from "@amazon-sumerian-hosts/three/dist/host.three";
-import characterFile1 from "../../assets/models/luke/luke.gltf";
 export function AIHost() {
   const speakers = new Map([["Luke", undefined]]);
   const renderFn = [];
   async function main() {
     // Define the glTF assets that will represent the host
-    //const characterFile1 = "/assets/models/luke/luke.gltf";
-    const animationPath1 = "../../assets/models/luke/animation";
+    const characterFile1 = "./src/assets/models/luke/luke.gltf";
+    const animationPath1 = "./src/assets/models/luke/animation";
     const animationFiles = [
       "stand_idle.glb",
       "lipsync.glb",

@@ -42,6 +42,7 @@ let messageBoxes = new Map([
     "Thank you for the very detailed introduction about Samsung's flagship product, this smart handset would bring great experience for customers. Can you tell us more about the philosophy behind Samsung's products?"
   ]
 ]);
+let AIHost;
 try {
   firebase_apiKey = configs.feature("default_firebase_apiKey");
   firebase_authDomain = configs.feature("default_firebase_authDomain");
@@ -69,8 +70,9 @@ const app = initializeApp(firebaseConfig, "[NewMetaverse]");
 const auth = getAuth(app);
 const storage = getStorage(app);
 
-export const start = (talk, stopTalk) => {
+export const start = (aibot, talk, stopTalk) => {
   let audio = pool.audio;
+  AIHost = aibot;
   if (!audio) {
     audio = document.createElement("audio");
     audio.style.display = "none";
@@ -78,6 +80,7 @@ export const start = (talk, stopTalk) => {
     pool.audio = audio;
   }
   console.log("request mic permiss");
+  // eslint-disable-next-line prefer-const
   let audioChunks = [];
   return new Promise(resolve => {
     navigator.mediaDevices
@@ -140,11 +143,30 @@ export const blobToBase64 = async blob => {
 export const ask = async (talk, stopTalk) => {
   // bot first response
   const languageCode = APP.store.state.preferences.locale || "en";
+  // eslint-disable-next-line no-unused-vars
   const preText = {
     vi: "Để tôi suy nghĩ cái rồi tôi trả lời bạn nha.",
     en: "Let me think..."
   };
-
+  // const speechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  // const recognition = new speechRecognition();
+  // recognition.lang = "en-US";
+  // recognition.continuous = true;
+  // recognition.interimResults = true;
+  // // eslint-disable-next-line no-unused-vars
+  // let textToAsk = "";
+  // recognition.onresult = event => {
+  //   console.log("SpeechRecognition", event.results);
+  //   textToAsk = "sample";
+  // };
+  // recognition.onspeechend = () => {
+  //   console.log("Ending");
+  //   recognition.stop();
+  // };
+  // recognition.addEventListener("soundend", event => {
+  //   console.log("Sound has stopped being received", event);
+  // });
+  // eslint-disable-next-line no-undef
   // const timeoutID = setTimeout(() => {
   //   // textToSpeech(preText[languageCode], languageCode, talk, stopTalk);
   //   // talkWithLipSync(preText[languageCode], 1, languageCode, talk, stopTalk);
@@ -284,7 +306,9 @@ const mapKeyword = char => {
 };
 
 const findKey = char => {
-  return [...messageBoxes].find(([key]) => char.indexOf(key) !== -1) ?? "";
+  return [...messageBoxes].find(key => {
+    return char.indexOf(key) !== -1;
+  });
 };
 
 const detectAskWord = char => {
@@ -511,7 +535,7 @@ export const talkWithChatGPT = (text, BotTalking, BotStopTalking) => {
       body: JSON.stringify(data),
       method: "POST"
     };
-    const msg = findKey(text) ?? "";
+    const msg = findKey(text);
     console.log("Text to ask", msg);
     const isPresent = detectAskWord(text);
     window.currentAnimation = isPresent !== undefined ? "present" : "talk";
@@ -548,6 +572,38 @@ export const talkWithChatGPT = (text, BotTalking, BotStopTalking) => {
 const talkWithViseme = (text, talk, stopTalk) => {
   const message = (text || "").replace("AI: ", "");
   console.log("Talking content: ", message);
+  // const synth = window.speechSynthesis;
+  // if (synth.speaking) {
+  //   console.error("speechSynthesis.speaking");
+  //   return;
+  // }
+  // const utterThis = new SpeechSynthesisUtterance(message);
+  // utterThis.onend = function(event) {
+  //   console.log("SpeechSynthesisUtterance.onend");
+  //   stopTalk();
+  // };
+
+  // utterThis.onerror = function(event) {
+  //   console.error("SpeechSynthesisUtterance.onerror");
+  // };
+  // const voices = synth.getVoices().sort(function(a, b) {
+  //   const aname = a.name.toUpperCase();
+  //   const bname = b.name.toUpperCase();
+
+  //   if (aname < bname) {
+  //     return -1;
+  //   } else if (aname == bname) {
+  //     return 0;
+  //   } else {
+  //     return +1;
+  //   }
+  // });
+
+  // utterThis.voice = voices[21];
+  // utterThis.pitch = 1;
+  // utterThis.rate = 1;
+  // synth.speak(utterThis);
+  // talk();
   // eslint-disable-next-line no-use-before-define
   getAzureTTS(message, "en-US", "en-US-ChristopherNeural", talk, stopTalk);
 };
@@ -559,146 +615,13 @@ const repeatAskWithViseme = (text, talk, stopTalk) => {
   getAzureTTS(message, "en-US", "en-US-ChristopherNeural", talk, stopTalk);
 };
 
-const VisemeHandler = function(host, visemes) {
-  let awsVisemes = [];
-  for (let a = 0; a < visemes.length; a++) {
-    const azVis = visemes[a];
-    if (azVis.visemeId === 0) {
-      continue;
-    }
-    let visemeDuration = 200;
-    if (a < visemes.length - 1) {
-      visemeDuration = visemes[a + 1].audioOffset - azVis.audioOffset;
-    }
-    if (visemeDuration < 25) {
-      visemeDuration = 25;
-    }
-    awsVisemes.push({ audioOffset: azVis.audioOffset, visemeId: AzuAwsVismLookup[azVis.visemeId], visemeDuration });
-  }
-  const visemesLength = awsVisemes.length;
-  let nextViseme = awsVisemes[0];
-  //host._features.LipsyncFeature._onPlay();
-
-  this.CheckForViseme = () => {
-    if (!host.sound || !host.sound.context) {
-      return;
-    }
-    const currentMs = host.sound.context.currentTime * 1000;
-    if (this.startContextMs === -1) {
-      this.startContextMs = currentMs;
-    }
-    console.log("currentMs | audioOffset", currentMs, nextViseme.audioOffset + this.startContextMs);
-    while (currentMs >= nextViseme.audioOffset + this.startContextMs) {
-      // eslint-disable-next-line no-use-before-define
-      raiseVisemeEvent(host, nextViseme.visemeId, nextViseme.visemeDuration - 5);
-      this.index++;
-      if (this.index >= visemesLength) {
-        host.visemeHandler = undefined;
-        host._features.LipsyncFeature._onStop();
-        return;
-      }
-      nextViseme = awsVisemes[this.index];
-    }
-  };
-};
-
-// Azure bits below
-const raiseVisemeEvent = (host, visemeValue, duration) => {
-  const speechMark = { mark: { value: visemeValue, duration: duration } };
-  host._features.TextToSpeechFeature.emit("onVisemeEvent", speechMark);
-};
-
-const getAzureTTS = (ssmlBody, langCode, voiceName, talk, stopTalk) => {
-  langCode = langCode || "en-US";
-  // Voice Famale: AriaNeural
-  voiceName = voiceName || "en-US-ChristopherNeural";
-  const speechConfig = speechsdk.SpeechConfig.fromSubscription("ef96b0589d34477cbcd5e461db9fe75f", "eastus");
-  const audioStream = speechsdk.AudioOutputStream.createPullStream();
-  const audioConfig = speechsdk.AudioConfig.fromStreamOutput(audioStream);
-  const synthesizer = new speechsdk.SpeechSynthesizer(speechConfig, audioConfig);
-  const visemes = [];
-
-  synthesizer.visemeReceived = function(s, e) {
-    visemes.push({ audioOffset: e.audioOffset / 10000, visemeId: e.visemeId });
-  };
-
-  // eslint-disable-next-line no-use-before-define
-  const ssmlPart = tidyTextMakeAzureSSML(ssmlBody);
-
-  // eslint-disable-next-line no-use-before-define
-  synthesizeSpeech(ssmlPart, handleSynthResult);
-
-  function handleSynthResult(result) {
-    console.log("getAzureTTS:result", result);
-    if (!result.audioData || result.audioData.byteLength === 0) {
-      console.log("No results returned from Azure for that input string");
-      return;
-    }
-
-    // Make a Data URL from returned WAV file
-    const blob = new Blob([result.audioData], { type: "octet/stream" }),
-      url = window.URL.createObjectURL(blob);
-    console.log("URL", url);
-    // Queue up the visemes
-    //host.visemeHandler = new VisemeHandler(host, result.visemes);
-
-    // Start playing the audio and watch progress in the animation loop
-    const audioListener = new THREE.AudioListener();
-    const sound = new THREE.Audio(audioListener);
-    let playing;
-    sound.onEnded = () => {
-      sound.isPlaying = false;
-      if (stopTalk) {
-        stopTalk();
-        clearInterval(playing);
-      }
-    };
-    // Use the built-in audio loaded buffer reader - accepts both AWS mp3 and Azure Wav
-    const audioLoader = new THREE.AudioLoader();
-    audioLoader.load(url, function(buffer) {
-      sound.setBuffer(buffer);
-      sound.setVolume(8);
-      playing = setInterval(sound.play(), 12000);
-    });
-  }
-
-  function tidyTextMakeAzureSSML(ssmlBody) {
-    ssmlBody = ssmlBody.replace("<speak>", "");
-    ssmlBody = ssmlBody.replace("</speak>", "");
-    let tidiedString = ssmlBody.replace(/\n/g, " ");
-    tidiedString = tidiedString.replace(/\s+/g, " ").trim();
-    return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}"><voice name="${voiceName}">${tidiedString}</voice></speak>`;
-  }
-
-  // The actual cloud call
-  function synthesizeSpeech(ssmlIn, callback) {
-    synthesizer.speakSsmlAsync(
-      ssmlIn,
-      result => {
-        if (result) {
-          synthesizer.close();
-          result.visemes = visemes;
-          if (talk) {
-            talk();
-          }
-          callback(result);
-        }
-      },
-      error => {
-        console.log(error);
-        synthesizer.close();
-      }
-    );
-  }
-};
-
-let AzuAwsVismXref = function(azVisemeId, ipaNameExamplePairsArray, awsVisemes) {
+const AzuAwsVismXref = function(azVisemeId, ipaNameExamplePairsArray, awsVisemes) {
   this.azVisemeId = azVisemeId;
   this.ipaNameExamplePairsArray = ipaNameExamplePairsArray;
   this.awsVisemes = awsVisemes;
 };
 
-let AzuAwsVismXrefTable = [
+const AzuAwsVismXrefTable = [
   new AzuAwsVismXref(1, [["æ", "[a]ctive"], ["ʌ", "[u]ncle"], ["ə", "[a]go"], ["ɚ", "all[er]gy"]], ["a", "@", "E"]),
   new AzuAwsVismXref(2, [["ɑ", "[o]bstinate"], ["ɑɹ", "[ar]tist"]], ["a"]),
   new AzuAwsVismXref(3, [["ɔ", "c[au]se"], ["ɔɹ", "[or]ange"]], ["O"]),
@@ -748,6 +671,141 @@ let AzuAwsVismXrefTable = [
 AzuAwsVismXrefTable.forEach(xref => {
   AzuAwsVismLookup[xref.azVisemeId] = xref.awsVisemes[0];
 });
+
+const VisemeHandler = function(host, visemes) {
+  // eslint-disable-next-line prefer-const
+  let awsVisemes = [];
+  this.index = 0;
+  this.startContextMs = -1;
+  for (let a = 0; a < visemes.length; a++) {
+    const azVis = visemes[a];
+    if (azVis.visemeId === 0) {
+      continue;
+    }
+    let visemeDuration = 200;
+    if (a < visemes.length - 1) {
+      visemeDuration = visemes[a + 1].audioOffset - azVis.audioOffset;
+    }
+    if (visemeDuration < 25) {
+      visemeDuration = 25;
+    }
+    awsVisemes.push({ audioOffset: azVis.audioOffset, visemeId: AzuAwsVismLookup[azVis.visemeId], visemeDuration });
+  }
+  const visemesLength = awsVisemes.length;
+  let nextViseme = awsVisemes[0];
+  // console.log("awsVisemes", host, host?._features, host?._features?.LipsyncFeature);
+  host._features.LipsyncFeature._onPlay();
+
+  this.CheckForViseme = () => {
+    if (!host.sound || !host.sound.context) {
+      return;
+    }
+    const currentMs = host.sound.context.currentTime * 1000;
+    if (this.startContextMs === -1) {
+      this.startContextMs = currentMs;
+    }
+    // console.log("currentMs | audioOffset", currentMs, nextViseme.audioOffset + this.startContextMs);
+    while (currentMs >= nextViseme.audioOffset + this.startContextMs) {
+      // eslint-disable-next-line no-use-before-define
+      raiseVisemeEvent(nextViseme.visemeId, nextViseme.visemeDuration - 5);
+      this.index++;
+      if (this.index >= visemesLength) {
+        host.visemeHandler = undefined;
+        host._features.LipsyncFeature._onStop();
+        return;
+      }
+      nextViseme = awsVisemes[this.index];
+    }
+  };
+};
+
+// Azure bits below
+const raiseVisemeEvent = (visemeValue, duration) => {
+  const speechMark = { mark: { value: visemeValue, duration: duration } };
+  AIHost._features.TextToSpeechFeature.emit("onVisemeEvent", speechMark);
+  // AIHost._features.LipsyncFeature._onViseme({ mark: { value: visemeValue, duration } });
+};
+
+const getAzureTTS = (ssmlBody, langCode, voiceName, talk, stopTalk) => {
+  langCode = langCode || "en-US";
+  // Voice Famale: AriaNeural
+  voiceName = voiceName || "en-US-ChristopherNeural";
+  const speechConfig = speechsdk.SpeechConfig.fromSubscription("ef96b0589d34477cbcd5e461db9fe75f", "eastus");
+  const audioStream = speechsdk.AudioOutputStream.createPullStream();
+  const audioConfig = speechsdk.AudioConfig.fromStreamOutput(audioStream);
+  const synthesizer = new speechsdk.SpeechSynthesizer(speechConfig, audioConfig);
+  const visemes = [];
+
+  synthesizer.visemeReceived = function(s, e) {
+    visemes.push({ audioOffset: e.audioOffset / 10000, visemeId: e.visemeId });
+  };
+
+  // eslint-disable-next-line no-use-before-define
+  const ssmlPart = tidyTextMakeAzureSSML(ssmlBody);
+
+  // eslint-disable-next-line no-use-before-define
+  synthesizeSpeech(ssmlPart, handleSynthResult);
+
+  function handleSynthResult(result) {
+    if (!result.audioData || result.audioData.byteLength === 0) {
+      console.log("No results returned from Azure for that input string");
+      return;
+    }
+
+    // Make a Data URL from returned WAV file
+    const blob = new Blob([result.audioData], { type: "octet/stream" }),
+      url = window.URL.createObjectURL(blob);
+
+    // Queue up the visemes
+    AIHost.visemeHandler = new VisemeHandler(AIHost, result.visemes);
+
+    // Start playing the audio and watch progress in the animation loop
+    AIHost.sound = new THREE.PositionalAudio(AIHost.audioListener);
+    AIHost.sound.onEnded = () => {
+      AIHost.sound.isPlaying = false;
+      if (stopTalk) {
+        stopTalk();
+      }
+      AIHost.sound.stop();
+    };
+    // Use the built-in audio loaded buffer reader - accepts both AWS mp3 and Azure Wav
+    const audioLoader = new THREE.AudioLoader();
+    audioLoader.load(url, buffer => {
+      AIHost.sound.setBuffer(buffer);
+      AIHost.sound.setVolume(8);
+      AIHost.sound.play();
+    });
+  }
+
+  function tidyTextMakeAzureSSML(ssmlBody) {
+    ssmlBody = ssmlBody.replace("<speak>", "");
+    ssmlBody = ssmlBody.replace("</speak>", "");
+    let tidiedString = ssmlBody.replace(/\n/g, " ");
+    tidiedString = tidiedString.replace(/\s+/g, " ").trim();
+    return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="${langCode}"><voice name="${voiceName}">${tidiedString}</voice></speak>`;
+  }
+
+  // The actual cloud call
+  function synthesizeSpeech(ssmlIn, callback) {
+    synthesizer.speakSsmlAsync(
+      ssmlIn,
+      result => {
+        if (result) {
+          synthesizer.close();
+          result.visemes = visemes;
+          if (talk) {
+            talk();
+          }
+          callback(result);
+        }
+      },
+      error => {
+        console.log(error);
+        synthesizer.close();
+      }
+    );
+  }
+};
 
 if (!window.AI) {
   window.AI = {};
