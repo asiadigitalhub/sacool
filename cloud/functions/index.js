@@ -203,16 +203,31 @@ exports.gentext = functions.https.onRequest((request, response) => {
 
       console.log('request.query.text')
       console.log(request.body.text)
+      var model = 'davinci:ft-personal-2023-02-22-10-51-16';
+      if(request.body.model){
+        model = request.body.model;
+      }
+      var maxToken = 200;
+      if(request.body.maxToken){
+        maxToken = request.body.maxToken;
+      }
+      var temperature = 0.66;
+      if(request.body.temperature){
+        temperature = request.body.temperature;
+      }
+
+      var startDate = new Date();
+
       const resultPredictions = await instance
         .post('/v1/completions', {
           prompt: request.body.text,
-          max_tokens: 200,
-          model: 'davinci:ft-personal-2023-02-22-10-51-16',
+          max_tokens: maxToken,
+          model:model,
           top_p: 1,
           presence_penalty: 0.6,
           frequency_penalty: 0,
           best_of: 1,
-          temperature: 0.66,
+          temperature: temperature,
           stop: 'Human:'
         })
         .then(function (response) {
@@ -222,7 +237,13 @@ exports.gentext = functions.https.onRequest((request, response) => {
         })
         .catch(error => {
           console.log('console.error(error);')
+          console.log(error)
         })
+
+      var endDate = new Date();
+      var diff = endDate - startDate; //milliseconds interval
+
+      resultPredictions["chatgpt_time_milisecond"] = diff
 
       return response.send(resultPredictions)
     }
